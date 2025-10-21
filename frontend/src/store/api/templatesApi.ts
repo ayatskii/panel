@@ -1,11 +1,24 @@
 import { apiSlice } from './apiSlice'
 import type { Template, TemplateFootprint, TemplateVariable } from '@/types'
 
+
+interface PaginatedResponse<T> {
+  count: number
+  next: string | null
+  previous: string | null
+  results: T[]
+}
+
 export const templatesApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     // Templates
     getTemplates: builder.query<Template[], void>({
       query: () => '/templates/',
+      transformResponse: (response: PaginatedResponse<Template> | Template[]): Template[] => {
+        if (Array.isArray(response)) return response
+        if (response && 'results' in response) return response.results
+        return []
+      },
       providesTags: ['Template'],
     }),
     getTemplate: builder.query<Template, number>({
@@ -45,6 +58,11 @@ export const templatesApi = apiSlice.injectEndpoints({
         url: '/template-footprints/',
         params: params || {},
       }),
+      transformResponse: (response: PaginatedResponse<TemplateFootprint> | TemplateFootprint[]): TemplateFootprint[] => {
+        if (Array.isArray(response)) return response
+        if (response && 'results' in response) return response.results
+        return []
+      },
     }),
     createFootprint: builder.mutation<TemplateFootprint, Partial<TemplateFootprint>>({
       query: (data) => ({
@@ -61,6 +79,11 @@ export const templatesApi = apiSlice.injectEndpoints({
         url: '/template-variables/',
         params: params || {},
       }),
+      transformResponse: (response: PaginatedResponse<TemplateVariable> | TemplateVariable[]): TemplateVariable[] => {
+        if (Array.isArray(response)) return response
+        if (response && 'results' in response) return response.results
+        return []
+      },
     }),
   }),
 })

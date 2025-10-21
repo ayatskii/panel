@@ -1,6 +1,13 @@
 import { apiSlice } from './apiSlice'
 import type { Page, PageBlock, SwiperPreset, PageFormData } from '@/types'
 
+interface PaginatedResponse<T> {
+  count: number
+  next: string | null
+  previous: string | null
+  results: T[]
+}
+
 export const pagesApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     // Pages
@@ -9,6 +16,11 @@ export const pagesApi = apiSlice.injectEndpoints({
         url: '/pages/',
         params,
       }),
+      transformResponse: (response: PaginatedResponse<Page> | Page[]): Page[] => {
+        if (Array.isArray(response)) return response
+        if (response && 'results' in response) return response.results
+        return []
+      },
       providesTags: ['Page'],
     }),
     getPage: builder.query<Page, number>({
@@ -74,6 +86,11 @@ export const pagesApi = apiSlice.injectEndpoints({
         url: '/page-blocks/',
         params,
       }),
+      transformResponse: (response: PaginatedResponse<PageBlock> | PageBlock[]): PageBlock[] => {
+        if (Array.isArray(response)) return response
+        if (response && 'results' in response) return response.results
+        return []
+      },
     }),
     createBlock: builder.mutation<PageBlock, Partial<PageBlock>>({
       query: (data) => ({
@@ -110,6 +127,11 @@ export const pagesApi = apiSlice.injectEndpoints({
     // Swiper Presets
     getSwiperPresets: builder.query<SwiperPreset[], void>({
       query: () => '/swiper-presets/',
+      transformResponse: (response: PaginatedResponse<SwiperPreset> | SwiperPreset[]): SwiperPreset[] => {
+        if (Array.isArray(response)) return response
+        if (response && 'results' in response) return response.results
+        return []
+      },
     }),
   }),
 })

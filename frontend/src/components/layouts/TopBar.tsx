@@ -39,43 +39,124 @@ import {
     return (
       <AppBar 
         position="fixed" 
+        elevation={0}
         sx={{ 
           zIndex: (theme) => theme.zIndex.drawer + 1,
-          backgroundColor: '#fff',
-          color: '#000',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.12)'
+          backgroundColor: '#ffffff',
+          color: '#1a2027',
+          borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
+          backdropFilter: 'blur(8px)',
         }}
       >
-        <Toolbar>
+        <Toolbar sx={{ height: 70, px: 3 }}>
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             {/* Page title can be dynamic */}
           </Typography>
   
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <IconButton color="inherit">
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <IconButton 
+              sx={{ 
+                color: '#5a6872',
+                '&:hover': {
+                  backgroundColor: 'rgba(25, 118, 210, 0.08)',
+                  color: '#1976d2'
+                }
+              }}
+            >
               <Notifications />
             </IconButton>
   
-            <IconButton onClick={handleMenu} sx={{ p: 0 }}>
-              <Avatar sx={{ bgcolor: 'primary.main' }}>
+            <Box
+              onClick={handleMenu}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1.5,
+                px: 1.5,
+                py: 0.75,
+                borderRadius: 2,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease-in-out',
+                '&:hover': {
+                  backgroundColor: 'rgba(25, 118, 210, 0.04)',
+                }
+              }}
+            >
+              <Avatar 
+                sx={{ 
+                  width: 36,
+                  height: 36,
+                  background: 'linear-gradient(135deg, #1976d2 0%, #2196f3 100%)',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  boxShadow: '0 2px 8px rgba(25, 118, 210, 0.25)'
+                }}
+              >
                 {user?.username?.charAt(0).toUpperCase()}
               </Avatar>
-            </IconButton>
+              <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    fontWeight: 600,
+                    color: '#1a2027',
+                    lineHeight: 1.2
+                  }}
+                >
+                  {user?.username}
+                </Typography>
+                <Typography 
+                  variant="caption" 
+                  sx={{ 
+                    color: '#5a6872',
+                    fontSize: '0.75rem'
+                  }}
+                >
+                  {user?.role}
+                </Typography>
+              </Box>
+            </Box>
   
             <Menu
               anchorEl={anchorEl}
               open={Boolean(anchorEl)}
               onClose={handleClose}
+              PaperProps={{
+                sx: {
+                  mt: 1.5,
+                  minWidth: 200,
+                  borderRadius: 2,
+                  boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.1)',
+                }
+              }}
             >
-              <MenuItem disabled>
-                <Typography variant="body2">
+              <Box sx={{ px: 2, py: 1.5, borderBottom: '1px solid rgba(0, 0, 0, 0.08)' }}>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: '#1a2027' }}>
                   {user?.username}
                 </Typography>
-              </MenuItem>
-              <MenuItem onClick={() => { handleClose(); navigate('/settings'); }}>
+                <Typography variant="caption" sx={{ color: '#5a6872' }}>
+                  {user?.email}
+                </Typography>
+              </Box>
+              <MenuItem 
+                onClick={() => { handleClose(); navigate('/settings'); }}
+                sx={{ 
+                  py: 1.25,
+                  '&:hover': { backgroundColor: 'rgba(25, 118, 210, 0.04)' }
+                }}
+              >
                 Settings
               </MenuItem>
-              <MenuItem onClick={handleLogout}>Logout</MenuItem>
+              <MenuItem 
+                onClick={handleLogout}
+                sx={{ 
+                  py: 1.25,
+                  color: '#f44336',
+                  '&:hover': { backgroundColor: 'rgba(244, 67, 54, 0.04)' }
+                }}
+              >
+                Logout
+              </MenuItem>
             </Menu>
           </Box>
         </Toolbar>

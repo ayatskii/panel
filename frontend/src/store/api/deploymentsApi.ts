@@ -1,6 +1,13 @@
 import { apiSlice } from './apiSlice'
 import type { Deployment } from '@/types'
 
+interface PaginatedResponse<T> {
+  count: number
+  next: string | null
+  previous: string | null
+  results: T[]
+}
+
 export const deploymentsApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getDeployments: builder.query<Deployment[], { site?: number }>({
@@ -8,6 +15,11 @@ export const deploymentsApi = apiSlice.injectEndpoints({
         url: '/deployments/',
         params,
       }),
+      transformResponse: (response: PaginatedResponse<Deployment> | Deployment[]): Deployment[] => {
+        if (Array.isArray(response)) return response
+        if (response && 'results' in response) return response.results
+        return []
+      },
       providesTags: ['Deployment'],
     }),
     getDeployment: builder.query<Deployment, number>({

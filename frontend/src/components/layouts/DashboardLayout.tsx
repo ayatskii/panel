@@ -5,20 +5,30 @@ import TopBar from './TopBar'
 
 const DashboardLayout = () => {
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f5f7fa' }}>
       <TopBar />
       <Sidebar />
       <Box 
         component="main" 
         sx={{ 
-          flexGrow: 1, 
-          p: 3,
-          backgroundColor: '#f5f5f5',
-          minHeight: '100vh'
+          flexGrow: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: '100vh',
         }}
       >
-        <Toolbar /> {/* Spacer for fixed AppBar */}
-        <Outlet />
+        <Toolbar sx={{ minHeight: 70 }} /> {/* Spacer for fixed AppBar */}
+        <Box 
+          sx={{ 
+            flexGrow: 1,
+            p: { xs: 2, sm: 3, md: 4 },
+            maxWidth: '1600px',
+            width: '100%',
+            mx: 'auto'
+          }}
+        >
+          <Outlet />
+        </Box>
       </Box>
     </Box>
   )

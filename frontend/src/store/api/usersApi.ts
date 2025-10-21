@@ -1,10 +1,22 @@
 import { apiSlice } from './apiSlice';
 import type { User, ChangePasswordRequest } from '@/types';
 
+interface PaginatedResponse<T> {
+  count: number
+  next: string | null
+  previous: string | null
+  results: T[]
+}
+
 export const usersApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getUsers: builder.query<User[], void>({
       query: () => '/users/',
+      transformResponse: (response: PaginatedResponse<User> | User[]): User[] => {
+        if (Array.isArray(response)) return response
+        if (response && 'results' in response) return response.results
+        return []
+      },
       providesTags: ['User'],
     }),
     getUser: builder.query<User, number>({

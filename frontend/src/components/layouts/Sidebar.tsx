@@ -7,7 +7,8 @@ import {
   ListItemText,
   Toolbar,
   Typography,
-  Divider
+  Divider,
+  Box
 } from '@mui/material'
 import { 
   Dashboard as DashboardIcon,
@@ -19,10 +20,11 @@ import {
   Settings as SettingsIcon,
   CloudUpload as DeployIcon,
   Code as CodeIcon,
+  Layers as LayersIcon,
 } from '@mui/icons-material'
 import { useNavigate, useLocation } from 'react-router-dom'
 
-const drawerWidth = 240
+const drawerWidth = 260
 
 interface MenuItem {
   text: string
@@ -55,39 +57,107 @@ const Sidebar = () => {
         '& .MuiDrawer-paper': {
           width: drawerWidth,
           boxSizing: 'border-box',
-          backgroundColor: '#1e1e2e',
-          color: '#fff',
+          background: 'linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%)',
+          borderRight: '1px solid rgba(0, 0, 0, 0.08)',
         },
       }}
     >
-      <Toolbar>
-        <Typography variant="h6" noWrap component="div" sx={{ fontWeight: 'bold' }}>
-          Website Panel
-        </Typography>
+      <Toolbar sx={{ 
+        height: 70,
+        display: 'flex',
+        alignItems: 'center',
+        px: 2.5,
+        gap: 1.5
+      }}>
+        <Box
+          sx={{
+            width: 40,
+            height: 40,
+            borderRadius: 2,
+            background: 'linear-gradient(135deg, #1976d2 0%, #2196f3 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 4px 12px rgba(25, 118, 210, 0.3)',
+          }}
+        >
+          <LayersIcon sx={{ color: '#fff', fontSize: 24 }} />
+        </Box>
+        <Box>
+          <Typography 
+            variant="h6" 
+            noWrap 
+            component="div" 
+            sx={{ 
+              fontWeight: 700,
+              fontSize: '1.125rem',
+              color: '#1a2027',
+              lineHeight: 1.2
+            }}
+          >
+            Panel
+          </Typography>
+          <Typography 
+            variant="caption" 
+            sx={{ 
+              color: '#5a6872',
+              fontSize: '0.75rem',
+              fontWeight: 500
+            }}
+          >
+            Management
+          </Typography>
+        </Box>
       </Toolbar>
-      <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.12)' }} />
-      <List>
-        {menuItems.map((item) => (
-          <ListItem key={item.text} disablePadding>
-            <ListItemButton
-              selected={location.pathname === item.path}
-              onClick={() => navigate(item.path)}
-              sx={{
-                '&.Mui-selected': {
-                  backgroundColor: 'rgba(33, 150, 243, 0.16)',
-                  '&:hover': {
-                    backgroundColor: 'rgba(33, 150, 243, 0.24)',
+      <Divider sx={{ borderColor: 'rgba(0, 0, 0, 0.08)', mx: 2 }} />
+      <List sx={{ px: 1.5, py: 2 }}>
+        {menuItems.map((item) => {
+          const isSelected = location.pathname === item.path
+          return (
+            <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
+              <ListItemButton
+                selected={isSelected}
+                onClick={() => navigate(item.path)}
+                sx={{
+                  borderRadius: 2,
+                  py: 1.25,
+                  px: 2,
+                  transition: 'all 0.2s ease-in-out',
+                  '&.Mui-selected': {
+                    backgroundColor: 'rgba(25, 118, 210, 0.08)',
+                    background: 'linear-gradient(90deg, rgba(25, 118, 210, 0.12) 0%, rgba(25, 118, 210, 0.04) 100%)',
+                    borderLeft: '3px solid #1976d2',
+                    '&:hover': {
+                      backgroundColor: 'rgba(25, 118, 210, 0.12)',
+                    },
                   },
-                },
-              }}
-            >
-              <ListItemIcon sx={{ color: 'inherit' }}>
-                {item.icon}
-              </ListItemIcon>
-              <ListItemText primary={item.text} />
-            </ListItemButton>
-          </ListItem>
-        ))}
+                  '&:hover': {
+                    backgroundColor: 'rgba(25, 118, 210, 0.04)',
+                    transform: 'translateX(2px)',
+                  },
+                }}
+              >
+                <ListItemIcon 
+                  sx={{ 
+                    minWidth: 40,
+                    color: isSelected ? '#1976d2' : '#5a6872',
+                    transition: 'color 0.2s ease-in-out'
+                  }}
+                >
+                  {item.icon}
+                </ListItemIcon>
+                <ListItemText 
+                  primary={item.text}
+                  primaryTypographyProps={{
+                    fontSize: '0.875rem',
+                    fontWeight: isSelected ? 600 : 500,
+                    color: isSelected ? '#1976d2' : '#1a2027',
+                  }}
+                />
+              </ListItemButton>
+            </ListItem>
+          )
+        })}
       </List>
     </Drawer>
   )

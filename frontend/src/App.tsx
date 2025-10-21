@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Provider } from 'react-redux'
 import { store } from './store'
 import { Toaster } from 'react-hot-toast'
+import { ThemeProvider, CssBaseline } from '@mui/material'
+import theme from './theme'
 
 // Pages
 import LoginPage from './pages/auth/LoginPage'
@@ -23,13 +25,16 @@ import PromptsPage from './pages/prompts/PromptsPage'
 import DeploymentsPage from './pages/deployments/DeploymentPage'
 import AnalyticsDashboardPage from './pages/analytics/AnalyticsDashboardPage'
 import MediaLibraryPage from './pages/media/MediaLibraryPage'
+import SettingsPage from './pages/settings/SettingsPage'
 
 function App() {
   return (
     <Provider store={store}>
-      <BrowserRouter>
-        <Toaster position="top-right" />
-        <Routes>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <BrowserRouter>
+          <Toaster position="top-right" />
+          <Routes>
           {/* Public routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
@@ -55,13 +60,15 @@ function App() {
               <Route path="/deployments" element={<DeploymentsPage />} />
               <Route path="/analytics" element={<AnalyticsDashboardPage />} />
               <Route path="/media" element={<MediaLibraryPage/>}></Route>
+              <Route path="/settings" element={<SettingsPage />} />
             </Route>
           </Route>
 
           {/* Redirect */}
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Routes>
-      </BrowserRouter>
+        </BrowserRouter>
+      </ThemeProvider>
     </Provider>
   )
 }

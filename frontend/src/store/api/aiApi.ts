@@ -1,6 +1,14 @@
 import { apiSlice } from './apiSlice'
 import type { AIPrompt, AIGenerationResult } from '@/types'
 
+
+interface PaginatedResponse<T> {
+  count: number
+  next: string | null
+  previous: string | null
+  results: T[]
+}
+
 export const aiApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getPrompts: builder.query<AIPrompt[], { category?: string; provider?: string }>({
@@ -8,6 +16,11 @@ export const aiApi = apiSlice.injectEndpoints({
         url: '/prompts/',
         params,
       }),
+      transformResponse: (response: PaginatedResponse<AIPrompt> | AIPrompt[]): AIPrompt[] => {
+        if (Array.isArray(response)) return response
+        if (response && 'results' in response) return response.results
+        return []
+      },
       providesTags: ['Prompt'],
     }),
     getPrompt: builder.query<AIPrompt, number>({
