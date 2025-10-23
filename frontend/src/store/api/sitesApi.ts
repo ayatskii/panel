@@ -1,14 +1,21 @@
 import { apiSlice } from './apiSlice'
 import type { Site, Language, AffiliateLink, SiteFormData } from '@/types'
 
+interface PaginatedResponse<T> {
+  count: number
+  next: string | null
+  previous: string | null
+  results: T[]
+}
+
 export const sitesApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getSites: builder.query<Site[], void>({
       query: () => '/sites/',
-      transformResponse: (response: any) => {
+      transformResponse: (response: PaginatedResponse<Site> | Site[] | unknown): Site[] => {
         if (response && typeof response === 'object') {
-          if ('results' in response && Array.isArray(response.results)) {
-            return response.results
+          if ('results' in response && Array.isArray((response as PaginatedResponse<Site>).results)) {
+            return (response as PaginatedResponse<Site>).results
           }
           if (Array.isArray(response)) {
             return response
@@ -66,9 +73,11 @@ export const sitesApi = apiSlice.injectEndpoints({
     // Languages
     getLanguages: builder.query<Language[], void>({
       query: () => '/languages/',
-      transformResponse: (response: any) => {
+      transformResponse: (response: PaginatedResponse<Language> | Language[] | unknown): Language[] => {
         if (Array.isArray(response)) return response
-        if (response?.results) return response.results
+        if (response && typeof response === 'object' && 'results' in response) {
+          return (response as PaginatedResponse<Language>).results
+        }
         return []
       },
     }),
@@ -76,9 +85,11 @@ export const sitesApi = apiSlice.injectEndpoints({
     // Affiliate Links
     getAffiliateLinks: builder.query<AffiliateLink[], void>({
       query: () => '/affiliate-links/',
-      transformResponse: (response: any) => {
+      transformResponse: (response: PaginatedResponse<AffiliateLink> | AffiliateLink[] | unknown): AffiliateLink[] => {
         if (Array.isArray(response)) return response
-        if (response?.results) return response.results
+        if (response && typeof response === 'object' && 'results' in response) {
+          return (response as PaginatedResponse<AffiliateLink>).results
+        }
         return []
       },
     }),

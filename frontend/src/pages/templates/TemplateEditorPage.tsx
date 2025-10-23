@@ -48,8 +48,9 @@ const TemplateEditorPage = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const isEdit = Boolean(id)
+  const templateId = id ? Number(id) : 0
 
-  const { data: template, isLoading } = useGetTemplateQuery(Number(id), { skip: !id })
+  const { data: template, isLoading } = useGetTemplateQuery(templateId, { skip: !isEdit })
   const [createTemplate, { isLoading: isCreating }] = useCreateTemplateMutation()
   const [updateTemplate, { isLoading: isUpdating }] = useUpdateTemplateMutation()
 
@@ -109,8 +110,8 @@ const TemplateEditorPage = () => {
     e.preventDefault()
 
     try {
-      if (isEdit && id) {
-        await updateTemplate({ id: Number(id), data: formData }).unwrap()
+      if (isEdit && templateId) {
+        await updateTemplate({ id: templateId, data: formData }).unwrap()
         toast.success('Template updated successfully')
       } else {
         await createTemplate(formData).unwrap()
@@ -134,7 +135,7 @@ const TemplateEditorPage = () => {
   return (
     <Box>
       <Typography variant="h4" sx={{ mb: 3, fontWeight: 'bold' }}>
-        {isEdit ? 'Edit Template' : 'Create Template'}
+        {isEdit ? 'Edit Template' : 'New Template'}
       </Typography>
 
       <Alert severity="warning" sx={{ mb: 3 }}>
@@ -163,11 +164,14 @@ const TemplateEditorPage = () => {
               />
 
               <FormControl fullWidth required>
-                <InputLabel>Type</InputLabel>
+                <InputLabel id="template-type-label">Type</InputLabel>
                 <Select
+                  labelId="template-type-label"
+                  id="template-type-select"
                   value={formData.type}
                   onChange={(e) => handleSelectChange('type', e.target.value)}
                   label="Type"
+                  inputProps={{ 'aria-label': 'Type' }}
                 >
                   <MenuItem value="blog">Blog</MenuItem>
                   <MenuItem value="landing">Landing Page</MenuItem>
