@@ -50,7 +50,7 @@ const SiteFormPage = () => {
     domain: '',
     brand_name: '',
     language_code: 'en',
-    template: 1,
+    template: 0, // Start with 0 (no template selected)
     template_footprint: undefined,
     template_variables: {},
     custom_colors: {},
@@ -61,6 +61,12 @@ const SiteFormPage = () => {
     redirect_404_to_home: false,
     use_www_version: false,
   })
+
+  // Set default template when templates are loaded
+  useEffect(() => {
+    // Template is now optional - no auto-selection needed
+    // Users can choose to add a template or skip it
+  }, [templates, isEdit, formData.template])
 
   // Selected template for feature checks
   const selectedTemplate = templates?.find(t => t.id === formData.template)
@@ -120,12 +126,24 @@ const SiteFormPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    // Template is now optional - removed strict validation
+    // Users can create sites and add templates later
+
     try {
+      // Prepare data: convert template 0 or empty string to null
+      const dataToSend = {
+        ...formData,
+        template: formData.template && formData.template !== 0 ? formData.template : null,
+        template_footprint: formData.template_footprint || null,
+        affiliate_link: formData.affiliate_link || null,
+        cloudflare_token: formData.cloudflare_token || null,
+      }
+
       if (isEdit && id) {
-        await updateSite({ id: Number(id), data: formData }).unwrap()
+        await updateSite({ id: Number(id), data: dataToSend }).unwrap()
         toast.success('Site updated successfully')
       } else {
-        await createSite(formData).unwrap()
+        await createSite(dataToSend).unwrap()
         toast.success('Site created successfully')
       }
       navigate('/sites')
@@ -200,23 +218,29 @@ const SiteFormPage = () => {
         {/* Template Selection */}
         <Paper sx={{ p: 3, mb: 3 }}>
           <Typography variant="h6" sx={{ mb: 3 }}>
-            Template Configuration
+            Template Configuration (Optional)
           </Typography>
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <FormControl fullWidth required>
-              <InputLabel>Template</InputLabel>
+            <FormControl fullWidth error={false}>
+              <InputLabel>Template (Optional)</InputLabel>
               <Select
-                value={formData.template}
-                onChange={(e) => handleSelectChange('template', e.target.value)}
-                label="Template"
+                value={formData.template || ''}
+                onChange={(e) => handleSelectChange('template', e.target.value as number)}
+                label="Template (Optional)"
               >
+                <MenuItem value="">
+                  None - Add template later
+                </MenuItem>
                 {templates?.filter(t => t.is_active).map((template) => (
                   <MenuItem key={template.id} value={template.id}>
                     {template.name} - {template.type}
                   </MenuItem>
                 ))}
               </Select>
+              <Typography sx={{ mt: 1, fontSize: '0.875rem', color: 'text.secondary' }}>
+                You can create a site without a template and add one later
+              </Typography>
             </FormControl>
 
             {selectedTemplate && (

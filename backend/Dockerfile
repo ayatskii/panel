@@ -30,7 +30,7 @@ COPY . .
 # Create necessary directories
 RUN mkdir -p /app/staticfiles /app/media
 
-# Collect static files (will be run again in docker-compose command)
+# Collect static files (will be run again in docker-compose comdockemand)
 RUN python manage.py collectstatic --noinput || true
 
 # Expose port

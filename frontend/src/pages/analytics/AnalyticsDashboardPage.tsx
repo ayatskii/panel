@@ -13,7 +13,7 @@ const AnalyticsDashboardPage = () => {
   })
 
   const chartData = {
-    labels: data?.map(d => format(new Date(d.date), 'MMM dd')) || [],
+    labels: data?.map(d => d.date ? format(new Date(d.date), 'MMM dd') : '') || [],
     datasets: [{ label: 'Page Views', data: data?.map(d => d.views) || [], backgroundColor: '#3f51b5' }]
   }
 

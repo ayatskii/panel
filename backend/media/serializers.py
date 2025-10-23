@@ -57,14 +57,14 @@ class MediaSerializer(serializers.ModelSerializer):
             'id', 'folder', 'folder_path', 'folder_name', 'filename', 'original_name',
             'file', 'file_url', 'file_path', 'file_size', 'mime_type',
             'alt_text', 'caption', 'width', 'height',  # Add caption if model has it
-            'uploaded_by', 'user', 'user_username',  # Add user alias
+            'uploaded_by', 'user_username',  # Add user alias
             'uploaded_by_username', 'is_image', 'is_svg',
             'size_kb', 'size_mb', 'file_size_mb', 'file_type',
             'thumbnail_url', 'created_at', 'updated_at'  # Add thumbnail_url and updated_at
         ]
         read_only_fields = [
             'filename', 'file_path', 'file_size', 'mime_type',
-            'width', 'height', 'uploaded_by', 'user',
+            'width', 'height', 'uploaded_by',
             'created_at', 'updated_at'
         ]
     
@@ -98,11 +98,11 @@ class MediaSerializer(serializers.ModelSerializer):
 class MediaUploadSerializer(serializers.ModelSerializer):
     """Serializer for file uploads"""
     file = serializers.FileField()
-    name = serializers.CharField(required=False)  # Add name field for frontend compatibility
+    name = serializers.CharField(required=False, write_only=True)
     
     class Meta:
         model = Media
-        fields = ['file', 'folder', 'alt_text', 'caption', 'name']  # Add name
+        fields = ['file', 'folder', 'alt_text', 'caption', 'name']
     
     def validate_file(self, value):
         """Validate file size and type"""
@@ -116,13 +116,67 @@ class MediaUploadSerializer(serializers.ModelSerializer):
         return value
     
     def create(self, validated_data):
-        """Create media with name field support"""
+        """Create media with all required fields populated"""
+        from PIL import Image
+        import mimetypes
+        
+        # Get the uploaded file
+        file = validated_data.get('file')
+        
         # If name provided, use it as original_name
         name = validated_data.pop('name', None)
         if name:
-            validated_data['original_name'] = name
+            original_name = name
+        else:
+            original_name = file.name
         
-        return super().create(validated_data)
+        # Set filename (cleaned version)
+        filename = file.name
+        
+        # Set file_size
+        file_size = file.size
+        
+        # Set mime_type
+        mime_type = file.content_type or mimetypes.guess_type(file.name)[0] or 'application/octet-stream'
+        
+        # Get uploaded_by from validated_data (passed from save())
+        uploaded_by = validated_data.get('uploaded_by')
+        if not uploaded_by:
+            raise serializers.ValidationError("uploaded_by is required")
+        
+        # Get folder (optional)
+        folder = validated_data.get('folder')
+        alt_text = validated_data.get('alt_text', '')
+        caption = validated_data.get('caption', '')
+        
+        # Create the media instance manually with all required fields
+        media = Media(
+            file=file,
+            filename=filename,
+            original_name=original_name,
+            file_size=file_size,
+            mime_type=mime_type,
+            uploaded_by=uploaded_by,
+            folder=folder,
+            alt_text=alt_text,
+            caption=caption,
+        )
+        media.save()
+        
+        # Set file_path after save (Django's FileField sets the path)
+        media.file_path = str(media.file.name)
+        
+        # If image, try to get dimensions
+        if mime_type.startswith('image/'):
+            try:
+                img = Image.open(media.file.path)
+                media.width, media.height = img.size
+            except Exception:
+                pass  # Not critical if we can't get dimensions
+        
+        media.save(update_fields=['file_path', 'width', 'height'])
+        
+        return media
 
 
 class MediaListSerializer(serializers.ModelSerializer):

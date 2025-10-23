@@ -9,9 +9,10 @@ class MediaFolder(models.Model):
         on_delete=models.CASCADE,
         null=True,
         blank=True,
-        related_name='subfolder'
+        related_name='subfolders'
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = 'media_folders'
@@ -50,6 +51,7 @@ class Media(models.Model):
     file_size = models.BigIntegerField()
     mime_type = models.CharField(max_length=100)
     alt_text = models.CharField(max_length=255, blank=True)
+    caption = models.CharField(max_length=500, blank=True)
     
     # Image-specific fields
     width = models.IntegerField(null=True, blank=True)
@@ -61,6 +63,7 @@ class Media(models.Model):
         related_name='uploaded_media'
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
         db_table = 'media'

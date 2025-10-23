@@ -34,9 +34,10 @@ class MediaViewSet(viewsets.ModelViewSet):
         elif file_type == 'document':
             queryset = queryset.filter(mime_type__in=['application/pdf', 'application/msword'])
         
-        return Response(queryset)
+        return queryset
     
     def get_serializer_class(self):
+        """Use different serializers for different actions"""
         if self.action in ['create', 'upload', 'bulk_upload']:
             return MediaUploadSerializer
         elif self.action == 'list':
@@ -57,6 +58,8 @@ class MediaViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'])
     def bulk_upload(self, request):
         """Upload multiple files"""
+        import mimetypes
+        
         files = request.FILES.getlist('files')
         folder_id = request.data.get('folder')
         uploaded = []
@@ -66,16 +69,34 @@ class MediaViewSet(viewsets.ModelViewSet):
             folder = MediaFolder.objects.filter(id=folder_id).first()
         
         for file in files:
-            media = Media.objects.create(
+            # Get mime type
+            mime_type = file.content_type or mimetypes.guess_type(file.name)[0] or 'application/octet-stream'
+            
+            # Create media instance with all required fields
+            media = Media(
                 file=file,
                 folder=folder,
                 uploaded_by=request.user,
                 filename=file.name,
                 original_name=file.name,
-                file_path=file.name,
                 file_size=file.size,
-                mime_type=file.content_type,
+                mime_type=mime_type,
             )
+            media.save()
+            
+            # Now file_path will have the correct path set by Django
+            media.file_path = str(media.file.name)
+            
+            # Try to get image dimensions
+            if mime_type.startswith('image/'):
+                try:
+                    from PIL import Image
+                    img = Image.open(media.file.path)
+                    media.width, media.height = img.size
+                except Exception:
+                    pass
+            
+            media.save(update_fields=['file_path', 'width', 'height'])
             uploaded.append(MediaSerializer(media, context={'request': request}).data)
         
         return Response(uploaded, status=status.HTTP_201_CREATED)
@@ -139,7 +160,7 @@ class MediaFolderViewSet(viewsets.ModelViewSet):
         elif parent:
             queryset = queryset.filter(parent_folder_id=parent)
         
-        return Response(queryset)
+        return queryset
     
     @action(detail=True, methods=['get'])
     def contents(self, request, pk=None):

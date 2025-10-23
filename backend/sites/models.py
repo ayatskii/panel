@@ -49,7 +49,9 @@ class Site(models.Model):
     template = models.ForeignKey(
         'templates.Template',
         on_delete=models.PROTECT,
-        related_name='sites'
+        related_name='sites',
+        null=True,
+        blank=True
     )
     template_footprint = models.ForeignKey(
         'templates.TemplateFootprint',

@@ -27,7 +27,7 @@ class TemplateViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         """Optimized with related data"""
-        return Response(Template.objects.prefetch_related(
+        return Template.objects.prefetch_related(
             'variables',
             'sections',
             'footprints',
@@ -36,7 +36,7 @@ class TemplateViewSet(viewsets.ModelViewSet):
             site_count=Count('sites', distinct=True),
             footprint_count=Count('footprints', distinct=True),
             section_count=Count('sections', distinct=True)
-        ))
+        )
     
     def get_serializer_class(self):
         """Different serializers for different actions"""

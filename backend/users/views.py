@@ -68,7 +68,7 @@ class UserViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if user.is_admin:
             return User.objects.all()
-        return Response(User.objects.filter(id=user.id))
+        return User.objects.filter(id=user.id)
     
     def get_serializer_class(self):
         """Use different serializers for different actions"""

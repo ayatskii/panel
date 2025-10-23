@@ -3,7 +3,7 @@ import type { RootState } from '../index'
 
 // Use absolute URL in test environment for MSW to intercept
 const getBaseUrl = () => {
-  if (import.meta.env.MODE === 'test' || process.env.NODE_ENV === 'test') {
+  if (import.meta.env.MODE === 'test') {
     return 'http://localhost:3000/api'
   }
   return '/api'

@@ -15,11 +15,11 @@ export interface Site {
   brand_name: string
   
   // Template configuration
-  template: number
+  template: number | null
   template_name?: string
   template_type?: string
   template_type_display?: string
-  template_footprint?: number
+  template_footprint?: number | null
   footprint_details?: {
     id: number
     name: string
@@ -112,13 +112,13 @@ export interface LoginResponse {
     domain: string
     brand_name: string
     language_code: string
-    template: number
-    template_footprint?: number
+    template: number | null
+    template_footprint?: number | null
     template_variables?: Record<string, string | number | boolean>;
     custom_colors?: Record<string, string>
     enable_page_speed?: boolean
-    cloudflare_token?: number
-    affiliate_link?: number
+    cloudflare_token?: number | null
+    affiliate_link?: number | null
     allow_indexing: boolean
     redirect_404_to_home: boolean
     use_www_version: boolean

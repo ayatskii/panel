@@ -119,6 +119,9 @@ class SiteSerializer(serializers.ModelSerializer):
     
     def validate_template_footprint(self, value):
         """Ensure footprint belongs to selected template"""
+        if not value:
+            return value
+        
         template = self.initial_data.get('template')
         if self.instance:
             template = self.instance.template

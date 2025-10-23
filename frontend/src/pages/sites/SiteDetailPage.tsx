@@ -332,7 +332,7 @@ const SiteDetailPage = () => {
               Created
             </Typography>
             <Typography variant="body1">
-              {format(new Date(site.created_at), 'PPpp')}
+              {site.created_at ? format(new Date(site.created_at), 'PPpp') : 'Not available'}
             </Typography>
           </Box>
 

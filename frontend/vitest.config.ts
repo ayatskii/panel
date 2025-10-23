@@ -1,7 +1,9 @@
-import { defineConfig } from 'vitest/config'
+import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { fileURLToPath } from 'url'
+import { defineConfig as defineVitestConfig } from 'vitest/config'
 
+// Use vite defineConfig with vitest options
 export default defineConfig({
   plugins: [react()],
   resolve: {
@@ -13,7 +15,7 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test-utils/setup.ts'],
-    testTimeout: 10000, // Increase timeout for async operations
+    testTimeout: 10000,
     env: {
       NODE_ENV: 'test',
     },

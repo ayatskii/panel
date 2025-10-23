@@ -42,7 +42,7 @@ class PageViewSet(viewsets.ModelViewSet):
         if not user.is_admin:
             queryset = queryset.filter(site__user=user)
         
-        return Response(queryset.order_by('site', 'order', '-created_at'))
+        return queryset.order_by('site', 'order', '-created_at')
     
     def get_serializer_class(self):
         """Use different serializers for different actions"""

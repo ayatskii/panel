@@ -50,7 +50,7 @@ class SiteViewSet(viewsets.ModelViewSet):
         # Filter by user role
         if self.request.user.is_admin:
             return queryset
-        return Response(queryset.filter(user=self.request.user))
+        return queryset.filter(user=self.request.user)
     
     def get_serializer_class(self):
         """Different serializers for different actions"""
@@ -77,7 +77,7 @@ class SiteViewSet(viewsets.ModelViewSet):
         
         if not site.template:
             return Response(
-                {'error': 'Site must have a template'},
+                {'error': 'Site must have a template assigned before deployment'},
                 status=status.HTTP_400_BAD_REQUEST
             )
         

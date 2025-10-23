@@ -214,7 +214,7 @@ const SitesListPage = () => {
                 </Box>
 
                 <Typography variant="caption" color="text.secondary">
-                  Created {format(new Date(site.created_at), 'MMM dd, yyyy')}
+                  {site.created_at ? `Created ${format(new Date(site.created_at), 'MMM dd, yyyy')}` : 'Created date unavailable'}
                 </Typography>
                 
                 {site.deployed_at && (
