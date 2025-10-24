@@ -153,23 +153,38 @@ export interface LoginResponse {
   export interface Template {
     id: number
     name: string
-    type: string
+    type: 'monolithic' | 'sectional'
+    type_display?: string
     description: string
-    base_html?: string
-    base_css?: string
-    base_js?: string
-    is_monolithic: boolean
+    version: string
+    html_content: string
+    css_content: string
+    js_content?: string
+    css_output_type?: 'inline' | 'external' | 'async' | 'path_only'
+    css_output_type_display?: string
+    js_output_type?: 'inline' | 'external' | 'defer' | 'async' | 'path_only'
+    js_output_type_display?: string
+    menu_html?: string
+    footer_menu_html?: string
+    faq_block_html?: string
+    available_blocks?: string[]
+    css_framework?: 'tailwind' | 'bootstrap' | 'custom'
     supports_color_customization: boolean
+    color_variables?: Record<string, string>
     supports_page_speed: boolean
-    thumbnail_url?: string
-    footprints?: TemplateFootprint[]
+    logo_svg?: string
     variables?: TemplateVariable[]
-    footprints_count?: number
-    variables_count?: number
-    sites_count?: number
-    is_active: boolean
+    sections?: unknown[]
+    footprints?: TemplateFootprint[]
+    assets?: unknown[]
+    site_count?: number
+    is_monolithic?: boolean
+    is_sectional?: boolean
     created_at: string
     updated_at: string
+    thumbnail_url?: string
+    footprints_count?: number
+    sites_count?: number
   }
   
   export interface SwiperPreset {
@@ -273,17 +288,20 @@ export interface LoginResponse {
   
   export interface AIPrompt {
     id: number
-    user: number
-    user_username: string
     name: string
     description: string
-    category: 'hero' | 'text' | 'image' | 'custom'
-    prompt_text: string
-    provider: 'openai' | 'anthropic'
-    model: string
-    max_tokens: number
+    type: 'text' | 'image'
+    type_display?: string
+    block_type: string
+    ai_model: string
     temperature: number
+    max_tokens: number | null
+    prompt_text: string
+    system_prompt?: string
     is_active: boolean
+    is_text_prompt?: boolean
+    is_image_prompt?: boolean
+    usage_count?: number
     created_at: string
     updated_at: string
   }

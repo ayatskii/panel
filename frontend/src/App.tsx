@@ -15,6 +15,7 @@ import SitesListPage from './pages/sites/SitesListPage'
 import SiteDetailPage from './pages/sites/SiteDetailPage'
 import SiteFormPage from './pages/sites/SiteFormPage'
 import TemplatesPage from './pages/templates/TemplatesPage'
+import TemplateCreatePage from './pages/templates/TemplateCreatePage'
 import TemplateEditorPage from './pages/templates/TemplateEditorPage'
 import PagesListPage from './pages/pages/PagesListPage'
 import PageFormPage from './pages/pages/PageFormPage'
@@ -22,6 +23,7 @@ import PageBuilderPage from './pages/pages/PageBuilderPage'
 import DashboardLayout from './components/layouts/DashboardLayout'
 import PrivateRoute from './components/auth/PrivateRoute'
 import PromptsPage from './pages/prompts/PromptsPage'
+import PromptFormPage from './pages/prompts/PromptFormPage'
 import DeploymentsPage from './pages/deployments/DeploymentPage'
 import AnalyticsDashboardPage from './pages/analytics/AnalyticsDashboardPage'
 import MediaLibraryPage from './pages/media/MediaLibraryPage'
@@ -48,15 +50,18 @@ function App() {
 
               <Route path="/sites/:id" element={<SiteDetailPage />} />
               <Route path="/sites" element={<SitesListPage />} />
-              <Route path="/sites/form" element={<SiteFormPage />} />
+              <Route path="/sites/create" element={<SiteFormPage />} />
+              <Route path="/sites/:id/edit" element={<SiteFormPage />} />
               <Route path="/templates" element={<TemplatesPage />} />
-              <Route path="/templates/create" element={<TemplateEditorPage />} />
+              <Route path="/templates/create" element={<TemplateCreatePage />} />
               <Route path="/templates/:id/edit" element={<TemplateEditorPage />} />
               <Route path="/pages" element={<PagesListPage />} />
               <Route path="/pages/create" element={<PageFormPage />} />
               <Route path="/pages/:id/edit" element={<PageFormPage />} />
               <Route path="/pages/:id/build" element={<PageBuilderPage />} />
               <Route path="/prompts" element={<PromptsPage />} />
+              <Route path="/prompts/create" element={<PromptFormPage />} />
+              <Route path="/prompts/:id/edit" element={<PromptFormPage />} />
               <Route path="/deployments" element={<DeploymentsPage />} />
               <Route path="/analytics" element={<AnalyticsDashboardPage />} />
               <Route path="/media" element={<MediaLibraryPage/>}></Route>

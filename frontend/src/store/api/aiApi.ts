@@ -11,7 +11,7 @@ interface PaginatedResponse<T> {
 
 export const aiApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    getPrompts: builder.query<AIPrompt[], { category?: string; provider?: string }>({
+    getPrompts: builder.query<AIPrompt[], { type?: string; block_type?: string; ai_model?: string; is_active?: boolean }>({
       query: (params) => ({
         url: '/prompts/',
         params,
@@ -29,7 +29,7 @@ export const aiApi = apiSlice.injectEndpoints({
     }),
     createPrompt: builder.mutation<AIPrompt, Partial<AIPrompt>>({
       query: (data) => ({
-        url: '/ai-prompts/',
+        url: '/prompts/',
         method: 'POST',
         body: data,
       }),
@@ -45,7 +45,7 @@ export const aiApi = apiSlice.injectEndpoints({
     }),
     deletePrompt: builder.mutation<void, number>({
       query: (id) => ({
-        url: `/ai-prompts/${id}/`,
+        url: `/prompts/${id}/`,
         method: 'DELETE',
       }),
       invalidatesTags: ['Prompt'],

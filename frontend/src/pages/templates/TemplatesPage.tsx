@@ -28,12 +28,9 @@ import {
   Edit as EditIcon,
 } from '@mui/icons-material'
 import { useGetTemplatesQuery, useLazyPreviewTemplateQuery } from '@/store/api/templatesApi'
-import { useSelector } from 'react-redux'
-import type { RootState } from '@/store'
 
 const TemplatesPage = () => {
   const navigate = useNavigate()
-  const currentUser = useSelector((state: RootState) => state.auth.user)
   const { data: templates, isLoading } = useGetTemplatesQuery()
   const [triggerPreview, { data: previewData, isLoading: isLoadingPreview }] = useLazyPreviewTemplateQuery()
   
@@ -69,15 +66,13 @@ const TemplatesPage = () => {
         <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
           Templates
         </Typography>
-        {currentUser?.is_admin && (
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => navigate('/templates/create')}
-          >
-            Create Template
-          </Button>
-        )}
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => navigate('/templates/create')}
+        >
+          Create Template
+        </Button>
       </Box>
 
       {/* Search */}
@@ -102,15 +97,13 @@ const TemplatesPage = () => {
           <Typography color="textSecondary" sx={{ mb: 2 }}>
             No templates found
           </Typography>
-          {currentUser?.is_admin && (
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => navigate('/templates/create')}
-            >
-              Create First Template
-            </Button>
-          )}
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => navigate('/templates/create')}
+          >
+            Create First Template
+          </Button>
         </Box>
       ) : (
         <Box
@@ -198,15 +191,13 @@ const TemplatesPage = () => {
                 >
                   Preview
                 </Button>
-                {currentUser?.is_admin && (
-                  <Button
-                    size="small"
-                    startIcon={<EditIcon />}
-                    onClick={() => navigate(`/templates/${template.id}/edit`)}
-                  >
-                    Edit
-                  </Button>
-                )}
+                <Button
+                  size="small"
+                  startIcon={<EditIcon />}
+                  onClick={() => navigate(`/templates/${template.id}/edit`)}
+                >
+                  Edit
+                </Button>
               </CardActions>
             </Card>
           ))}

@@ -95,7 +95,7 @@ const SitesListPage = () => {
         <Button
           variant="contained"
           startIcon={<AddIcon />}
-          onClick={() => navigate('/sites/form')}
+          onClick={() => navigate('/sites/create')}
         >
           Create Site
         </Button>

@@ -43,8 +43,9 @@ const PromptsPage = () => {
           <TableHead>
             <TableRow>
               <TableCell>Name</TableCell>
-              <TableCell>Category</TableCell>
-              <TableCell>Provider</TableCell>
+              <TableCell>Type</TableCell>
+              <TableCell>Block Type</TableCell>
+              <TableCell>AI Model</TableCell>
               <TableCell>Created</TableCell>
               <TableCell align="right">Actions</TableCell>
             </TableRow>
@@ -53,8 +54,9 @@ const PromptsPage = () => {
             {prompts?.map(p => (
               <TableRow key={p.id} hover>
                 <TableCell>{p.name}</TableCell>
-                <TableCell>{p.category}</TableCell>
-                <TableCell>{p.provider}</TableCell>
+                <TableCell>{p.type_display || p.type}</TableCell>
+                <TableCell>{p.block_type || '-'}</TableCell>
+                <TableCell>{p.ai_model}</TableCell>
                 <TableCell>{new Date(p.created_at).toLocaleDateString()}</TableCell>
                 <TableCell align="right">
                   <IconButton onClick={() => {

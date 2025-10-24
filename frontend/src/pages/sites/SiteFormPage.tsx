@@ -232,7 +232,7 @@ const SiteFormPage = () => {
                 <MenuItem value="">
                   None - Add template later
                 </MenuItem>
-                {templates?.filter(t => t.is_active).map((template) => (
+                {templates?.map((template) => (
                   <MenuItem key={template.id} value={template.id}>
                     {template.name} - {template.type}
                   </MenuItem>

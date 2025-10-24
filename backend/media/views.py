@@ -43,13 +43,18 @@ class MediaViewSet(viewsets.ModelViewSet):
         elif self.action == 'list':
             return MediaListSerializer
         return MediaSerializer
+
+    def perform_create(self, serializer):
+        """Ensure uploaded_by is set on creation."""
+        serializer.save(uploaded_by=self.request.user)
     
     @action(detail=False, methods=['post'])
     def upload(self, request):
         """Upload a single file"""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        media = serializer.save(uploaded_by=request.user)
+        self.perform_create(serializer)
+        media = serializer.instance
         return Response(
             MediaSerializer(media, context={'request': request}).data,
             status=status.HTTP_201_CREATED
