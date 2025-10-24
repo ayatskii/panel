@@ -21,6 +21,7 @@ import {
   CloudUpload as DeployIcon,
   Code as CodeIcon,
   Layers as LayersIcon,
+  VpnKey as IntegrationsIcon,
 } from '@mui/icons-material'
 import { useNavigate, useLocation } from 'react-router-dom'
 
@@ -38,6 +39,7 @@ const menuItems: MenuItem[] = [
   { text: 'Pages', icon: <PagesIcon />, path: '/pages' },
   { text: 'Templates', icon: <TemplatesIcon />, path: '/templates' },
   { text: 'Media', icon: <MediaIcon />, path: '/media' },
+  { text: 'Integrations', icon: <IntegrationsIcon />, path: '/integrations/cloudflare-tokens' },
   { text: 'Deployments', icon: <DeployIcon />, path: '/deployments' },
   { text: 'Analytics', icon: <AnalyticsIcon />, path: '/analytics' },
   { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
@@ -112,7 +114,8 @@ const Sidebar = () => {
       <Divider sx={{ borderColor: 'rgba(0, 0, 0, 0.08)', mx: 2 }} />
       <List sx={{ px: 1.5, py: 2 }}>
         {menuItems.map((item) => {
-          const isSelected = location.pathname === item.path
+          const isSelected = location.pathname === item.path || 
+                             (item.path.startsWith('/integrations') && location.pathname.startsWith('/integrations'))
           return (
             <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
               <ListItemButton

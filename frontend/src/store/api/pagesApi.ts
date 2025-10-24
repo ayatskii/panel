@@ -132,6 +132,41 @@ export const pagesApi = apiSlice.injectEndpoints({
         if (response && 'results' in response) return response.results
         return []
       },
+      providesTags: ['Page'],
+    }),
+
+    getSwiperPreset: builder.query<SwiperPreset, number>({
+      query: (id) => `/swiper-presets/${id}/`,
+      providesTags: (_result, _error, id) => [{ type: 'Page', id }],
+    }),
+
+    createSwiperPreset: builder.mutation<SwiperPreset, Partial<SwiperPreset>>({
+      query: (data) => ({
+        url: '/swiper-presets/',
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['Page'],
+    }),
+
+    updateSwiperPreset: builder.mutation<SwiperPreset, { 
+      id: number; 
+      data: Partial<SwiperPreset> 
+    }>({
+      query: ({ id, data }) => ({
+        url: `/swiper-presets/${id}/`,
+        method: 'PATCH',
+        body: data,
+      }),
+      invalidatesTags: ['Page'],
+    }),
+
+    deleteSwiperPreset: builder.mutation<void, number>({
+      query: (id) => ({
+        url: `/swiper-presets/${id}/`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Page'],
     }),
   }),
 })
@@ -152,4 +187,8 @@ export const {
   useDeleteBlockMutation,
   useReorderBlocksMutation,
   useGetSwiperPresetsQuery,
+  useGetSwiperPresetQuery,
+  useCreateSwiperPresetMutation,
+  useUpdateSwiperPresetMutation,
+  useDeleteSwiperPresetMutation,
 } = pagesApi

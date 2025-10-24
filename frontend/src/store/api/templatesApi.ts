@@ -51,6 +51,11 @@ export const templatesApi = apiSlice.injectEndpoints({
     previewTemplate: builder.query<{ html: string; name: string }, number>({
       query: (id) => `/templates/${id}/preview/`,
     }),
+
+    getTemplateVariables: builder.query<TemplateVariable[], number>({
+      query: (templateId) => `/templates/${templateId}/variables/`,
+      providesTags: (_result, _error, id) => [{ type: 'Template', id }],
+    }),
     
     // Template Footprints
     getFootprints: builder.query<TemplateFootprint[], { template?: number } | void>({
@@ -96,6 +101,7 @@ export const {
   useDeleteTemplateMutation,
   usePreviewTemplateQuery,
   useLazyPreviewTemplateQuery,
+  useGetTemplateVariablesQuery,
   useGetFootprintsQuery,
   useCreateFootprintMutation,
   useGetVariablesQuery,

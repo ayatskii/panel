@@ -28,6 +28,8 @@ import DeploymentsPage from './pages/deployments/DeploymentPage'
 import AnalyticsDashboardPage from './pages/analytics/AnalyticsDashboardPage'
 import MediaLibraryPage from './pages/media/MediaLibraryPage'
 import SettingsPage from './pages/settings/SettingsPage'
+import ApiTokensPage from './pages/integrations/ApiTokensPage'
+import CloudflareTokensPage from './pages/integrations/CloudflareTokensPage'
 
 function App() {
   return (
@@ -66,6 +68,8 @@ function App() {
               <Route path="/analytics" element={<AnalyticsDashboardPage />} />
               <Route path="/media" element={<MediaLibraryPage/>}></Route>
               <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/integrations/api-tokens" element={<ApiTokensPage />} />
+              <Route path="/integrations/cloudflare-tokens" element={<CloudflareTokensPage />} />
             </Route>
           </Route>
 

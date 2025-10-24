@@ -1,5 +1,5 @@
 import { apiSlice } from './apiSlice'
-import type { AnalyticsData } from '@/types'
+import type { AnalyticsData, AnalyticsSummary, TrafficSource, PageViewTrackingRequest } from '@/types'
 
 interface PaginatedResponse<T> {
   count: number
@@ -20,8 +20,42 @@ export const analyticsApi = apiSlice.injectEndpoints({
         if (response && 'results' in response) return response.results
         return []
       },
+      providesTags: ['Analytics'],
+    }),
+    
+    getAnalyticsSummary: builder.query<AnalyticsSummary, { 
+      site?: number; 
+      start?: string; 
+      end?: string 
+    }>({
+      query: (params) => ({
+        url: '/analytics/summary/',
+        params,
+      }),
+      providesTags: ['Analytics'],
+    }),
+    
+    getTrafficSources: builder.query<TrafficSource[], { site?: number }>({
+      query: (params) => ({
+        url: '/analytics/traffic_sources/',
+        params,
+      }),
+      providesTags: ['Analytics'],
+    }),
+    
+    trackPageView: builder.mutation<{ success: boolean }, PageViewTrackingRequest>({
+      query: (data) => ({
+        url: '/analytics/track/',
+        method: 'POST',
+        body: data,
+      }),
     }),
   }),
 })
 
-export const { useGetAnalyticsQuery } = analyticsApi
+export const { 
+  useGetAnalyticsQuery,
+  useGetAnalyticsSummaryQuery,
+  useGetTrafficSourcesQuery,
+  useTrackPageViewMutation,
+} = analyticsApi

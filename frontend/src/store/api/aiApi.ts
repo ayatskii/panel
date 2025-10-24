@@ -64,6 +64,11 @@ export const aiApi = apiSlice.injectEndpoints({
         body: data,
       }),
     }),
+
+    getPromptsByBlockType: builder.query<AIPrompt[], string>({
+      query: (blockType) => `/prompts/by_block_type/?block_type=${blockType}`,
+      providesTags: ['Prompt'],
+    }),
   }),
 })
 
@@ -75,4 +80,5 @@ export const {
   useDeletePromptMutation,
   useTestPromptMutation,
   useGenerateContentMutation,
+  useGetPromptsByBlockTypeQuery,
 } = aiApi

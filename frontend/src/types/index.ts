@@ -100,11 +100,42 @@ export interface LoginResponse {
     code: string
     created_at: string
   }  
-  export interface AffiliateLink {
-    id: number
+export interface AffiliateLink {
+  id: number
     name: string
     url: string
     description: string
+    click_tracking: boolean
+    site_count?: number
+    swiper_preset_count?: number
+    total_usage?: number
+    created_at: string
+    updated_at: string
+  }
+
+  export interface ApiToken {
+    id: number
+    name: string
+    service: 'chatgpt' | 'grok' | 'claude' | 'cloudflare' | 'elevenlabs' | 'dalle' | 'midjourney'
+    service_display: string
+    token_value?: string
+    token_masked: string
+    is_active: boolean
+    last_used: string | null
+    usage_count: number
+    created_at: string
+    updated_at: string
+  }
+
+  export interface CloudflareToken {
+    id: number
+    api_token: number
+    api_token_name?: string
+    api_token_service?: string
+    name: string
+    account_id: string
+    zone_id: string
+    pages_project_name: string
     created_at: string
   }
 
@@ -338,4 +369,52 @@ export interface LoginResponse {
   export interface AnalyticsData {
     date: string
     views: number
+  }
+
+  export interface AnalyticsSummary {
+    total_visitors: number | null
+    total_pageviews: number | null
+    avg_bounce_rate: number | null
+    total_conversions: number | null
+    total_revenue: number | null
+    date_range: {
+      start: string | null
+      end: string | null
+    }
+  }
+
+  export interface TrafficSource {
+    traffic_source: string
+    visitors_total: number
+    pageviews_total: number
+  }
+
+  export interface PageViewTrackingRequest {
+    site_id: number
+    page_slug: string
+  }
+
+  export interface AffiliateLinkUsage {
+    affiliate_link: {
+      id: number
+      name: string
+      url: string
+    }
+    usage_summary: {
+      total_sites: number
+      total_presets: number
+      total_usage: number
+    }
+    sites: Array<{
+      id: number
+      domain: string
+      brand_name: string
+      user__username: string
+      created_at: string
+    }>
+    swiper_presets: Array<{
+      id: number
+      name: string
+      created_at: string
+    }>
   }

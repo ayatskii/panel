@@ -21,6 +21,6 @@ export const apiSlice = createApi({
       return headers
     },
   }),
-  tagTypes: ['User', 'Site', 'Page', 'Template', 'Deployment', 'Media', 'Prompt'],
+  tagTypes: ['User', 'Site', 'Page', 'Template', 'Deployment', 'Media', 'Prompt', 'ApiToken', 'CloudflareToken', 'Analytics', 'AffiliateLink'],
   endpoints: () => ({}),
 })

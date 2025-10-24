@@ -28,6 +28,7 @@ import {
 } from '@/store/api/sitesApi'
 import { useGetTemplatesQuery } from '@/store/api/templatesApi'
 import { useGetAffiliateLinksQuery } from '@/store/api/sitesApi'
+import { useGetCloudflareTokensQuery } from '@/store/api/integrationsApi'
 import toast from 'react-hot-toast'
 import type { SiteFormData } from '@/types'
 
@@ -40,6 +41,7 @@ const SiteFormPage = () => {
   const { data: site, isLoading: siteLoading } = useGetSiteQuery(Number(id), { skip: !id })
   const { data: templates, isLoading: templatesLoading } = useGetTemplatesQuery()
   const { data: affiliateLinks, isLoading: linksLoading } = useGetAffiliateLinksQuery()
+  const { data: cloudflareTokens, isLoading: tokensLoading } = useGetCloudflareTokensQuery()
 
   // Mutations
   const [createSite, { isLoading: isCreating }] = useCreateSiteMutation()
@@ -156,7 +158,7 @@ const SiteFormPage = () => {
     }
   }
 
-  if (siteLoading || templatesLoading || linksLoading) {
+  if (siteLoading || templatesLoading || linksLoading || tokensLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
         <CircularProgress />
@@ -294,6 +296,42 @@ const SiteFormPage = () => {
             </AccordionDetails>
           </Accordion>
         )}
+
+        {/* Deployment Settings */}
+        <Paper sx={{ p: 3, mb: 3 }}>
+          <Typography variant="h6" sx={{ mb: 3 }}>
+            Deployment Settings
+          </Typography>
+
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <FormControl fullWidth>
+              <InputLabel>Cloudflare Token</InputLabel>
+              <Select
+                value={formData.cloudflare_token || ''}
+                onChange={(e) => handleSelectChange('cloudflare_token', e.target.value)}
+                label="Cloudflare Token"
+              >
+                <MenuItem value="">None</MenuItem>
+                {cloudflareTokens?.map((token) => (
+                  <MenuItem key={token.id} value={token.id}>
+                    {token.name} {token.account_id && `(${token.account_id})`}
+                  </MenuItem>
+                ))}
+              </Select>
+              <Typography sx={{ mt: 1, fontSize: '0.875rem', color: 'text.secondary' }}>
+                Required for deployment. {!cloudflareTokens?.length && (
+                  <Button
+                    size="small"
+                    onClick={() => navigate('/integrations/cloudflare-tokens')}
+                    sx={{ ml: 1 }}
+                  >
+                    Add Cloudflare Token
+                  </Button>
+                )}
+              </Typography>
+            </FormControl>
+          </Box>
+        </Paper>
 
         {/* Advanced Settings */}
         <Accordion sx={{ mb: 3 }}>

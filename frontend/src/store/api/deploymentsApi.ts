@@ -44,6 +44,17 @@ export const deploymentsApi = apiSlice.injectEndpoints({
     getDeploymentLogs: builder.query<{ logs: string[] }, number>({
       query: (id) => `/deployments/${id}/logs/`,
     }),
+    
+    cancelDeployment: builder.mutation<{ message: string }, number>({
+      query: (id) => ({
+        url: `/deployments/${id}/cancel/`,
+        method: 'POST',
+      }),
+      invalidatesTags: (_result, _error, id) => [
+        { type: 'Deployment', id }, 
+        'Deployment'
+      ],
+    }),
   }),
 })
 
@@ -53,4 +64,5 @@ export const {
   useCreateDeploymentMutation,
   useTriggerDeploymentMutation,
   useGetDeploymentLogsQuery,
+  useCancelDeploymentMutation,
 } = deploymentsApi
