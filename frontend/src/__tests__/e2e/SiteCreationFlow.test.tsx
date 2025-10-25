@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { screen, waitFor, fireEvent } from '@testing-library/react'
+import { screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test-utils'
 import * as router from 'react-router-dom'
@@ -83,7 +83,6 @@ describe('E2E: Site Creation Flow', () => {
     })
 
     it('should validate required fields before submission', async () => {
-      const user = userEvent.setup()
       renderWithProviders(<MockSiteForm />)
 
       // Try to submit empty form using fireEvent
@@ -119,13 +118,13 @@ describe('E2E: Site Creation Flow', () => {
       renderWithProviders(<MockSiteForm />)
 
       // Create first site
-      let nameInput = screen.getByTestId('site-name')
-      let domainInput = screen.getByTestId('site-domain')
+      const nameInput = screen.getByTestId('site-name')
+      const domainInput = screen.getByTestId('site-domain')
 
       await user.type(nameInput, 'Site One')
       await user.type(domainInput, 'site-one.com')
 
-      let submitButton = screen.getByTestId('submit-btn')
+      const submitButton = screen.getByTestId('submit-btn')
       fireEvent.click(submitButton)
 
       // Form should be ready for next site
@@ -190,7 +189,7 @@ describe('E2E: Site Creation Flow', () => {
 
       // First attempt (incomplete)
       let nameInput = screen.getByTestId('site-name')
-      let submitButton = screen.getByTestId('submit-btn')
+      const submitButton = screen.getByTestId('submit-btn')
       fireEvent.click(submitButton)
 
       // Fill form correctly and retry
@@ -260,7 +259,6 @@ describe('E2E: Site Creation Flow', () => {
 
   describe('Data Validation', () => {
     it('should validate all required fields', async () => {
-      const user = userEvent.setup()
       renderWithProviders(<MockSiteForm />)
 
       // Submit empty form using fireEvent

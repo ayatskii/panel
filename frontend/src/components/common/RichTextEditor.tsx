@@ -29,7 +29,7 @@ interface RichTextEditorProps {
   minHeight?: number
 }
 
-const RichTextEditor = ({ content, onChange, placeholder = 'Start typing...', minHeight = 200 }: RichTextEditorProps) => {
+const RichTextEditor = ({ content, onChange, minHeight = 200 }: RichTextEditorProps) => {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({

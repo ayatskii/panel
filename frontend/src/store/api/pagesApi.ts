@@ -154,12 +154,12 @@ export const pagesApi = apiSlice.injectEndpoints({
         priority: number
       }>
       categories: {
-        primary: any[]
-        related: any[]
-        long_tail: any[]
-        question: any[]
-        commercial: any[]
-        semantic: any[]
+        primary: Record<string, unknown>[]
+        related: Record<string, unknown>[]
+        long_tail: Record<string, unknown>[]
+        question: Record<string, unknown>[]
+        commercial: Record<string, unknown>[]
+        semantic: Record<string, unknown>[]
       }
       content_suggestions: string[]
       research_summary: string
@@ -223,9 +223,9 @@ export const pagesApi = apiSlice.injectEndpoints({
         h1_keyword_usage: Record<string, boolean>
       }
       content_analysis: {
-        heading_analysis: any
-        image_analysis: any
-        link_analysis: any
+        heading_analysis: Record<string, unknown>
+        image_analysis: Record<string, unknown>
+        link_analysis: Record<string, unknown>
         content_structure_score: number
       }
       technical_analysis: {
@@ -261,7 +261,7 @@ export const pagesApi = apiSlice.injectEndpoints({
     compareCompetitors: builder.mutation<{
       success: boolean
       competitor_count: number
-      competitor_analyses: any[]
+      competitor_analyses: Record<string, unknown>[]
       comparison_insights: string[]
       recommendations: string[]
     }, {
@@ -369,7 +369,7 @@ export const pagesApi = apiSlice.injectEndpoints({
       schema_type: string
       page_id: number
       page_slug: string
-      structured_data: any
+      structured_data: Record<string, unknown>
       json_ld: string
       generated_at: string
     }, {
@@ -409,7 +409,7 @@ export const pagesApi = apiSlice.injectEndpoints({
       schema_type: string
       site_id: number
       site_domain: string
-      structured_data: any
+      structured_data: Record<string, unknown>
       json_ld: string
       generated_at: string
     }, {
@@ -429,7 +429,7 @@ export const pagesApi = apiSlice.injectEndpoints({
       schema_type: string
       field_count: number
     }, {
-      schema_data: any
+      schema_data: Record<string, unknown>
     }>({
       query: (data) => ({
         url: '/pages/validate_schema/',

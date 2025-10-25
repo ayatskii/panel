@@ -36,7 +36,7 @@ describe('deploymentsApi', () => {
 
   describe('transformResponse', () => {
     it('getDeployments should handle paginated response', () => {
-      const response: any = {
+      const response: Record<string, unknown> = {
         count: 1,
         next: null,
         previous: null,

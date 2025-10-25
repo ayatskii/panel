@@ -13,7 +13,6 @@ import {
   ListItemText,
   ListItemSecondaryAction,
   IconButton,
-  Divider,
   Collapse,
   Accordion,
   AccordionSummary,
@@ -21,7 +20,6 @@ import {
   Grid,
   Card,
   CardContent,
-  LinearProgress,
   Tooltip,
 } from '@mui/material'
 import {
@@ -30,10 +28,8 @@ import {
   ExpandLess as ExpandLessIcon,
   CheckCircle as CheckIcon,
   Warning as WarningIcon,
-  Error as ErrorIcon,
   TrendingUp as TrendingUpIcon,
   Psychology as PsychologyIcon,
-  ContentCopy as CopyIcon,
   Add as AddIcon,
   Remove as RemoveIcon,
 } from '@mui/icons-material'
@@ -51,9 +47,9 @@ const LSIKeywordResearch = ({ pageContent = '', onAddKeywords }: LSIKeywordResea
   const [industry, setIndustry] = useState('')
   const [targetAudience, setTargetAudience] = useState('')
   const [maxKeywords, setMaxKeywords] = useState(20)
-  const [researchResults, setResearchResults] = useState<any>(null)
+  const [researchResults, setResearchResults] = useState<Record<string, unknown> | null>(null)
   const [selectedKeywords, setSelectedKeywords] = useState<string[]>([])
-  const [densityAnalysis, setDensityAnalysis] = useState<any>(null)
+  const [densityAnalysis, setDensityAnalysis] = useState<Record<string, unknown> | null>(null)
 
   const [researchKeywords, { isLoading: isResearching }] = useResearchLSIKeywordsMutation()
   const [analyzeDensity, { isLoading: isAnalyzingDensity }] = useAnalyzeKeywordDensityMutation()
@@ -284,7 +280,7 @@ const LSIKeywordResearch = ({ pageContent = '', onAddKeywords }: LSIKeywordResea
                 </AccordionSummary>
                 <AccordionDetails>
                   <List>
-                    {researchResults.keywords.map((keywordData: any, index: number) => (
+                    {researchResults.keywords.map((keywordData: Record<string, unknown>, index: number) => (
                       <ListItem key={index} sx={{ border: '1px solid', borderColor: 'divider', mb: 1, borderRadius: 1 }}>
                         <ListItemText
                           primary={
@@ -388,7 +384,7 @@ const LSIKeywordResearch = ({ pageContent = '', onAddKeywords }: LSIKeywordResea
               </Alert>
 
               <List>
-                {densityAnalysis.keyword_analysis.map((analysis: any, index: number) => (
+                {densityAnalysis.keyword_analysis.map((analysis: Record<string, unknown>, index: number) => (
                   <ListItem key={index} sx={{ border: '1px solid', borderColor: 'divider', mb: 1, borderRadius: 1 }}>
                     <ListItemText
                       primary={

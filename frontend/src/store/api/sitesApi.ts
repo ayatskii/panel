@@ -79,7 +79,7 @@ export const sitesApi = apiSlice.injectEndpoints({
       invalidatesTags: ['Site'],
     }),
 
-    getSiteAnalyticsSummary: builder.query<any, { 
+    getSiteAnalyticsSummary: builder.query<Record<string, unknown>, { 
       id: number; 
       days?: number 
     }>({
@@ -90,7 +90,7 @@ export const sitesApi = apiSlice.injectEndpoints({
       providesTags: (_result, _error, { id }) => [{ type: 'Site', id }],
     }),
 
-    getAvailableTemplates: builder.query<any[], void>({
+    getAvailableTemplates: builder.query<Record<string, unknown>[], void>({
       query: () => '/sites/templates_available/',
       providesTags: ['Template'],
     }),
@@ -157,7 +157,7 @@ export const sitesApi = apiSlice.injectEndpoints({
       invalidatesTags: ['AffiliateLink'],
     }),
 
-    getAffiliateLinkUsage: builder.query<any, number>({
+    getAffiliateLinkUsage: builder.query<Record<string, unknown>, number>({
       query: (id) => `/affiliate-links/${id}/usage/`,
       providesTags: (_result, _error, id) => [{ type: 'AffiliateLink', id }],
     }),

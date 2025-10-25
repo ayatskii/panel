@@ -13,7 +13,6 @@ import {
   Divider,
   IconButton,
   Autocomplete,
-  Slider,
 } from '@mui/material'
 import {
   Close as CloseIcon,
@@ -24,7 +23,6 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
 import { useGetTagsQuery } from '@/store/api/mediaApi'
-import type { MediaTag } from '@/types'
 
 export interface MediaFilters {
   search?: string
@@ -58,7 +56,7 @@ const AdvancedFilters = ({
   const { data: tags } = useGetTagsQuery()
   const [localFilters, setLocalFilters] = useState<MediaFilters>(filters)
 
-  const handleChange = (key: keyof MediaFilters, value: any) => {
+  const handleChange = (key: keyof MediaFilters, value: unknown) => {
     const newFilters = { ...localFilters, [key]: value }
     setLocalFilters(newFilters)
   }

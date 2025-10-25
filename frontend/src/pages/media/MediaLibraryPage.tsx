@@ -106,7 +106,7 @@ const MediaLibraryPage = () => {
   const [selectedItem, setSelectedItem] = useState<{ id: number; type: 'media' | 'folder' } | null>(null);
   const [filters, setFilters] = useState<MediaFilters>({
     search: '',
-    type: currentType as any || '',
+    type: (currentType as 'image' | 'video' | 'document' | '') || '',
     tags: [],
   });
 

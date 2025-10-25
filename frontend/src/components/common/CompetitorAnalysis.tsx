@@ -12,7 +12,6 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
-  Divider,
   Collapse,
   Accordion,
   AccordionSummary,
@@ -20,7 +19,6 @@ import {
   Grid,
   Card,
   CardContent,
-  LinearProgress,
   IconButton,
   Dialog,
   DialogTitle,
@@ -33,13 +31,10 @@ import {
   ExpandLess as ExpandLessIcon,
   CheckCircle as CheckIcon,
   Warning as WarningIcon,
-  Error as ErrorIcon,
   TrendingUp as TrendingUpIcon,
   Compare as CompareIcon,
   Add as AddIcon,
   Delete as DeleteIcon,
-  OpenInNew as OpenInNewIcon,
-  ContentCopy as CopyIcon,
 } from '@mui/icons-material'
 import { useAnalyzeCompetitorMutation, useCompareCompetitorsMutation } from '@/store/api/pagesApi'
 import toast from 'react-hot-toast'
@@ -53,8 +48,8 @@ const CompetitorAnalysis = ({ targetKeywords = [], onInsightsGenerated }: Compet
   const [expanded, setExpanded] = useState(false)
   const [competitorUrl, setCompetitorUrl] = useState('')
   const [competitorUrls, setCompetitorUrls] = useState<string[]>([])
-  const [analysisResults, setAnalysisResults] = useState<any>(null)
-  const [comparisonResults, setComparisonResults] = useState<any>(null)
+  const [analysisResults, setAnalysisResults] = useState<Record<string, unknown> | null>(null)
+  const [comparisonResults, setComparisonResults] = useState<Record<string, unknown> | null>(null)
   const [compareDialogOpen, setCompareDialogOpen] = useState(false)
   const [newCompetitorUrl, setNewCompetitorUrl] = useState('')
 

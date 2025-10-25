@@ -1,20 +1,18 @@
 import { useState } from 'react'
 import { Box, Typography, Paper, TextField, Button, CircularProgress } from '@mui/material'
-import { useGetSiteAnalyticsQuery } from '@/store/api/analyticsApi'
 import { Bar } from 'react-chartjs-2'
 import { format } from 'date-fns'
+import { useGetSiteAnalyticsQuery } from '@/store/api/analyticsApi'
 
 const AnalyticsDashboardPage = () => {
   const [params, setParams] = useState({ site: '', start: '', end: '' })
-  const { data, isLoading } = useGetAnalyticsQuery({
-    site: params.site ? Number(params.site) : undefined,
-    start: params.start,
-    end: params.end
+  const { data, isLoading } = useGetSiteAnalyticsQuery({
+    site_id: params.site ? Number(params.site) : undefined
   })
 
   const chartData = {
     labels: data?.map(d => d.date ? format(new Date(d.date), 'MMM dd') : '') || [],
-    datasets: [{ label: 'Page Views', data: data?.map(d => d.views) || [], backgroundColor: '#3f51b5' }]
+    datasets: [{ label: 'Page Views', data: data?.map(d => d.page_views) || [], backgroundColor: '#3f51b5' }]
   }
 
   return (

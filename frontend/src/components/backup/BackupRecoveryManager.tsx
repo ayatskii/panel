@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import {
   Box,
   Paper,
@@ -27,12 +27,8 @@ import {
   CircularProgress,
   Tabs,
   Tab,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   Switch,
   FormControlLabel,
-  Divider,
   LinearProgress,
   Tooltip,
   Table,
@@ -58,21 +54,9 @@ import {
   Storage as StorageIcon,
   Database as DatabaseIcon,
   Folder as FolderIcon,
-  Assessment as AssessmentIcon,
-  Warning as WarningIcon,
   CheckCircle as CheckCircleIcon,
-  Error as ErrorIcon,
-  ExpandMore as ExpandMoreIcon,
-  Settings as SettingsIcon,
-  History as HistoryIcon,
-  Security as SecurityIcon,
   Speed as SpeedIcon,
   Timeline as TimelineIcon,
-  GetApp as DownloadIcon,
-  Publish as UploadIcon,
-  PlayArrow as PlayIcon,
-  Stop as StopIcon,
-  Info as InfoIcon,
 } from '@mui/icons-material'
 import {
   useCreateDatabaseBackupMutation,
@@ -92,10 +76,6 @@ import {
 } from '@/store/api/backupApi'
 import toast from 'react-hot-toast'
 
-interface BackupRecoveryManagerProps {
-  siteId?: number
-  siteDomain?: string
-}
 
 interface TabPanelProps {
   children?: React.ReactNode
@@ -119,14 +99,14 @@ function TabPanel(props: TabPanelProps) {
   )
 }
 
-const BackupRecoveryManager = ({ siteId, siteDomain }: BackupRecoveryManagerProps) => {
+const BackupRecoveryManager = () => {
   const [tabValue, setTabValue] = useState(0)
   const [backupDialogOpen, setBackupDialogOpen] = useState(false)
   const [restoreDialogOpen, setRestoreDialogOpen] = useState(false)
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false)
   const [cloudDialogOpen, setCloudDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [activeStep, setActiveStep] = useState(0)
+  const [activeStep] = useState(0)
   
   const [backupConfig, setBackupConfig] = useState({
     backup_name: '',
@@ -205,7 +185,7 @@ const BackupRecoveryManager = ({ siteId, siteDomain }: BackupRecoveryManagerProp
         refetchBackups()
         refetchAnalytics()
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to create backup')
     }
   }
@@ -243,7 +223,7 @@ const BackupRecoveryManager = ({ siteId, siteDomain }: BackupRecoveryManagerProp
         })
         refetchBackups()
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to restore backup')
     }
   }
@@ -264,7 +244,7 @@ const BackupRecoveryManager = ({ siteId, siteDomain }: BackupRecoveryManagerProp
         refetchBackups()
         refetchAnalytics()
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete backup')
     }
   }
@@ -292,7 +272,7 @@ const BackupRecoveryManager = ({ siteId, siteDomain }: BackupRecoveryManagerProp
         })
         refetchSchedule()
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to schedule backup')
     }
   }
@@ -328,7 +308,7 @@ const BackupRecoveryManager = ({ siteId, siteDomain }: BackupRecoveryManagerProp
         })
         refetchBackups()
       }
-    } catch (error) {
+    } catch {
       toast.error(`Failed to ${cloudConfig.operation} backup`)
     }
   }
@@ -342,7 +322,7 @@ const BackupRecoveryManager = ({ siteId, siteDomain }: BackupRecoveryManagerProp
         refetchBackups()
         refetchAnalytics()
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to cleanup old backups')
     }
   }
@@ -471,7 +451,7 @@ const BackupRecoveryManager = ({ siteId, siteDomain }: BackupRecoveryManagerProp
             </CardContent>
           </Card>
         </Box>
-      </Box>
+      </Grid>
 
       {/* Tabs */}
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
@@ -802,7 +782,7 @@ const BackupRecoveryManager = ({ siteId, siteDomain }: BackupRecoveryManagerProp
                 </CardContent>
               </Card>
             </Box>
-          </Box>
+          </Grid>
         </Box>
       </TabPanel>
 
@@ -875,7 +855,7 @@ const BackupRecoveryManager = ({ siteId, siteDomain }: BackupRecoveryManagerProp
                   </CardContent>
                 </Card>
               </Box>
-            </Box>
+            </Grid>
           )}
         </Box>
       </TabPanel>

@@ -122,7 +122,7 @@ export interface AnalyticsOverview {
     conversion_metrics: {
       conversion_rate: number
       total_conversions: number
-      conversion_goals: any[]
+      conversion_goals: Record<string, unknown>[]
     }
   }
   seo_metrics: {

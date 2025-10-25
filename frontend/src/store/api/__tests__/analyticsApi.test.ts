@@ -24,7 +24,7 @@ describe('analyticsApi', () => {
 
   describe('transformResponse', () => {
     it('should handle paginated response', () => {
-      const response: any = {
+      const response: Record<string, unknown> = {
         count: 1,
         next: null,
         previous: null,

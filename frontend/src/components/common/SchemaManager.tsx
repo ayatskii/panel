@@ -11,7 +11,6 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
-  Divider,
   Collapse,
   Accordion,
   AccordionSummary,
@@ -19,13 +18,11 @@ import {
   Grid,
   Card,
   CardContent,
-  LinearProgress,
   IconButton,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField,
   FormControl,
   InputLabel,
   Select,
@@ -46,10 +43,6 @@ import {
   Lightbulb as LightbulbIcon,
   Download as DownloadIcon,
   ContentCopy as CopyIcon,
-  Refresh as RefreshIcon,
-  Visibility as ViewIcon,
-  Settings as SettingsIcon,
-  Code as CodeIcon,
 } from '@mui/icons-material'
 import {
   useGeneratePageSchemaMutation,
@@ -87,13 +80,13 @@ function TabPanel(props: TabPanelProps) {
   )
 }
 
-const SchemaManager = ({ pageId, siteId, siteDomain }: SchemaManagerProps) => {
+const SchemaManager = ({ pageId, siteId }: SchemaManagerProps) => {
   const [expanded, setExpanded] = useState(false)
   const [tabValue, setTabValue] = useState(0)
   const [settingsOpen, setSettingsOpen] = useState(false)
-  const [schemaResults, setSchemaResults] = useState<any>(null)
-  const [websiteSchemaResults, setWebsiteSchemaResults] = useState<any>(null)
-  const [validationResults, setValidationResults] = useState<any>(null)
+  const [schemaResults, setSchemaResults] = useState<Record<string, unknown> | null>(null)
+  const [websiteSchemaResults, setWebsiteSchemaResults] = useState<Record<string, unknown> | null>(null)
+  const [validationResults, setValidationResults] = useState<Record<string, unknown> | null>(null)
 
   // Settings state
   const [schemaType, setSchemaType] = useState('WebPage')
@@ -102,7 +95,7 @@ const SchemaManager = ({ pageId, siteId, siteDomain }: SchemaManagerProps) => {
 
   const [generatePageSchema, { isLoading: isGeneratingSchema }] = useGeneratePageSchemaMutation()
   const [generateWebsiteSchema, { isLoading: isGeneratingWebsiteSchema }] = useGenerateWebsiteSchemaMutation()
-  const [validateSchema, { isLoading: isValidating }] = useValidateSchemaMutation()
+  const [validateSchema] = useValidateSchemaMutation()
 
   const { data: recommendationsData, refetch: refetchRecommendations } = useGetSchemaRecommendationsQuery(
     { pageId: pageId! },
@@ -165,7 +158,7 @@ const SchemaManager = ({ pageId, siteId, siteDomain }: SchemaManagerProps) => {
     }
   }
 
-  const handleValidateSchema = async (schemaData: any) => {
+  const handleValidateSchema = async (schemaData: Record<string, unknown>) => {
     try {
       const result = await validateSchema({
         schema_data: schemaData,

@@ -95,14 +95,14 @@ describe('SiteFormPage', () => {
 
   describe('Edit Mode', () => {
     it('should render edit form when id is provided', () => {
-      vi.spyOn(router, 'useParams').mockReturnValue({ id: '1' } as any)
+      vi.spyOn(router, 'useParams').mockReturnValue({ id: '1' })
       renderWithProviders(<SiteFormPage />)
       
       expect(screen.getByText(/edit site/i)).toBeInTheDocument()
     })
 
     it('should load site data on edit', async () => {
-      vi.spyOn(router, 'useParams').mockReturnValue({ id: '1' } as any)
+      vi.spyOn(router, 'useParams').mockReturnValue({ id: '1' })
       renderWithProviders(<SiteFormPage />)
 
       await waitFor(() => {
@@ -112,7 +112,7 @@ describe('SiteFormPage', () => {
     })
 
     it('should update site on submit', async () => {
-      vi.spyOn(router, 'useParams').mockReturnValue({ id: '1' } as any)
+      vi.spyOn(router, 'useParams').mockReturnValue({ id: '1' })
       const user = userEvent.setup()
       renderWithProviders(<SiteFormPage />)
 
@@ -137,7 +137,6 @@ describe('SiteFormPage', () => {
     })
 
     it('should be keyboard navigable', async () => {
-      const user = userEvent.setup()
       renderWithProviders(<SiteFormPage />)
 
       const firstInput = screen.getByRole('textbox', { name: /site name|name/i })

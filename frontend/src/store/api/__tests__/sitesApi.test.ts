@@ -73,7 +73,7 @@ describe('sitesApi', () => {
   describe('transformResponse', () => {
     describe('getSites', () => {
       it('should extract results from paginated response', () => {
-        const response: any = mockPaginatedResponse
+        const response: Record<string, unknown> = mockPaginatedResponse
         // The transformResponse is applied automatically by RTK Query
         expect(response.results).toEqual([mockSite])
       })
@@ -84,7 +84,7 @@ describe('sitesApi', () => {
       })
 
       it('should return empty array for invalid response', () => {
-        const response: any = null
+        const response: Record<string, unknown> | null = null
         expect(response).toBeNull()
       })
 

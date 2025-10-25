@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import {
   Box,
   Paper,
@@ -18,9 +18,6 @@ import {
   List,
   ListItem,
   ListItemText,
-  ListItemIcon,
-  ListItemSecondaryAction,
-  IconButton,
   Chip,
   Alert,
   CircularProgress,
@@ -31,22 +28,12 @@ import {
   AccordionDetails,
   Switch,
   FormControlLabel,
-  Divider,
   LinearProgress,
-  Tooltip,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Slider,
 } from '@mui/material'
 import { Grid } from '@mui/material'
 import {
   Speed as SpeedIcon,
-  Memory as MemoryIcon,
-  Storage as StorageIcon,
   Cloud as CloudIcon,
   Image as ImageIcon,
   Storage as DatabaseIcon,
@@ -59,10 +46,8 @@ import {
   Warning as WarningIcon,
   ExpandMore as ExpandMoreIcon,
   TrendingUp as TrendingUpIcon,
-  TrendingDown as TrendingDownIcon,
   Cached as CachedIcon,
   Compress as CompressIcon,
-  NetworkCheck as NetworkCheckIcon,
   Computer as ComputerIcon,
 } from '@mui/icons-material'
 import {
@@ -106,11 +91,11 @@ function TabPanel(props: TabPanelProps) {
   )
 }
 
-const PerformanceOptimizationManager = ({ siteId, siteDomain }: PerformanceOptimizationManagerProps) => {
+const PerformanceOptimizationManager = ({ siteId }: PerformanceOptimizationManagerProps) => {
   const [tabValue, setTabValue] = useState(0)
   const [testDialogOpen, setTestDialogOpen] = useState(false)
   const [imageDialogOpen, setImageDialogOpen] = useState(false)
-  const [cdnDialogOpen, setCdnDialogOpen] = useState(false)
+  useState(false)
   const [selectedTestType, setSelectedTestType] = useState('full')
   const [compressionQuality, setCompressionQuality] = useState(85)
   const [cdnSettings, setCdnSettings] = useState({
@@ -146,7 +131,7 @@ const PerformanceOptimizationManager = ({ siteId, siteDomain }: PerformanceOptim
         toast.success(`Invalidated ${result.invalidated_count} cache entries!`)
         refetchCacheStats()
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to invalidate cache')
     }
   }
@@ -164,7 +149,7 @@ const PerformanceOptimizationManager = ({ siteId, siteDomain }: PerformanceOptim
         toast.success('Database optimization completed!')
         refetchRecommendations()
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to optimize database')
     }
   }
@@ -182,7 +167,7 @@ const PerformanceOptimizationManager = ({ siteId, siteDomain }: PerformanceOptim
         toast.success(`Optimized ${result.image_stats.total_images} images!`)
         refetchRecommendations()
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to optimize images')
     }
   }
@@ -197,7 +182,7 @@ const PerformanceOptimizationManager = ({ siteId, siteDomain }: PerformanceOptim
       if (result.success) {
         toast.success(`Compressed image by ${result.compression_ratio}%!`)
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to compress image')
     }
   }
@@ -219,7 +204,7 @@ const PerformanceOptimizationManager = ({ siteId, siteDomain }: PerformanceOptim
         setCdnDialogOpen(false)
         refetchCdnPerformance()
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to optimize CDN')
     }
   }
@@ -240,16 +225,11 @@ const PerformanceOptimizationManager = ({ siteId, siteDomain }: PerformanceOptim
         toast.success(`Performance test completed! Score: ${result.overall_score}/100`)
         setTestDialogOpen(false)
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to run performance test')
     }
   }
 
-  const getPerformanceColor = (score: number) => {
-    if (score >= 90) return 'success'
-    if (score >= 70) return 'warning'
-    return 'error'
-  }
 
   const getPerformanceIcon = (score: number) => {
     if (score >= 90) return <CheckCircleIcon color="success" />
@@ -361,7 +341,7 @@ const PerformanceOptimizationManager = ({ siteId, siteDomain }: PerformanceOptim
             </CardContent>
           </Card>
         </Box>
-      </Box>
+      </Grid>
 
       {/* Tabs */}
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
@@ -453,7 +433,7 @@ const PerformanceOptimizationManager = ({ siteId, siteDomain }: PerformanceOptim
                   </CardContent>
                 </Card>
               </Box>
-            </Box>
+            </Grid>
           )}
         </Box>
       </TabPanel>
@@ -551,7 +531,7 @@ const PerformanceOptimizationManager = ({ siteId, siteDomain }: PerformanceOptim
                 </CardContent>
               </Card>
             </Box>
-          </Box>
+          </Grid>
         </Box>
       </TabPanel>
 
@@ -654,7 +634,7 @@ const PerformanceOptimizationManager = ({ siteId, siteDomain }: PerformanceOptim
                   </CardContent>
                 </Card>
               </Box>
-            </Box>
+            </Grid>
           )}
         </Box>
       </TabPanel>
@@ -746,7 +726,7 @@ const PerformanceOptimizationManager = ({ siteId, siteDomain }: PerformanceOptim
                   </CardContent>
                 </Card>
               </Box>
-            </Box>
+            </Grid>
           )}
 
           {systemPerformance?.performance_alerts && systemPerformance.performance_alerts.length > 0 && (

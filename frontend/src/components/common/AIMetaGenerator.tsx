@@ -22,7 +22,6 @@ import {
   ExpandLess as ExpandLessIcon,
   CheckCircle as CheckIcon,
   Warning as WarningIcon,
-  Error as ErrorIcon,
   Refresh as RefreshIcon,
 } from '@mui/icons-material'
 import { useGenerateMetaTagsMutation, useAnalyzeSEOMutation } from '@/store/api/pagesApi'

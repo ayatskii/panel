@@ -159,7 +159,7 @@ export const performanceApi = createApi({
       success: boolean
       site_id: number
       site_domain: string
-      applied_settings: any
+      applied_settings: Record<string, unknown>
       optimization_score: number
       estimated_improvement: {
         cache_hit_ratio: string
@@ -169,7 +169,7 @@ export const performanceApi = createApi({
       optimized_at: string
     }, {
       site_id: number
-      settings: any
+      settings: Record<string, unknown>
     }>({
       query: (data) => ({
         url: 'optimize_cdn/',

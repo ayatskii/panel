@@ -11,7 +11,6 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
-  Divider,
   Collapse,
   Accordion,
   AccordionSummary,
@@ -19,7 +18,6 @@ import {
   Grid,
   Card,
   CardContent,
-  LinearProgress,
   IconButton,
   Dialog,
   DialogTitle,
@@ -36,15 +34,10 @@ import {
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
   CheckCircle as CheckIcon,
-  Warning as WarningIcon,
-  Error as ErrorIcon,
   AccountTree as SitemapIcon,
   SmartToy as RobotIcon,
   Download as DownloadIcon,
   ContentCopy as CopyIcon,
-  Refresh as RefreshIcon,
-  Visibility as ViewIcon,
-  Settings as SettingsIcon,
 } from '@mui/icons-material'
 import {
   useGenerateSitemapMutation,
@@ -86,21 +79,21 @@ const SitemapManager = ({ siteId, siteDomain }: SitemapManagerProps) => {
   const [expanded, setExpanded] = useState(false)
   const [tabValue, setTabValue] = useState(0)
   const [settingsOpen, setSettingsOpen] = useState(false)
-  const [sitemapResults, setSitemapResults] = useState<any>(null)
-  const [robotsResults, setRobotsResults] = useState<any>(null)
-  const [indexResults, setIndexResults] = useState<any>(null)
-  const [validationResults, setValidationResults] = useState<any>(null)
+  const [sitemapResults, setSitemapResults] = useState<Record<string, unknown> | null>(null)
+  const [robotsResults, setRobotsResults] = useState<Record<string, unknown> | null>(null)
+  const [indexResults, setIndexResults] = useState<Record<string, unknown> | null>(null)
+  const [validationResults, setValidationResults] = useState<Record<string, unknown> | null>(null)
 
   // Settings state
   const [includeImages, setIncludeImages] = useState(true)
   const [includeMedia, setIncludeMedia] = useState(true)
   const [customRules, setCustomRules] = useState<string[]>([''])
-  const [priorityBoosts, setPriorityBoosts] = useState<Record<string, number>>({})
+  const [priorityBoosts] = useState<Record<string, number>>({})
 
   const [generateSitemap, { isLoading: isGeneratingSitemap }] = useGenerateSitemapMutation()
   const [generateRobotsTxt, { isLoading: isGeneratingRobots }] = useGenerateRobotsTxtMutation()
   const [generateSitemapIndex, { isLoading: isGeneratingIndex }] = useGenerateSitemapIndexMutation()
-  const [validateSitemap, { isLoading: isValidating }] = useValidateSitemapMutation()
+  const [validateSitemap] = useValidateSitemapMutation()
 
   const { data: statsData, refetch: refetchStats } = useGetSitemapStatsQuery(
     { site_id: siteId },

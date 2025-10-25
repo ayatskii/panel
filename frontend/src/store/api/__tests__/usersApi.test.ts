@@ -37,7 +37,7 @@ describe('usersApi', () => {
 
   describe('transformResponse', () => {
     it('getUsers should handle paginated response', () => {
-      const response: any = {
+      const response: Record<string, unknown> = {
         count: 1,
         next: null,
         previous: null,

@@ -1,7 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { fileURLToPath } from 'url'
-import { defineConfig as defineVitestConfig } from 'vitest/config'
 
 // Use vite defineConfig with vitest options
 export default defineConfig({

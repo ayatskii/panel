@@ -3,33 +3,7 @@ import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test-utils'
 import SitesListPage from '../SitesListPage'
-import type { Site } from '@/types'
 
-// Mock data
-const mockSites: Site[] = [
-  {
-    id: 1,
-    name: 'Test Site 1',
-    domain: 'test1.example.com',
-    description: 'First test site',
-    logo_url: 'https://example.com/logo1.png',
-    favicon_url: 'https://example.com/favicon1.ico',
-    is_active: true,
-    created_at: '2024-01-01T00:00:00Z',
-    updated_at: '2024-01-01T00:00:00Z',
-  },
-  {
-    id: 2,
-    name: 'Test Site 2',
-    domain: 'test2.example.com',
-    description: 'Second test site',
-    logo_url: 'https://example.com/logo2.png',
-    favicon_url: 'https://example.com/favicon2.ico',
-    is_active: false,
-    created_at: '2024-01-02T00:00:00Z',
-    updated_at: '2024-01-02T00:00:00Z',
-  },
-]
 
 // Mock react-router
 vi.mock('react-router-dom', async () => {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import {
   Box,
   Paper,
@@ -12,42 +12,20 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  ListItemSecondaryAction,
-  IconButton,
   Chip,
   Alert,
   CircularProgress,
   Tabs,
   Tab,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Switch,
-  FormControlLabel,
-  Divider,
-  LinearProgress,
-  Tooltip,
 } from '@mui/material'
 import {
   Share as ShareIcon,
   Analytics as AnalyticsIcon,
   Cloud as CloudIcon,
-  Search as SearchIcon,
   Email as EmailIcon,
   CheckCircle as CheckCircleIcon,
   Error as ErrorIcon,
   Warning as WarningIcon,
-  ExpandMore as ExpandMoreIcon,
-  Settings as SettingsIcon,
-  PlayArrow as PlayIcon,
   Refresh as RefreshIcon,
   Link as LinkIcon,
   Facebook as FacebookIcon,
@@ -66,7 +44,6 @@ import {
   usePurgeCloudflareCacheMutation,
   useSubmitToGoogleSearchConsoleMutation,
   useSendMailchimpCampaignMutation,
-  useCheckIntegrationStatusQuery,
   useGetAllIntegrationsStatusQuery,
 } from '@/store/api/integrationsApi'
 import toast from 'react-hot-toast'
@@ -120,7 +97,7 @@ const ThirdPartyIntegrationsManager = ({ pageId, siteId, siteDomain }: ThirdPart
   const [sendGoogleAnalyticsEvent, { isLoading: isSendingGA }] = useSendGoogleAnalyticsEventMutation()
   const [sendFacebookPixelEvent, { isLoading: isSendingFB }] = useSendFacebookPixelEventMutation()
   const [purgeCloudflareCache, { isLoading: isPurgingCache }] = usePurgeCloudflareCacheMutation()
-  const [submitToGoogleSearchConsole, { isLoading: isSubmittingGSC }] = useSubmitToGoogleSearchConsoleMutation()
+  useSubmitToGoogleSearchConsoleMutation()
   const [sendMailchimpCampaign, { isLoading: isSendingEmail }] = useSendMailchimpCampaignMutation()
 
   const { data: integrationsStatus, refetch: refetchIntegrationsStatus } = useGetAllIntegrationsStatusQuery(
@@ -167,7 +144,7 @@ const ThirdPartyIntegrationsManager = ({ pageId, siteId, siteDomain }: ThirdPart
         setShareDialogOpen(false)
         setShareMessage('')
       }
-    } catch (error) {
+    } catch {
       toast.error(`Failed to share to ${platform}`)
     }
   }
@@ -211,7 +188,7 @@ const ThirdPartyIntegrationsManager = ({ pageId, siteId, siteDomain }: ThirdPart
         setAnalyticsCategory('')
         setAnalyticsAction('')
       }
-    } catch (error) {
+    } catch {
       toast.error(`Failed to send event to ${platform}`)
     }
   }
@@ -235,7 +212,7 @@ const ThirdPartyIntegrationsManager = ({ pageId, siteId, siteDomain }: ThirdPart
         setCdnDialogOpen(false)
         setCdnUrls('')
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to purge CDN cache')
     }
   }
@@ -264,7 +241,7 @@ const ThirdPartyIntegrationsManager = ({ pageId, siteId, siteDomain }: ThirdPart
         setEmailSubject('')
         setEmailContent('')
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to create email campaign')
     }
   }
@@ -345,10 +322,10 @@ const ThirdPartyIntegrationsManager = ({ pageId, siteId, siteDomain }: ThirdPart
                     </Box>
                   </CardContent>
                 </Card>
-              </Box>
+              </Grid>
             )
           })}
-        </Box>
+        </Grid>
       )}
 
       {/* Tabs */}
@@ -397,7 +374,7 @@ const ThirdPartyIntegrationsManager = ({ pageId, siteId, siteDomain }: ThirdPart
                 </Card>
               </Box>
             ))}
-          </Box>
+          </Grid>
         </Box>
       </TabPanel>
 
@@ -437,7 +414,7 @@ const ThirdPartyIntegrationsManager = ({ pageId, siteId, siteDomain }: ThirdPart
                 </Card>
               </Box>
             ))}
-          </Box>
+          </Grid>
         </Box>
       </TabPanel>
 

@@ -1,19 +1,15 @@
 import { useState, useEffect } from 'react'
 import {
   Box,
-  Paper,
   Typography,
   Grid,
   Card,
   CardContent,
   LinearProgress,
-  Chip,
   List,
   ListItem,
   ListItemText,
   ListItemIcon,
-  Divider,
-  IconButton,
   Button,
   Dialog,
   DialogTitle,
@@ -34,19 +30,13 @@ import {
   Visibility as VisibilityIcon,
   People as PeopleIcon,
   Article as ArticleIcon,
-  Image as ImageIcon,
-  Speed as SpeedIcon,
-  Search as SearchIcon,
   Download as DownloadIcon,
   Refresh as RefreshIcon,
   Assessment as AssessmentIcon,
   Timeline as TimelineIcon,
   Public as PublicIcon,
-  Devices as DevicesIcon,
 } from '@mui/icons-material'
 import {
-  LineChart,
-  Line,
   AreaChart,
   Area,
   BarChart,
@@ -65,7 +55,6 @@ import {
   useGetAnalyticsOverviewQuery,
   useGetRealTimeAnalyticsQuery,
   useGetTrafficSummaryQuery,
-  useGetTopPagesQuery,
   useGetPerformanceMetricsQuery,
   useExportAnalyticsMutation,
 } from '@/store/api/analyticsApi'
@@ -118,11 +107,11 @@ const AdvancedAnalyticsDashboard = ({ siteId, siteDomain }: AdvancedAnalyticsDas
     period_days: periodDays,
   })
 
-  const { data: topPages } = useGetTopPagesQuery({
-    site_id: siteId,
-    period_days: periodDays,
-    limit: 10,
-  })
+  // const { data: topPages } = useGetTopPagesQuery({
+  //   site_id: siteId,
+  //   period_days: periodDays,
+  //   limit: 10,
+  // })
 
   const { data: performanceMetrics } = useGetPerformanceMetricsQuery({
     site_id: siteId,
@@ -164,7 +153,7 @@ const AdvancedAnalyticsDashboard = ({ siteId, siteDomain }: AdvancedAnalyticsDas
         toast.success('Analytics data exported successfully!')
         setExportDialogOpen(false)
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to export analytics data')
     }
   }

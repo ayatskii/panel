@@ -51,12 +51,10 @@ import {
   CheckCircle as CheckCircleIcon,
   Error as ErrorIcon,
   ExpandMore as ExpandMoreIcon,
-  Settings as SettingsIcon,
   History as HistoryIcon,
   Key as KeyIcon,
   AdminPanelSettings as AdminIcon,
   Gavel as GavelIcon,
-  Assessment as AssessmentIcon,
   Refresh as RefreshIcon,
 } from '@mui/icons-material'
 import {
@@ -65,7 +63,6 @@ import {
   useVerifyEmailMutation,
   useAuthenticateMutation,
   useAssignRoleMutation,
-  useCheckPermissionQuery,
   useGetSecurityEventsQuery,
   useDetectThreatsQuery,
   useEncryptDataMutation,
@@ -101,11 +98,11 @@ function TabPanel(props: TabPanelProps) {
   )
 }
 
-const SecurityAccessControlManager = ({ siteId, siteDomain }: SecurityAccessControlManagerProps) => {
+const SecurityAccessControlManager = ({ siteId }: SecurityAccessControlManagerProps) => {
   const [tabValue, setTabValue] = useState(0)
   const [userDialogOpen, setUserDialogOpen] = useState(false)
   const [roleDialogOpen, setRoleDialogOpen] = useState(false)
-  const [encryptionDialogOpen, setEncryptionDialogOpen] = useState(false)
+  useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [newUser, setNewUser] = useState({
     username: '',
@@ -126,10 +123,10 @@ const SecurityAccessControlManager = ({ siteId, siteDomain }: SecurityAccessCont
     key: '',
   })
 
-  const [validatePassword, { isLoading: isValidatingPassword }] = useValidatePasswordMutation()
+  useValidatePasswordMutation()
   const [createUser, { isLoading: isCreatingUser }] = useCreateUserMutation()
-  const [verifyEmail, { isLoading: isVerifyingEmail }] = useVerifyEmailMutation()
-  const [authenticate, { isLoading: isAuthenticating }] = useAuthenticateMutation()
+  useVerifyEmailMutation()
+  useAuthenticateMutation()
   const [assignRole, { isLoading: isAssigningRole }] = useAssignRoleMutation()
   const [encryptData, { isLoading: isEncrypting }] = useEncryptDataMutation()
   const [decryptData, { isLoading: isDecrypting }] = useDecryptDataMutation()
@@ -165,7 +162,7 @@ const SecurityAccessControlManager = ({ siteId, siteDomain }: SecurityAccessCont
           is_staff: false,
         })
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to create user')
     }
   }
@@ -192,7 +189,7 @@ const SecurityAccessControlManager = ({ siteId, siteDomain }: SecurityAccessCont
           site_id: siteId || '',
         })
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to assign role')
     }
   }
@@ -216,7 +213,7 @@ const SecurityAccessControlManager = ({ siteId, siteDomain }: SecurityAccessCont
         }))
         toast.success('Data encrypted successfully!')
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to encrypt data')
     }
   }
@@ -240,7 +237,7 @@ const SecurityAccessControlManager = ({ siteId, siteDomain }: SecurityAccessCont
         }))
         toast.success('Data decrypted successfully!')
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to decrypt data')
     }
   }
@@ -366,7 +363,7 @@ const SecurityAccessControlManager = ({ siteId, siteDomain }: SecurityAccessCont
             </CardContent>
           </Card>
         </Box>
-      </Box>
+      </Grid>
 
       {/* Tabs */}
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
@@ -564,7 +561,7 @@ const SecurityAccessControlManager = ({ siteId, siteDomain }: SecurityAccessCont
                 </CardContent>
               </Card>
             </Box>
-          </Box>
+          </Grid>
         </Box>
       </TabPanel>
 
@@ -731,7 +728,7 @@ const SecurityAccessControlManager = ({ siteId, siteDomain }: SecurityAccessCont
                 </CardContent>
               </Card>
             </Box>
-          </Box>
+          </Grid>
         </Box>
       </TabPanel>
 
@@ -852,7 +849,7 @@ const SecurityAccessControlManager = ({ siteId, siteDomain }: SecurityAccessCont
                   </CardContent>
                 </Card>
               </Box>
-            </Box>
+            </Grid>
           )}
         </Box>
       </TabPanel>

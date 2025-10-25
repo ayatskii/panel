@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import {
   Alert,
   AlertTitle,
@@ -9,13 +9,9 @@ import {
   ListItemText,
   Link,
   Chip,
-  Collapse,
-  IconButton,
 } from '@mui/material'
 import {
   Warning as WarningIcon,
-  ExpandMore as ExpandMoreIcon,
-  ExpandLess as ExpandLessIcon,
 } from '@mui/icons-material'
 import { useCheckDuplicateMetaMutation } from '@/store/api/pagesApi'
 
@@ -34,8 +30,7 @@ const DuplicateMetaWarning = ({
   excludeId,
   onCheck,
 }: DuplicateMetaWarningProps) => {
-  const [checkDuplicates, { data: duplicateData, isLoading }] = useCheckDuplicateMetaMutation()
-  const [expanded, setExpanded] = useState(false)
+  const [checkDuplicates, { data: duplicateData }] = useCheckDuplicateMetaMutation()
 
   useEffect(() => {
     // Only check if we have meaningful content and a site

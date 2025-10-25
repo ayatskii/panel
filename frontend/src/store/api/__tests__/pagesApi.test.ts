@@ -108,7 +108,7 @@ describe('pagesApi', () => {
   describe('transformResponse', () => {
     describe('getPages', () => {
       it('should extract results from paginated response', () => {
-        const response: any = mockPaginatedPages
+        const response: Record<string, unknown> = mockPaginatedPages
         expect(response.results).toEqual([mockPage])
       })
 
@@ -118,7 +118,7 @@ describe('pagesApi', () => {
       })
 
       it('should return empty array for invalid response', () => {
-        const response: any = {}
+        const response: Record<string, unknown> = {}
         expect(response).toBeDefined()
       })
     })

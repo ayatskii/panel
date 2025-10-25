@@ -3,7 +3,6 @@ import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test-utils'
 import PagesListPage from '../PagesListPage'
-import * as router from 'react-router-dom'
 
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom')
@@ -152,7 +151,6 @@ describe('PagesListPage', () => {
     })
 
     it('should be keyboard navigable', async () => {
-      const user = userEvent.setup()
       renderWithProviders(<PagesListPage />)
 
       const firstButton = screen.getByRole('button', { name: /new page|create/i })

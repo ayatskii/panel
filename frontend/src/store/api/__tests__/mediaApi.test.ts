@@ -64,7 +64,7 @@ describe('mediaApi', () => {
 
   describe('transformResponse', () => {
     it('getMedia should handle paginated response', () => {
-      const response: any = {
+      const response: Record<string, unknown> = {
         count: 1,
         next: null,
         previous: null,
@@ -79,7 +79,7 @@ describe('mediaApi', () => {
     })
 
     it('getMeFolders should handle paginated response', () => {
-      const response: any = {
+      const response: Record<string, unknown> = {
         count: 1,
         next: null,
         previous: null,

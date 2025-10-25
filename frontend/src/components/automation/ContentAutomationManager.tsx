@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import {
   Box,
   Paper,
@@ -27,19 +27,9 @@ import {
   CircularProgress,
   Tabs,
   Tab,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Checkbox,
   FormGroup,
   FormControlLabel,
-  Divider,
   LinearProgress,
 } from '@mui/material'
 import {
@@ -49,8 +39,6 @@ import {
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
-  ExpandMore as ExpandMoreIcon,
-  ContentCopy as CopyIcon,
   Settings as SettingsIcon,
   Assessment as AssessmentIcon,
   Timeline as TimelineIcon,
@@ -102,7 +90,7 @@ function TabPanel(props: TabPanelProps) {
   )
 }
 
-const ContentAutomationManager = ({ pageId, siteId, siteDomain }: ContentAutomationManagerProps) => {
+const ContentAutomationManager = ({ pageId, siteId }: ContentAutomationManagerProps) => {
   const [tabValue, setTabValue] = useState(0)
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false)
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false)
@@ -151,7 +139,7 @@ const ContentAutomationManager = ({ pageId, siteId, siteDomain }: ContentAutomat
         setScheduledDate(null)
         refetchScheduledPages()
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to schedule page publication')
     }
   }
@@ -164,7 +152,7 @@ const ContentAutomationManager = ({ pageId, siteId, siteDomain }: ContentAutomat
         toast.success('Scheduled publication cancelled!')
         refetchScheduledPages()
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to cancel scheduled publication')
     }
   }
@@ -177,7 +165,7 @@ const ContentAutomationManager = ({ pageId, siteId, siteDomain }: ContentAutomat
         toast.success(`Processed ${result.processed_count} scheduled publications!`)
         refetchScheduledPages()
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to process scheduled publications')
     }
   }
@@ -202,7 +190,7 @@ const ContentAutomationManager = ({ pageId, siteId, siteDomain }: ContentAutomat
         setTemplateName('')
         setTemplateDescription('')
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to create content template')
     }
   }
@@ -222,12 +210,12 @@ const ContentAutomationManager = ({ pageId, siteId, siteDomain }: ContentAutomat
       if (result.success) {
         toast.success(`Applied template with ${result.blocks_count} blocks!`)
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to apply content template')
     }
   }
 
-  const handleBulkUpdate = async (updates: any) => {
+  const handleBulkUpdate = async (updates: Record<string, unknown>) => {
     if (selectedPages.length === 0) {
       toast.error('Please select pages to update')
       return
@@ -244,7 +232,7 @@ const ContentAutomationManager = ({ pageId, siteId, siteDomain }: ContentAutomat
         setBulkUpdateDialogOpen(false)
         setSelectedPages([])
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to bulk update pages')
     }
   }
@@ -270,7 +258,7 @@ const ContentAutomationManager = ({ pageId, siteId, siteDomain }: ContentAutomat
         setWorkflowName('')
         setWorkflowDescription('')
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to create automated workflow')
     }
   }
@@ -362,7 +350,7 @@ const ContentAutomationManager = ({ pageId, siteId, siteDomain }: ContentAutomat
                 </CardContent>
               </Card>
             </Box>
-          </Box>
+          </Grid>
         )}
 
         {/* Tabs */}
@@ -736,7 +724,7 @@ const ContentAutomationManager = ({ pageId, siteId, siteDomain }: ContentAutomat
                 <InputLabel>Update Field</InputLabel>
                 <Select
                   value=""
-                  onChange={(e) => {
+                  onChange={() => {
                     // Handle field selection
                   }}
                   label="Update Field"

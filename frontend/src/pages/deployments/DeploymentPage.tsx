@@ -70,13 +70,19 @@ const DeploymentsPage = () => {
 }
 
 const Logs = ({ id }: { id: number }) => {
-  const { data, isLoading } = useGetDeploymentLogsQuery(id)
+  const { data, isLoading, error } = useGetDeploymentLogsQuery(id)
 
   if (isLoading) return <CircularProgress />
+  
+  if (error) return <Typography color="error">Failed to load logs</Typography>
+
+  // Ensure logs is an array before calling join
+  const logs = data?.logs || []
+  const logText = Array.isArray(logs) ? logs.join('\n') : 'No logs available'
 
   return (
     <Box component="pre" sx={{ maxHeight: 400, overflow: 'auto' }}>
-      {data?.logs.join('\n')}
+      {logText}
     </Box>
   )
 }

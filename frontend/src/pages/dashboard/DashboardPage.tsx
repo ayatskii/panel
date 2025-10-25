@@ -5,7 +5,6 @@ import {
   Card,
   CardContent,
   Button,
-  CircularProgress,
   Chip,
   List,
   ListItem,
@@ -27,10 +26,9 @@ import {
   CloudUpload
 } from '@mui/icons-material'
 import { useNavigate } from 'react-router-dom'
-import { useGetSitesQuery } from '@/store/api/sitesApi'
+import { useGetSitesQuery, useGetSiteAnalyticsSummaryQuery } from '@/store/api/sitesApi'
 import { useGetPagesQuery } from '@/store/api/pagesApi'
 import { useGetDeploymentsQuery } from '@/store/api/deploymentsApi'
-import { useGetTrafficSummaryQuery } from '@/store/api/analyticsApi'
 import { formatDistanceToNow } from 'date-fns'
 
 interface StatCardProps {
@@ -109,7 +107,9 @@ const DashboardPage = () => {
   const { data: sites = [], isLoading: sitesLoading } = useGetSitesQuery()
   const { data: pages = [], isLoading: pagesLoading } = useGetPagesQuery({})
   const { data: deployments = [], isLoading: deploymentsLoading } = useGetDeploymentsQuery({})
-  const { data: analyticsSummary, isLoading: analyticsLoading } = useGetAnalyticsSummaryQuery({})
+  const { data: analyticsSummary, isLoading: analyticsLoading } = useGetSiteAnalyticsSummaryQuery({ 
+    id: sites[0]?.id || 0 
+  }, { skip: !sites.length })
 
   // Calculate stats
   const totalSites = sites.length
@@ -304,7 +304,7 @@ const DashboardPage = () => {
                         <Chip 
                           label={deployment.status} 
                           size="small" 
-                          color={getStatusColor(deployment.status) as any}
+                          color={getStatusColor(deployment.status) as 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning'}
                         />
                       </Box>
                     }
