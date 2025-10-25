@@ -31,7 +31,6 @@ import {
   FormGroup,
   Tabs,
   Tab,
-  Code,
 } from '@mui/material'
 import {
   ExpandMore as ExpandMoreIcon,
@@ -39,8 +38,8 @@ import {
   CheckCircle as CheckIcon,
   Warning as WarningIcon,
   Error as ErrorIcon,
-  Sitemap as SitemapIcon,
-  Robot as RobotIcon,
+  AccountTree as SitemapIcon,
+  SmartToy as RobotIcon,
   Download as DownloadIcon,
   ContentCopy as CopyIcon,
   Refresh as RefreshIcon,

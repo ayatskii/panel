@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Box, Typography, Paper, TextField, Button, CircularProgress } from '@mui/material'
-import { useGetAnalyticsQuery } from '@/store/api/analyticsApi'
+import { useGetSiteAnalyticsQuery } from '@/store/api/analyticsApi'
 import { Bar } from 'react-chartjs-2'
 import { format } from 'date-fns'
 

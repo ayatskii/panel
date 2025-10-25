@@ -672,6 +672,271 @@ class PageBlockViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+    @action(detail=True, methods=['post'])
+    def schedule_publication(self, request, pk=None):
+        """Schedule a page for future publication"""
+        from .services.content_automation_service import ContentAutomationService
+        
+        page = self.get_object()
+        scheduled_date = request.data.get('scheduled_date')
+        user_id = request.user.id
+        
+        if not scheduled_date:
+            return Response(
+                {'error': 'scheduled_date is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            scheduled_datetime = datetime.fromisoformat(scheduled_date.replace('Z', '+00:00'))
+            
+            automation_service = ContentAutomationService()
+            
+            result = automation_service.schedule_page_publication(
+                page_id=page.id,
+                scheduled_date=scheduled_datetime,
+                user_id=user_id
+            )
+            
+            return Response(result, status=status.HTTP_200_OK)
+            
+        except ValueError:
+            return Response(
+                {'error': 'Invalid scheduled_date format. Use ISO format.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to schedule publication: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=True, methods=['post'])
+    def cancel_scheduled_publication(self, request, pk=None):
+        """Cancel a scheduled page publication"""
+        from .services.content_automation_service import ContentAutomationService
+        
+        page = self.get_object()
+        
+        try:
+            automation_service = ContentAutomationService()
+            
+            result = automation_service.cancel_scheduled_publication(page.id)
+            
+            return Response(result, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to cancel scheduled publication: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=False, methods=['get'])
+    def get_scheduled_pages(self, request):
+        """Get all scheduled pages"""
+        from .services.content_automation_service import ContentAutomationService
+        
+        site_id = request.query_params.get('site_id')
+        user_id = request.query_params.get('user_id')
+        status = request.query_params.get('status', 'scheduled')
+        
+        try:
+            automation_service = ContentAutomationService()
+            
+            result = automation_service.get_scheduled_pages(
+                site_id=int(site_id) if site_id else None,
+                user_id=int(user_id) if user_id else None,
+                status=status
+            )
+            
+            return Response(result, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to get scheduled pages: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=False, methods=['post'])
+    def process_scheduled_publications(self, request):
+        """Process all scheduled publications that are due"""
+        from .services.content_automation_service import ContentAutomationService
+        
+        try:
+            automation_service = ContentAutomationService()
+            
+            result = automation_service.process_scheduled_publications()
+            
+            return Response(result, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to process scheduled publications: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=False, methods=['post'])
+    def create_content_template(self, request):
+        """Create a content template"""
+        from .services.content_automation_service import ContentAutomationService
+        
+        name = request.data.get('name')
+        description = request.data.get('description', '')
+        blocks = request.data.get('blocks', [])
+        site_id = request.data.get('site_id')
+        user_id = request.user.id
+        
+        if not name:
+            return Response(
+                {'error': 'name is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            automation_service = ContentAutomationService()
+            
+            result = automation_service.create_content_template(
+                name=name,
+                description=description,
+                blocks=blocks,
+                user_id=user_id,
+                site_id=int(site_id) if site_id else None
+            )
+            
+            return Response(result, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to create content template: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=True, methods=['post'])
+    def apply_content_template(self, request, pk=None):
+        """Apply a content template to a page"""
+        from .services.content_automation_service import ContentAutomationService
+        
+        page = self.get_object()
+        template_id = request.data.get('template_id')
+        user_id = request.user.id
+        
+        if not template_id:
+            return Response(
+                {'error': 'template_id is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            automation_service = ContentAutomationService()
+            
+            result = automation_service.apply_content_template(
+                template_id=template_id,
+                page_id=page.id,
+                user_id=user_id
+            )
+            
+            return Response(result, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to apply content template: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=False, methods=['post'])
+    def bulk_update_pages(self, request):
+        """Bulk update multiple pages"""
+        from .services.content_automation_service import ContentAutomationService
+        
+        page_ids = request.data.get('page_ids', [])
+        updates = request.data.get('updates', {})
+        user_id = request.user.id
+        
+        if not page_ids:
+            return Response(
+                {'error': 'page_ids is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            automation_service = ContentAutomationService()
+            
+            result = automation_service.bulk_update_pages(
+                page_ids=page_ids,
+                updates=updates,
+                user_id=user_id
+            )
+            
+            return Response(result, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to bulk update pages: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=False, methods=['post'])
+    def create_automated_workflow(self, request):
+        """Create an automated workflow"""
+        from .services.content_automation_service import ContentAutomationService
+        
+        name = request.data.get('name')
+        description = request.data.get('description', '')
+        triggers = request.data.get('triggers', [])
+        actions = request.data.get('actions', [])
+        site_id = request.data.get('site_id')
+        user_id = request.user.id
+        
+        if not name:
+            return Response(
+                {'error': 'name is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            automation_service = ContentAutomationService()
+            
+            result = automation_service.create_automated_workflow(
+                name=name,
+                description=description,
+                triggers=triggers,
+                actions=actions,
+                user_id=user_id,
+                site_id=int(site_id) if site_id else None
+            )
+            
+            return Response(result, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to create automated workflow: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=False, methods=['get'])
+    def get_automation_analytics(self, request):
+        """Get automation analytics"""
+        from .services.content_automation_service import ContentAutomationService
+        
+        site_id = request.query_params.get('site_id')
+        period_days = int(request.query_params.get('period_days', 30))
+        
+        try:
+            automation_service = ContentAutomationService()
+            
+            result = automation_service.get_automation_analytics(
+                site_id=int(site_id) if site_id else None,
+                period_days=period_days
+            )
+            
+            return Response(result, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to get automation analytics: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
 
 class SwiperPresetViewSet(viewsets.ModelViewSet):
     """

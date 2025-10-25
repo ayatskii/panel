@@ -19,6 +19,7 @@ services:
       timeout: 5s
       retries: 5
 
+
   redis:
     image: redis:7-alpine
     container_name: panel_redis
@@ -35,6 +36,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
 
   backend:
     build:
@@ -53,6 +55,8 @@ services:
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     environment:
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
       - DEBUG=${DEBUG:-False}
       - SECRET_KEY=${SECRET_KEY}
       - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1,backend}
@@ -75,6 +79,7 @@ services:
     networks:
       - app_network
 
+
   celery_worker:
     build:
       context: ./backend
@@ -86,6 +91,8 @@ services:
       - ./backend:/app
       - media_volume:/app/media
     environment:
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
       - DEBUG=${DEBUG:-False}
       - SECRET_KEY=${SECRET_KEY}
       - DB_NAME=${DB_NAME:-panel}
@@ -106,6 +113,7 @@ services:
     networks:
       - app_network
 
+
   celery_beat:
     build:
       context: ./backend
@@ -116,6 +124,8 @@ services:
     volumes:
       - ./backend:/app
     environment:
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
       - DEBUG=${DEBUG:-False}
       - SECRET_KEY=${SECRET_KEY}
       - DB_NAME=${DB_NAME:-panel}
@@ -133,6 +143,7 @@ services:
     networks:
       - app_network
 
+
   frontend:
     build:
       context: ./frontend
@@ -148,6 +159,7 @@ services:
     networks:
       - app_network
 
+
 volumes:
   postgres_data:
     driver: local
@@ -157,6 +169,7 @@ volumes:
     driver: local
   media_volume:
     driver: local
+
 
 networks:
   app_network:

@@ -12,8 +12,11 @@ from templates.views import TemplateViewSet, TemplateFootprintViewSet
 from pages.views import PageViewSet, PageBlockViewSet, SwiperPresetViewSet
 from media.views import MediaViewSet, MediaFolderViewSet, MediaTagViewSet
 from prompts.views import PromptViewSet
-from integrations.views import ApiTokenViewSet, CloudflareTokenViewSet
+from integrations.views import ApiTokenViewSet, CloudflareTokenViewSet, ThirdPartyIntegrationsViewSet
 from analytics.views import AnalyticsViewSet, track_view, PageViewViewSet, SiteAnalyticsViewSet
+from performance.views import PerformanceOptimizationViewSet
+from security.views import SecurityAccessControlViewSet
+from backup.views import BackupRecoveryViewSet
 from deployment.views import DeploymentViewSet
 
 router = DefaultRouter()
@@ -33,6 +36,10 @@ router.register(r'media-tags', MediaTagViewSet, basename='mediatag')
 router.register(r'prompts', PromptViewSet, basename='prompt')
 router.register(r'integrations/api-tokens', ApiTokenViewSet, basename='apitoken')
 router.register(r'integrations/cloudflare-tokens', CloudflareTokenViewSet, basename='cloudflaretoken')
+router.register(r'integrations/third-party', ThirdPartyIntegrationsViewSet, basename='third-party-integrations')
+router.register(r'performance', PerformanceOptimizationViewSet, basename='performance-optimization')
+router.register(r'security', SecurityAccessControlViewSet, basename='security-access-control')
+router.register(r'backup', BackupRecoveryViewSet, basename='backup-recovery')
 router.register(r'analytics', AnalyticsViewSet, basename='analytics')
 router.register(r'page-views', PageViewViewSet, basename='pageview')
 router.register(r'site-analytics', SiteAnalyticsViewSet, basename='siteanalytics')

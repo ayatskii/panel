@@ -2,6 +2,8 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.utils import timezone as django_timezone
+from django.http import JsonResponse
+from django.db.models import Avg
 from datetime import datetime, timedelta
 from .models import PageView, Analytics
 from .serializers import PageViewSerializer, SiteAnalyticsSerializer
@@ -297,3 +299,98 @@ class SiteAnalyticsViewSet(viewsets.ModelViewSet):
                 {'error': f'Failed to get performance metrics: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+class AnalyticsViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for managing analytics data
+    """
+    queryset = Analytics.objects.all()
+    serializer_class = SiteAnalyticsSerializer
+    
+    def get_queryset(self):
+        queryset = Analytics.objects.all()
+        site_id = self.request.query_params.get('site_id')
+        if site_id:
+            queryset = queryset.filter(site_id=site_id)
+        return queryset.order_by('-date')
+    
+    @action(detail=False, methods=['get'])
+    def summary(self, request):
+        """Get analytics summary for a site"""
+        site_id = request.query_params.get('site_id')
+        period_days = int(request.query_params.get('period_days', 30))
+        
+        if not site_id:
+            return Response(
+                {'error': 'site_id is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            end_date = django_timezone.now()
+            start_date = end_date - timedelta(days=period_days)
+            
+            analytics = Analytics.objects.filter(
+                site_id=site_id,
+                date__range=[start_date, end_date]
+            )
+            
+            total_visitors = sum(a.visitors for a in analytics)
+            total_pageviews = sum(a.pageviews for a in analytics)
+            total_conversions = sum(a.conversions for a in analytics)
+            total_revenue = sum(a.revenue for a in analytics)
+            
+            avg_bounce_rate = analytics.aggregate(
+                avg_bounce=Avg('bounce_rate')
+            )['avg_bounce'] or 0
+            
+            avg_session_duration = analytics.aggregate(
+                avg_duration=Avg('avg_session_duration')
+            )['avg_duration'] or 0
+            
+            return Response({
+                'success': True,
+                'site_id': site_id,
+                'period_days': period_days,
+                'summary': {
+                    'total_visitors': total_visitors,
+                    'total_pageviews': total_pageviews,
+                    'total_conversions': total_conversions,
+                    'total_revenue': float(total_revenue),
+                    'avg_bounce_rate': float(avg_bounce_rate),
+                    'avg_session_duration': avg_session_duration,
+                    'conversion_rate': (total_conversions / total_visitors * 100) if total_visitors > 0 else 0
+                }
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to get analytics summary: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+def track_view(request):
+    """Track a page view"""
+    if request.method == 'POST':
+        try:
+            data = request.json if hasattr(request, 'json') else request.POST
+            site_id = data.get('site_id')
+            page_slug = data.get('page_slug')
+            
+            if not site_id or not page_slug:
+                return JsonResponse({'error': 'site_id and page_slug are required'}, status=400)
+            
+            # Create page view record
+            PageView.objects.create(
+                site_id=site_id,
+                page_slug=page_slug
+            )
+            
+            return JsonResponse({'success': True})
+            
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    
+    return JsonResponse({'error': 'Method not allowed'}, status=405)

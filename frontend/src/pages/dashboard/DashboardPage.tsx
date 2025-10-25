@@ -30,7 +30,7 @@ import { useNavigate } from 'react-router-dom'
 import { useGetSitesQuery } from '@/store/api/sitesApi'
 import { useGetPagesQuery } from '@/store/api/pagesApi'
 import { useGetDeploymentsQuery } from '@/store/api/deploymentsApi'
-import { useGetAnalyticsSummaryQuery } from '@/store/api/analyticsApi'
+import { useGetTrafficSummaryQuery } from '@/store/api/analyticsApi'
 import { formatDistanceToNow } from 'date-fns'
 
 interface StatCardProps {
