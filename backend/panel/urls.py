@@ -10,10 +10,10 @@ from users.views import UserViewSet, current_user
 from sites.views import SiteViewSet, LanguageViewSet, AffiliateLinkViewSet
 from templates.views import TemplateViewSet, TemplateFootprintViewSet
 from pages.views import PageViewSet, PageBlockViewSet, SwiperPresetViewSet
-from media.views import MediaViewSet, MediaFolderViewSet
+from media.views import MediaViewSet, MediaFolderViewSet, MediaTagViewSet
 from prompts.views import PromptViewSet
 from integrations.views import ApiTokenViewSet, CloudflareTokenViewSet
-from analytics.views import AnalyticsViewSet, track_view
+from analytics.views import AnalyticsViewSet, track_view, PageViewViewSet, SiteAnalyticsViewSet
 from deployment.views import DeploymentViewSet
 
 router = DefaultRouter()
@@ -29,10 +29,13 @@ router.register(r'page-blocks', PageBlockViewSet, basename='pageblock')
 router.register(r'swiper-presets', SwiperPresetViewSet, basename='swiperpreset')
 router.register(r'media', MediaViewSet, basename='media')
 router.register(r'media-folders', MediaFolderViewSet, basename='mediafolder')
+router.register(r'media-tags', MediaTagViewSet, basename='mediatag')
 router.register(r'prompts', PromptViewSet, basename='prompt')
 router.register(r'integrations/api-tokens', ApiTokenViewSet, basename='apitoken')
 router.register(r'integrations/cloudflare-tokens', CloudflareTokenViewSet, basename='cloudflaretoken')
 router.register(r'analytics', AnalyticsViewSet, basename='analytics')
+router.register(r'page-views', PageViewViewSet, basename='pageview')
+router.register(r'site-analytics', SiteAnalyticsViewSet, basename='siteanalytics')
 router.register(r'deployments', DeploymentViewSet, basename='deployment')
 
 urlpatterns = [

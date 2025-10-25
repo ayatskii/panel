@@ -93,6 +93,16 @@ class SiteBuilder:
             </section>
             '''
         
+        elif block.block_type == 'article':
+            return f'''
+            <article class="article-block">
+                <div class="container">
+                    {f'<h2>{content.get("title", "")}</h2>' if content.get('title') else ''}
+                    <div class="article-content">{content.get('text', '')}</div>
+                </div>
+            </article>
+            '''
+        
         elif block.block_type == 'text':
             return f'''
             <section class="text-block">
@@ -113,6 +123,40 @@ class SiteBuilder:
             </section>
             '''
         
+        elif block.block_type == 'text_image':
+            title = content.get('title', '')
+            text = content.get('text', '')
+            image_url = content.get('image_url', '')
+            alt_text = content.get('alt_text', '')
+            image_position = content.get('image_position', 'left')
+            image_size = content.get('image_size', 'medium')
+            
+            # Determine flex direction and widths
+            flex_direction = 'row' if image_position in ['left', 'right'] else 'column'
+            if image_position == 'right':
+                flex_direction = 'row-reverse'
+            elif image_position == 'bottom':
+                flex_direction = 'column-reverse'
+            
+            size_map = {'small': '33%', 'medium': '50%', 'large': '66%'}
+            image_width = size_map.get(image_size, '50%')
+            
+            return f'''
+            <section class="text-image-block">
+                <div class="container">
+                    <div class="text-image-wrapper" style="display: flex; flex-direction: {flex_direction}; gap: 2rem; align-items: flex-start;">
+                        <div class="text-image-img" style="flex: 0 0 {image_width};">
+                            <img src="{image_url}" alt="{alt_text}" style="width: 100%; border-radius: 4px;" />
+                        </div>
+                        <div class="text-image-text" style="flex: 1;">
+                            {f'<h2>{title}</h2>' if title else ''}
+                            <div class="text-content">{text}</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            '''
+        
         elif block.block_type == 'gallery':
             images = content.get('images', [])
             images_html = ''.join([
@@ -123,6 +167,59 @@ class SiteBuilder:
             <section class="gallery-block">
                 <div class="container">
                     <div class="gallery-grid">{images_html}</div>
+                </div>
+            </section>
+            '''
+        
+        elif block.block_type == 'cta':
+            title = content.get('title', '')
+            description = content.get('description', '')
+            buttons = content.get('buttons', [])
+            bg_color = content.get('background_color', '#1976d2')
+            text_color = content.get('text_color', '#ffffff')
+            
+            buttons_html = ''
+            for button in buttons:
+                btn_text = button.get('text', '')
+                btn_url = button.get('url', '#')
+                btn_style = button.get('style', 'primary')
+                btn_class = f'btn btn-{btn_style}'
+                buttons_html += f'<a href="{btn_url}" class="{btn_class}">{btn_text}</a>'
+            
+            return f'''
+            <section class="cta-block" style="background-color: {bg_color}; color: {text_color};">
+                <div class="container">
+                    {f'<h2 class="cta-title">{title}</h2>' if title else ''}
+                    {f'<p class="cta-description">{description}</p>' if description else ''}
+                    <div class="cta-buttons">
+                        {buttons_html}
+                    </div>
+                </div>
+            </section>
+            '''
+        
+        elif block.block_type == 'faq':
+            title = content.get('title', '')
+            items = content.get('items', [])
+            
+            faq_items_html = ''
+            for i, item in enumerate(items):
+                question = item.get('question', '')
+                answer = item.get('answer', '')
+                faq_items_html += f'''
+                <details class="faq-item">
+                    <summary class="faq-question">{question}</summary>
+                    <div class="faq-answer">{answer}</div>
+                </details>
+                '''
+            
+            return f'''
+            <section class="faq-block">
+                <div class="container">
+                    {f'<h2 class="faq-title">{title}</h2>' if title else ''}
+                    <div class="faq-list">
+                        {faq_items_html}
+                    </div>
                 </div>
             </section>
             '''

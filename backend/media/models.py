@@ -2,6 +2,28 @@ from django.db import models
 from django.conf import settings
 from django.core.validators import FileExtensionValidator
 
+
+class MediaTag(models.Model):
+    """Tags for organizing media files"""
+    name = models.CharField(max_length=50, unique=True, db_index=True)
+    color = models.CharField(max_length=7, default='#2196F3', help_text='Hex color code')
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        db_table = 'media_tags'
+        verbose_name = 'Media Tag'
+        verbose_name_plural = 'Media Tags'
+        ordering = ['name']
+    
+    def save(self, *args, **kwargs):
+        # Convert name to lowercase for consistency
+        self.name = self.name.lower()
+        super().save(*args, **kwargs)
+    
+    def __str__(self):
+        return self.name
+
+
 class MediaFolder(models.Model):
     name = models.CharField(max_length=255)
     parent_folder = models.ForeignKey(
@@ -44,6 +66,12 @@ class Media(models.Model):
         blank=True,
         related_name='files'
     )
+    tags = models.ManyToManyField(
+        MediaTag,
+        blank=True,
+        related_name='media_files',
+        db_table='media_media_tags'
+    )
     filename = models.CharField(max_length=255)
     original_name = models.CharField(max_length=255)
     file = models.FileField(upload_to='media/%Y/%m/%d/')
@@ -56,6 +84,13 @@ class Media(models.Model):
     # Image-specific fields
     width = models.IntegerField(null=True, blank=True)
     height = models.IntegerField(null=True, blank=True)
+    
+    # Image variants (optimized sizes)
+    thumbnail = models.FileField(upload_to='media/%Y/%m/%d/thumbnails/', null=True, blank=True)
+    medium = models.FileField(upload_to='media/%Y/%m/%d/medium/', null=True, blank=True)
+    large = models.FileField(upload_to='media/%Y/%m/%d/large/', null=True, blank=True)
+    webp = models.FileField(upload_to='media/%Y/%m/%d/webp/', null=True, blank=True)
+    is_optimized = models.BooleanField(default=False, help_text='Whether image variants have been generated')
     
     uploaded_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,

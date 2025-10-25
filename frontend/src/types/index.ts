@@ -251,9 +251,13 @@ export interface AffiliateLink {
     site_domain: string
     title: string
     slug: string
-    page_type: 'home' | 'about' | 'contact' | 'custom'
-    meta_title: string
     meta_description: string
+    h1_tag?: string
+    use_h1_in_hero?: boolean
+    canonical_url?: string
+    custom_head_html?: string
+    keywords?: string
+    lsi_phrases?: string
     order: number
     is_published: boolean
     blocks?: PageBlock[]
@@ -267,12 +271,22 @@ export interface AffiliateLink {
     site: number
     title: string
     slug: string
-    page_type: string
-    meta_title: string
     meta_description: string
+    h1_tag?: string
+    use_h1_in_hero?: boolean
+    keywords?: string
+    lsi_phrases?: string
     order: number
   }
   
+  export interface MediaTag {
+    id: number
+    name: string
+    color: string
+    media_count: number
+    created_at: string
+  }
+
   export interface Media {
     id: number
     folder?: number
@@ -290,6 +304,8 @@ export interface AffiliateLink {
     caption?: string
     width?: number
     height?: number
+    tags: MediaTag[]
+    tag_ids?: number[]
     uploaded_by: number
     user?: number  // Alias
     uploaded_by_username: string
@@ -300,6 +316,10 @@ export interface AffiliateLink {
     size_mb: number
     file_type: 'image' | 'document' | 'video'
     thumbnail_url?: string
+    medium_url?: string
+    large_url?: string
+    webp_url?: string
+    is_optimized: boolean
     created_at: string
     updated_at: string
   }

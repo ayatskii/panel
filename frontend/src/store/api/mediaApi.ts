@@ -1,5 +1,5 @@
 import { apiSlice } from './apiSlice'
-import type { Media, MediaFolder } from '@/types'
+import type { Media, MediaFolder, MediaTag } from '@/types'
 
 // Paginated response type
 interface PaginatedResponse<T> {
@@ -74,6 +74,76 @@ export const mediaApi = apiSlice.injectEndpoints({
       invalidatesTags: ['Media'],
     }),
     
+    bulkMoveMedia: builder.mutation<{ message: string; count: number }, { ids: number[]; folderId: number | null }>({
+      query: ({ ids, folderId }) => ({
+        url: '/media/bulk_move/',
+        method: 'POST',
+        body: { ids, folder_id: folderId },
+      }),
+      invalidatesTags: ['Media'],
+    }),
+    
+    getMediaUsage: builder.query<{
+      media_id: number
+      media_name: string
+      media_url: string
+      usage_count: number
+      usage: Array<{
+        page_id: number
+        page_title: string
+        page_slug: string
+        site_domain: string
+        block_id: number
+        block_type: string
+        block_order: number
+      }>
+    }, number>({
+      query: (mediaId) => `/media/${mediaId}/usage/`,
+    }),
+    
+    getMediaAnalytics: builder.query<{
+      total_files: number
+      total_size_bytes: number
+      total_size_mb: number
+      total_size_gb: number
+      average_size_bytes: number
+      average_size_mb: number
+      storage_by_type: Array<{
+        type: string
+        count: number
+        size_bytes: number
+        size_mb: number
+        percentage: number
+      }>
+      storage_by_folder: Array<{
+        folder_id: number | null
+        folder_name: string
+        folder_path: string
+        count: number
+        size_bytes: number
+        size_mb: number
+        percentage: number
+      }>
+      largest_files: Array<{
+        id: number
+        original_name: string
+        file_size: number
+        mime_type: string
+        created_at: string
+      }>
+      recent_files: Array<{
+        id: number
+        original_name: string
+        file_size: number
+        mime_type: string
+        created_at: string
+      }>
+      optimized_images: number
+      optimization_percentage: number
+    }, void>({
+      query: () => '/media/analytics/',
+    }),
+    
     // Media Folders
     getFolders: builder.query<MediaFolder[], { parent?: number | string }>({
       query: (params) => ({
@@ -118,6 +188,43 @@ export const mediaApi = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ['Media'],
     }),
+    
+    // Media Tags
+    getTags: builder.query<MediaTag[], void>({
+      query: () => '/media-tags/',
+      transformResponse: (response: PaginatedResponse<MediaTag> | MediaTag[]): MediaTag[] => {
+        if (Array.isArray(response)) return response
+        if (response && 'results' in response) return response.results
+        return []
+      },
+      providesTags: ['MediaTag'],
+    }),
+    
+    createTag: builder.mutation<MediaTag, Partial<MediaTag>>({
+      query: (data) => ({
+        url: '/media-tags/',
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['MediaTag'],
+    }),
+    
+    updateTag: builder.mutation<MediaTag, { id: number; data: Partial<MediaTag> }>({
+      query: ({ id, data }) => ({
+        url: `/media-tags/${id}/`,
+        method: 'PATCH',
+        body: data,
+      }),
+      invalidatesTags: (_result, _error, { id }) => [{ type: 'MediaTag', id }, 'MediaTag'],
+    }),
+    
+    deleteTag: builder.mutation<void, number>({
+      query: (id) => ({
+        url: `/media-tags/${id}/`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['MediaTag'],
+    }),
   }),
 })
 
@@ -129,9 +236,16 @@ export const {
   useUpdateMediaMutation,
   useDeleteMediaMutation,
   useBulkDeleteMediaMutation,
+  useBulkMoveMediaMutation,
+  useGetMediaUsageQuery,
+  useGetMediaAnalyticsQuery,
   useGetFoldersQuery,
   useGetFolderContentsQuery,
   useCreateFolderMutation,
   useUpdateFolderMutation,
   useDeleteFolderMutation,
+  useGetTagsQuery,
+  useCreateTagMutation,
+  useUpdateTagMutation,
+  useDeleteTagMutation,
 } = mediaApi

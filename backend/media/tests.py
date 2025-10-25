@@ -320,3 +320,153 @@ class MediaModelTestCase(TestCase):
         )
 
         self.assertEqual(media.alt_text, "Beautiful mountain landscape at sunset")
+
+
+class MediaTagModelTestCase(TestCase):
+    """Test MediaTag model"""
+
+    def setUp(self):
+        """Set up test data"""
+        self.user = User.objects.create_user(
+            username="testuser", email="test@example.com", password="testpass123"
+        )
+
+    def test_tag_creation(self):
+        """Test creating a tag"""
+        from media.models import MediaTag
+        tag = MediaTag.objects.create(name="nature", color="#4CAF50")
+        
+        self.assertEqual(tag.name, "nature")
+        self.assertEqual(tag.color, "#4CAF50")
+        self.assertIsNotNone(tag.created_at)
+
+    def test_tag_name_unique(self):
+        """Test that tag names are unique"""
+        from media.models import MediaTag
+        MediaTag.objects.create(name="landscape")
+        
+        with self.assertRaises(Exception):
+            MediaTag.objects.create(name="landscape")
+
+    def test_tag_name_lowercase(self):
+        """Test that tag names are converted to lowercase"""
+        from media.models import MediaTag
+        tag = MediaTag.objects.create(name="NATURE")
+        
+        self.assertEqual(tag.name, "nature")
+
+    def test_media_with_tags(self):
+        """Test adding tags to media"""
+        from media.models import MediaTag
+        
+        tag1 = MediaTag.objects.create(name="nature")
+        tag2 = MediaTag.objects.create(name="landscape")
+        
+        media = Media.objects.create(
+            filename="photo.jpg",
+            original_name="photo.jpg",
+            file=SimpleUploadedFile("photo.jpg", b"content"),
+            file_path="/media/photo.jpg",
+            file_size=1000,
+            mime_type="image/jpeg",
+            uploaded_by=self.user,
+        )
+        
+        media.tags.add(tag1, tag2)
+        
+        self.assertEqual(media.tags.count(), 2)
+        self.assertIn(tag1, media.tags.all())
+        self.assertIn(tag2, media.tags.all())
+
+    def test_tag_media_count(self):
+        """Test counting media with a specific tag"""
+        from media.models import MediaTag
+        
+        tag = MediaTag.objects.create(name="featured")
+        
+        media1 = Media.objects.create(
+            filename="file1.jpg",
+            original_name="file1.jpg",
+            file=SimpleUploadedFile("file1.jpg", b"content"),
+            file_path="/media/file1.jpg",
+            file_size=1000,
+            mime_type="image/jpeg",
+            uploaded_by=self.user,
+        )
+        
+        media2 = Media.objects.create(
+            filename="file2.jpg",
+            original_name="file2.jpg",
+            file=SimpleUploadedFile("file2.jpg", b"content"),
+            file_path="/media/file2.jpg",
+            file_size=1000,
+            mime_type="image/jpeg",
+            uploaded_by=self.user,
+        )
+        
+        media1.tags.add(tag)
+        media2.tags.add(tag)
+        
+        self.assertEqual(tag.media_files.count(), 2)
+
+    def test_filter_media_by_tag(self):
+        """Test filtering media by tag"""
+        from media.models import MediaTag
+        
+        tag_nature = MediaTag.objects.create(name="nature")
+        tag_city = MediaTag.objects.create(name="city")
+        
+        media1 = Media.objects.create(
+            filename="forest.jpg",
+            original_name="forest.jpg",
+            file=SimpleUploadedFile("forest.jpg", b"content"),
+            file_path="/media/forest.jpg",
+            file_size=1000,
+            mime_type="image/jpeg",
+            uploaded_by=self.user,
+        )
+        media1.tags.add(tag_nature)
+        
+        media2 = Media.objects.create(
+            filename="building.jpg",
+            original_name="building.jpg",
+            file=SimpleUploadedFile("building.jpg", b"content"),
+            file_path="/media/building.jpg",
+            file_size=1000,
+            mime_type="image/jpeg",
+            uploaded_by=self.user,
+        )
+        media2.tags.add(tag_city)
+        
+        nature_media = Media.objects.filter(tags=tag_nature)
+        city_media = Media.objects.filter(tags=tag_city)
+        
+        self.assertEqual(nature_media.count(), 1)
+        self.assertEqual(city_media.count(), 1)
+        self.assertIn(media1, nature_media)
+        self.assertIn(media2, city_media)
+
+    def test_media_multiple_tags(self):
+        """Test media with multiple tags"""
+        from media.models import MediaTag
+        
+        tag1 = MediaTag.objects.create(name="nature")
+        tag2 = MediaTag.objects.create(name="landscape")
+        tag3 = MediaTag.objects.create(name="sunset")
+        
+        media = Media.objects.create(
+            filename="sunset.jpg",
+            original_name="sunset.jpg",
+            file=SimpleUploadedFile("sunset.jpg", b"content"),
+            file_path="/media/sunset.jpg",
+            file_size=1000,
+            mime_type="image/jpeg",
+            uploaded_by=self.user,
+        )
+        
+        media.tags.set([tag1, tag2, tag3])
+        
+        self.assertEqual(media.tags.count(), 3)
+        self.assertIn(tag1, media.tags.all())
+        self.assertIn(tag2, media.tags.all())
+        self.assertIn(tag3, media.tags.all())

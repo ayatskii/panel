@@ -73,9 +73,10 @@ class PageSerializer(serializers.ModelSerializer):
             'use_h1_in_hero', 'canonical_url', 'custom_head_html',
             'keywords', 'keywords_list', 'lsi_phrases', 'lsi_phrases_list',
             'blocks', 'block_count', 'full_url',
-            'created_at', 'updated_at'
+            'is_published', 'published_at',
+            'order', 'created_at', 'updated_at'
         ]
-        read_only_fields = ['created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at', 'published_at']
     
     def validate_slug(self, value):
         """Validate slug format"""
@@ -87,6 +88,40 @@ class PageSerializer(serializers.ModelSerializer):
         if value.startswith('-') or value.endswith('-'):
             raise serializers.ValidationError(
                 "Slug cannot start or end with a hyphen"
+            )
+        return value
+    
+    def validate_title(self, value):
+        """Validate meta title length for SEO"""
+        if value and len(value) > 60:
+            raise serializers.ValidationError(
+                f"Meta title should be max 60 characters (currently {len(value)}). "
+                "Longer titles may be truncated in search results."
+            )
+        if value and len(value) < 30:
+            raise serializers.ValidationError(
+                f"Meta title should be at least 30 characters (currently {len(value)}) for better SEO."
+            )
+        return value
+    
+    def validate_meta_description(self, value):
+        """Validate meta description length for SEO"""
+        if value and len(value) > 160:
+            raise serializers.ValidationError(
+                f"Meta description should be max 160 characters (currently {len(value)}). "
+                "Longer descriptions may be truncated in search results."
+            )
+        if value and len(value) < 50:
+            raise serializers.ValidationError(
+                f"Meta description should be at least 50 characters (currently {len(value)}) for better SEO."
+            )
+        return value
+    
+    def validate_h1_tag(self, value):
+        """Validate H1 tag length"""
+        if value and len(value) > 70:
+            raise serializers.ValidationError(
+                f"H1 tag should be max 70 characters (currently {len(value)}) for best SEO practice."
             )
         return value
     
@@ -119,7 +154,8 @@ class PageListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'site', 'site_domain', 'slug',
             'title', 'block_count', 'full_url',
-            'created_at', 'updated_at'
+            'is_published', 'published_at',
+            'order', 'created_at', 'updated_at'
         ]
 
 
@@ -203,7 +239,9 @@ class PageDetailSerializer(serializers.ModelSerializer):
         model = Page
         fields = [
             'id', 'site', 'site_domain', 'title', 'slug',
-            'page_type', 'meta_title', 'meta_description',
+            'meta_description', 'h1_tag', 'use_h1_in_hero',
+            'canonical_url', 'custom_head_html',
+            'keywords', 'lsi_phrases',
             'order', 'is_published', 'blocks',
             'created_at', 'updated_at', 'published_at'
         ]

@@ -51,6 +51,15 @@ class Page(models.Model):
         default=0,
         help_text='Display order in navigation menus'
     )
+    is_published = models.BooleanField(
+        default=False,
+        help_text='Whether the page is published and visible'
+    )
+    published_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text='Date and time when page was published'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     

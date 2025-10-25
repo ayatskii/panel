@@ -197,7 +197,6 @@ const PagesListPage = () => {
                 <TableCell>Title</TableCell>
                 <TableCell>Site</TableCell>
                 <TableCell>Slug</TableCell>
-                <TableCell>Type</TableCell>
                 <TableCell>Blocks</TableCell>
                 <TableCell>Status</TableCell>
                 <TableCell>Created</TableCell>
@@ -210,9 +209,6 @@ const PagesListPage = () => {
                   <TableCell>{page.title}</TableCell>
                   <TableCell>{page.site_domain}</TableCell>
                   <TableCell>/{page.slug}</TableCell>
-                  <TableCell>
-                    <Chip label={page.page_type} size="small" variant="outlined" />
-                  </TableCell>
                   <TableCell>{page.blocks_count || 0}</TableCell>
                   <TableCell>
                     <Chip

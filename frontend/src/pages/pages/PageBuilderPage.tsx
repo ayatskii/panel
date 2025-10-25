@@ -13,6 +13,7 @@ import {
   ListItemButton,
   ListItemText,
   Divider,
+  Chip,
 } from '@mui/material'
 import {
   Save as SaveIcon,
@@ -22,6 +23,8 @@ import {
   Close as CloseIcon,
   ArrowUpward as MoveUpIcon,
   ArrowDownward as MoveDownIcon,
+  Publish as PublishIcon,
+  Unpublished as UnpublishedIcon,
 } from '@mui/icons-material'
 import {
   useGetPageQuery,
@@ -30,12 +33,18 @@ import {
   useUpdateBlockMutation,
   useDeleteBlockMutation,
   useReorderBlocksMutation,
+  usePublishPageMutation,
+  useUnpublishPageMutation,
 } from '@/store/api/pagesApi'
 import HeroBlock from '@/components/blocks/HeroBlock'
 import TextBlock from '@/components/blocks/TextBlock'
 import ImageBlock from '@/components/blocks/ImageBlock'
 import GalleryBlock from '@/components/blocks/GalleryBlock'
 import SwiperBlock from '@/components/blocks/SwiperBlock'
+import FAQBlock from '@/components/blocks/FAQBlock'
+import CTABlock from '@/components/blocks/CTABlock'
+import TextImageBlock from '@/components/blocks/TextImageBlock'
+import ArticleBlock from '@/components/blocks/ArticleBlock'
 import toast from 'react-hot-toast'
 import type { PageBlock } from '@/types'
 import type { HeroBlockContent } from '@/components/blocks/HeroBlock'
@@ -43,12 +52,20 @@ import type { TextBlockContent } from '@/components/blocks/TextBlock'
 import type { ImageBlockContent } from '@/components/blocks/ImageBlock'
 import type { GalleryBlockContent } from '@/components/blocks/GalleryBlock'
 import type { SwiperBlockContent } from '@/components/blocks/SwiperBlock'
+import type { FAQBlockContent } from '@/components/blocks/FAQBlock'
+import type { CTABlockContent } from '@/components/blocks/CTABlock'
+import type { TextImageBlockContent } from '@/components/blocks/TextImageBlock'
+import type { ArticleBlockContent } from '@/components/blocks/ArticleBlock'
 
 const BLOCK_TYPES = [
   { type: 'hero', label: 'Hero Section', defaultContent: { title: 'Hero Title', subtitle: 'Subtitle' } },
+  { type: 'article', label: 'Article Content', defaultContent: { title: 'Article Title', text: '<p>Write your article content here. Use paragraphs and formatting.</p>' } },
   { type: 'text', label: 'Text Content', defaultContent: { title: 'Section Title', text: 'Your text here' } },
   { type: 'image', label: 'Single Image', defaultContent: { image_url: '', alt_text: '' } },
+  { type: 'text_image', label: 'Text + Image', defaultContent: { title: 'Feature Highlight', text: 'Describe your amazing feature here', image_url: '', image_position: 'left' as const, image_size: 'medium' as const } },
   { type: 'gallery', label: 'Image Gallery', defaultContent: { images: [] } },
+  { type: 'cta', label: 'Call to Action', defaultContent: { title: 'Ready to get started?', description: 'Join thousands of satisfied customers', buttons: [] } },
+  { type: 'faq', label: 'FAQ Section', defaultContent: { title: 'Frequently Asked Questions', items: [] } },
   { type: 'swiper', label: 'Slider', defaultContent: { slides: [] } },
 ]
 
@@ -62,6 +79,8 @@ const PageBuilderPage = () => {
   const [updateBlock] = useUpdateBlockMutation()
   const [deleteBlock] = useDeleteBlockMutation()
   const [reorderBlocks] = useReorderBlocksMutation()
+  const [publishPage] = usePublishPageMutation()
+  const [unpublishPage] = useUnpublishPageMutation()
 
   const [localBlocks, setLocalBlocks] = useState<PageBlock[]>([])
   const [selectedBlockId, setSelectedBlockId] = useState<number | null>(null)
@@ -139,6 +158,24 @@ const PageBuilderPage = () => {
     }
   }
 
+  const handlePublish = async () => {
+    try {
+      await publishPage(Number(id)).unwrap()
+      toast.success('Page published successfully!')
+    } catch {
+      toast.error('Failed to publish page')
+    }
+  }
+
+  const handleUnpublish = async () => {
+    try {
+      await unpublishPage(Number(id)).unwrap()
+      toast.success('Page unpublished successfully!')
+    } catch {
+      toast.error('Failed to unpublish page')
+    }
+  }
+
   const renderBlock = (block: PageBlock) => {
     const isEditing = !previewMode && selectedBlockId === block.id
 
@@ -146,6 +183,12 @@ const PageBuilderPage = () => {
       case 'hero':
         return <HeroBlock
           content={block.content as HeroBlockContent}
+          isEditing={isEditing}
+          onChange={(content) => handleUpdateBlock(block.id, content as Record<string, unknown>)}
+        />
+      case 'article':
+        return <ArticleBlock
+          content={block.content as ArticleBlockContent}
           isEditing={isEditing}
           onChange={(content) => handleUpdateBlock(block.id, content as Record<string, unknown>)}
         />
@@ -161,9 +204,27 @@ const PageBuilderPage = () => {
           isEditing={isEditing}
           onChange={(content) => handleUpdateBlock(block.id, content as Record<string, unknown>)}
         />
+      case 'text_image':
+        return <TextImageBlock
+          content={block.content as TextImageBlockContent}
+          isEditing={isEditing}
+          onChange={(content) => handleUpdateBlock(block.id, content as Record<string, unknown>)}
+        />
       case 'gallery':
         return <GalleryBlock
           content={block.content as GalleryBlockContent}
+          isEditing={isEditing}
+          onChange={(content) => handleUpdateBlock(block.id, content as Record<string, unknown>)}
+        />
+      case 'cta':
+        return <CTABlock
+          content={block.content as CTABlockContent}
+          isEditing={isEditing}
+          onChange={(content) => handleUpdateBlock(block.id, content as Record<string, unknown>)}
+        />
+      case 'faq':
+        return <FAQBlock
+          content={block.content as FAQBlockContent}
           isEditing={isEditing}
           onChange={(content) => handleUpdateBlock(block.id, content as Record<string, unknown>)}
         />
@@ -203,9 +264,16 @@ const PageBuilderPage = () => {
       <Paper sx={{ p: 2, mb: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
           <Box>
-            <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
-              {page.title}
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
+                {page.title}
+              </Typography>
+              <Chip 
+                label={page.is_published ? 'Published' : 'Draft'} 
+                color={page.is_published ? 'success' : 'default'}
+                size="small"
+              />
+            </Box>
             <Typography variant="body2" color="text.secondary">
               Page Builder
             </Typography>
@@ -227,6 +295,25 @@ const PageBuilderPage = () => {
             >
               {previewMode ? 'Edit Mode' : 'Preview'}
             </Button>
+            {page.is_published ? (
+              <Button
+                variant="outlined"
+                color="warning"
+                startIcon={<UnpublishedIcon />}
+                onClick={handleUnpublish}
+              >
+                Unpublish
+              </Button>
+            ) : (
+              <Button
+                variant="outlined"
+                color="success"
+                startIcon={<PublishIcon />}
+                onClick={handlePublish}
+              >
+                Publish
+              </Button>
+            )}
             <Button
               variant="contained"
               startIcon={<SaveIcon />}

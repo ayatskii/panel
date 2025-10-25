@@ -1,7 +1,31 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.db.models import Count
-from .models import Media, MediaFolder
+from .models import Media, MediaFolder, MediaTag
+
+
+@admin.register(MediaTag)
+class MediaTagAdmin(admin.ModelAdmin):
+    list_display = ['name', 'color_display', 'media_count', 'created_at']
+    search_fields = ['name']
+    readonly_fields = ['created_at']
+    
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.annotate(_media_count=Count('media_files'))
+    
+    def media_count(self, obj):
+        return obj._media_count
+    media_count.short_description = 'Media Files'
+    media_count.admin_order_field = '_media_count'
+    
+    def color_display(self, obj):
+        return format_html(
+            '<span style="background-color: {}; padding: 2px 8px; border-radius: 3px; color: white;">{}</span>',
+            obj.color, obj.name
+        )
+    color_display.short_description = 'Tag'
+
 
 @admin.register(MediaFolder)
 class MediaFolderAdmin(admin.ModelAdmin):

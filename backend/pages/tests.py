@@ -165,6 +165,49 @@ class PageModelTestCase(TestCase):
         """Test string representation"""
         page = Page.objects.create(site=self.site, slug="about")
         self.assertEqual(str(page), "example.com/about")
+    
+    def test_page_is_published_default(self):
+        """Test page is not published by default"""
+        page = Page.objects.create(site=self.site, slug="test")
+        self.assertFalse(page.is_published)
+        self.assertIsNone(page.published_at)
+    
+    def test_page_can_be_published(self):
+        """Test page can be published"""
+        from django.utils import timezone
+        
+        page = Page.objects.create(site=self.site, slug="test")
+        page.is_published = True
+        page.published_at = timezone.now()
+        page.save()
+        
+        self.assertTrue(page.is_published)
+        self.assertIsNotNone(page.published_at)
+    
+    def test_page_can_be_unpublished(self):
+        """Test page can be unpublished"""
+        from django.utils import timezone
+        
+        page = Page.objects.create(
+            site=self.site, 
+            slug="test",
+            is_published=True,
+            published_at=timezone.now()
+        )
+        
+        page.is_published = False
+        page.save()
+        
+        self.assertFalse(page.is_published)
+    
+    def test_published_pages_query(self):
+        """Test filtering published pages"""
+        Page.objects.create(site=self.site, slug="published", is_published=True)
+        Page.objects.create(site=self.site, slug="draft", is_published=False)
+        
+        published_pages = Page.objects.filter(is_published=True)
+        self.assertEqual(published_pages.count(), 1)
+        self.assertEqual(published_pages.first().slug, "published")
 
 
 class PageBlockModelTestCase(TestCase):
@@ -472,3 +515,125 @@ class SwiperPresetModelTestCase(TestCase):
         self.assertEqual(presets[0], preset3)  # Most recent first
         self.assertEqual(presets[1], preset2)
         self.assertEqual(presets[2], preset1)
+
+
+class PageAPITestCase(TestCase):
+    """Test Page API endpoints"""
+    
+    def setUp(self):
+        """Set up test data"""
+        from rest_framework.test import APIClient
+        
+        self.client = APIClient()
+        
+        self.user = User.objects.create_user(
+            username="testuser",
+            email="test@example.com",
+            password="testpass123"
+        )
+        
+        self.template = Template.objects.create(
+            name="Test Template",
+            html_content="<html></html>",
+            css_content="body {}",
+        )
+        
+        self.site = Site.objects.create(
+            user=self.user,
+            domain="example.com",
+            brand_name="Example",
+            template=self.template,
+        )
+        
+        self.page = Page.objects.create(
+            site=self.site,
+            slug="test-page",
+            title="Test Page",
+            is_published=False
+        )
+        
+        # Authenticate
+        self.client.force_authenticate(user=self.user)
+    
+    def test_publish_page_endpoint(self):
+        """Test publishing a page via API"""
+        url = f'/api/pages/{self.page.id}/publish/'
+        response = self.client.post(url)
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.data['is_published'])
+        
+        # Verify in database
+        self.page.refresh_from_db()
+        self.assertTrue(self.page.is_published)
+        self.assertIsNotNone(self.page.published_at)
+    
+    def test_unpublish_page_endpoint(self):
+        """Test unpublishing a page via API"""
+        from django.utils import timezone
+        
+        # Make page published first
+        self.page.is_published = True
+        self.page.published_at = timezone.now()
+        self.page.save()
+        
+        url = f'/api/pages/{self.page.id}/unpublish/'
+        response = self.client.post(url)
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.data['is_published'])
+        
+        # Verify in database
+        self.page.refresh_from_db()
+        self.assertFalse(self.page.is_published)
+    
+    def test_cannot_publish_other_users_page(self):
+        """Test that users cannot publish pages they don't own"""
+        # Create another user
+        other_user = User.objects.create_user(
+            username="otheruser",
+            email="other@example.com",
+            password="testpass123"
+        )
+        
+        # Create page owned by other user
+        other_template = Template.objects.create(
+            name="Other Template",
+            html_content="<html></html>",
+            css_content="body {}",
+        )
+        
+        other_site = Site.objects.create(
+            user=other_user,
+            domain="other.com",
+            brand_name="Other",
+            template=other_template,
+        )
+        
+        other_page = Page.objects.create(
+            site=other_site,
+            slug="other-page",
+            title="Other Page",
+        )
+        
+        # Try to publish other user's page
+        url = f'/api/pages/{other_page.id}/publish/'
+        response = self.client.post(url)
+        
+        # Should be forbidden or not found
+        self.assertIn(response.status_code, [403, 404])
+    
+    def test_duplicate_page_copies_published_status_as_false(self):
+        """Test that duplicated pages are not published by default"""
+        self.page.is_published = True
+        self.page.save()
+        
+        url = f'/api/pages/{self.page.id}/duplicate/'
+        response = self.client.post(url)
+        
+        self.assertEqual(response.status_code, 201)
+        
+        # New page should not be published
+        new_page_id = response.data['id']
+        new_page = Page.objects.get(id=new_page_id)
+        self.assertFalse(new_page.is_published)

@@ -1,4 +1,5 @@
 import { Box, Typography, TextField } from '@mui/material'
+import RichTextEditor from '@/components/common/RichTextEditor'
 
 export interface TextBlockContent {
   title?: string;
@@ -24,14 +25,17 @@ const TextBlock = ({ content, isEditing, onChange }: TextBlockProps) => {
             value={content.title || ''}
             onChange={(e) => onChange?.({ ...content, title: e.target.value })}
           />
-          <TextField
-            label="Text"
-            fullWidth
-            multiline
-            rows={6}
-            value={content.text || ''}
-            onChange={(e) => onChange?.({ ...content, text: e.target.value })}
-          />
+          <Box>
+            <Typography variant="subtitle2" sx={{ mb: 1, color: 'text.secondary' }}>
+              Text Content
+            </Typography>
+            <RichTextEditor
+              content={content.text || ''}
+              onChange={(html) => onChange?.({ ...content, text: html })}
+              placeholder="Enter your text content here..."
+              minHeight={200}
+            />
+          </Box>
         </Box>
       </Box>
     )

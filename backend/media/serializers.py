@@ -1,5 +1,15 @@
 from rest_framework import serializers
-from .models import Media, MediaFolder
+from .models import Media, MediaFolder, MediaTag
+
+
+class MediaTagSerializer(serializers.ModelSerializer):
+    """Media tag serializer"""
+    media_count = serializers.IntegerField(read_only=True)
+    
+    class Meta:
+        model = MediaTag
+        fields = ['id', 'name', 'color', 'media_count', 'created_at']
+        read_only_fields = ['created_at']
 
 
 class MediaFolderSerializer(serializers.ModelSerializer):
@@ -35,6 +45,14 @@ class MediaFolderSerializer(serializers.ModelSerializer):
 
 class MediaSerializer(serializers.ModelSerializer):
     """Media file serializer"""
+    tags = MediaTagSerializer(many=True, read_only=True)
+    tag_ids = serializers.PrimaryKeyRelatedField(
+        many=True,
+        write_only=True,
+        queryset=MediaTag.objects.all(),
+        required=False,
+        source='tags'
+    )
     folder_path = serializers.CharField(source='folder.full_path', read_only=True)
     folder_name = serializers.CharField(source='folder.name', read_only=True)  # Add for frontend
     uploaded_by_username = serializers.CharField(
@@ -50,6 +68,9 @@ class MediaSerializer(serializers.ModelSerializer):
     file_size_mb = serializers.FloatField(source='size_mb', read_only=True)  # Alias for frontend
     file_type = serializers.SerializerMethodField()  # Add file_type for frontend
     thumbnail_url = serializers.SerializerMethodField()  # Add thumbnail support
+    medium_url = serializers.SerializerMethodField()  # Medium size variant
+    large_url = serializers.SerializerMethodField()  # Large size variant
+    webp_url = serializers.SerializerMethodField()  # WebP variant
     
     class Meta:
         model = Media
@@ -57,10 +78,12 @@ class MediaSerializer(serializers.ModelSerializer):
             'id', 'folder', 'folder_path', 'folder_name', 'filename', 'original_name',
             'file', 'file_url', 'file_path', 'file_size', 'mime_type',
             'alt_text', 'caption', 'width', 'height',  # Add caption if model has it
+            'tags', 'tag_ids',  # Add tags support
             'uploaded_by', 'user_username',  # Add user alias
             'uploaded_by_username', 'is_image', 'is_svg',
             'size_kb', 'size_mb', 'file_size_mb', 'file_type',
-            'thumbnail_url', 'created_at', 'updated_at'  # Add thumbnail_url and updated_at
+            'thumbnail_url', 'medium_url', 'large_url', 'webp_url', 'is_optimized',  # Image variants
+            'created_at', 'updated_at'  # Add thumbnail_url and updated_at
         ]
         read_only_fields = [
             'filename', 'file_path', 'file_size', 'mime_type',
@@ -88,10 +111,35 @@ class MediaSerializer(serializers.ModelSerializer):
         """Return thumbnail URL for images"""
         request = self.context.get('request')
         
-        # If image, return file URL as thumbnail (or implement actual thumbnail generation)
+        # If optimized, return thumbnail variant
+        if obj.is_optimized and obj.thumbnail and request:
+            return request.build_absolute_uri(obj.thumbnail.url)
+        
+        # Fallback to original file for images
         if obj.is_image and obj.file and request:
             return request.build_absolute_uri(obj.file.url)
         
+        return None
+    
+    def get_medium_url(self, obj):
+        """Return medium size variant URL"""
+        request = self.context.get('request')
+        if obj.is_optimized and obj.medium and request:
+            return request.build_absolute_uri(obj.medium.url)
+        return None
+    
+    def get_large_url(self, obj):
+        """Return large size variant URL"""
+        request = self.context.get('request')
+        if obj.is_optimized and obj.large and request:
+            return request.build_absolute_uri(obj.large.url)
+        return None
+    
+    def get_webp_url(self, obj):
+        """Return WebP variant URL"""
+        request = self.context.get('request')
+        if obj.is_optimized and obj.webp and request:
+            return request.build_absolute_uri(obj.webp.url)
         return None
 
 

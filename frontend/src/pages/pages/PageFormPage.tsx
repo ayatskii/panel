@@ -11,6 +11,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Divider,
 } from '@mui/material'
 import {
   useGetPageQuery,
@@ -18,6 +19,15 @@ import {
   useUpdatePageMutation,
 } from '@/store/api/pagesApi'
 import { useGetSitesQuery } from '@/store/api/sitesApi'
+import MetaFieldWithCounter from '@/components/common/MetaFieldWithCounter'
+import GoogleSearchPreview from '@/components/common/GoogleSearchPreview'
+import SEOScoreCard from '@/components/common/SEOScoreCard'
+import DuplicateMetaWarning from '@/components/common/DuplicateMetaWarning'
+import AIMetaGenerator from '@/components/common/AIMetaGenerator'
+import LSIKeywordResearch from '@/components/common/LSIKeywordResearch'
+import CompetitorAnalysis from '@/components/common/CompetitorAnalysis'
+import SitemapManager from '@/components/common/SitemapManager'
+import SchemaManager from '@/components/common/SchemaManager'
 import toast from 'react-hot-toast'
 import type { PageFormData } from '@/types'
 
@@ -35,9 +45,9 @@ const PageFormPage = () => {
     site: 0,
     title: '',
     slug: '',
-    page_type: 'custom',
-    meta_title: '',
     meta_description: '',
+    h1_tag: '',
+    keywords: '',
     order: 0,
   })
 
@@ -47,9 +57,9 @@ const PageFormPage = () => {
         site: page.site,
         title: page.title,
         slug: page.slug,
-        page_type: page.page_type,
-        meta_title: page.meta_title,
         meta_description: page.meta_description,
+        h1_tag: page.h1_tag,
+        keywords: page.keywords,
         order: page.order,
       })
     }
@@ -71,6 +81,43 @@ const PageFormPage = () => {
 
   const handleSelectChange = (name: string, value: string | number) => {
     setFormData({ ...formData, [name]: value })
+  }
+
+  const handleApplyGeneratedMeta = (meta: {
+    title: string
+    meta_description: string
+    h1_tag: string
+    keywords: string
+  }) => {
+    setFormData({
+      ...formData,
+      title: meta.title,
+      meta_description: meta.meta_description,
+      h1_tag: meta.h1_tag,
+      keywords: meta.keywords,
+    })
+  }
+
+  const handleAddKeywords = (newKeywords: string[]) => {
+    const existingKeywords = formData.keywords ? formData.keywords.split('\n').filter(k => k.trim()) : []
+    const combinedKeywords = [...existingKeywords, ...newKeywords]
+    const uniqueKeywords = [...new Set(combinedKeywords)]
+    
+    setFormData({
+      ...formData,
+      keywords: uniqueKeywords.join('\n'),
+    })
+  }
+
+  const handleCompetitorInsights = (insights: string[]) => {
+    // Log insights for now - could be used to update form data or show notifications
+    console.log('Competitor insights:', insights)
+    toast.success(`Received ${insights.length} competitor insights!`)
+  }
+
+  const getTargetKeywords = (): string[] => {
+    if (!formData.keywords) return []
+    return formData.keywords.split('\n').filter(k => k.trim()).map(k => k.trim())
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -144,40 +191,129 @@ const PageFormPage = () => {
               helperText="URL-friendly version (e.g., about-us)"
             />
 
-            <FormControl fullWidth required>
-              <InputLabel>Page Type</InputLabel>
-              <Select
-                value={formData.page_type}
-                onChange={(e) => handleSelectChange('page_type', e.target.value)}
-                label="Page Type"
-              >
-                <MenuItem value="home">Home</MenuItem>
-                <MenuItem value="about">About</MenuItem>
-                <MenuItem value="contact">Contact</MenuItem>
-                <MenuItem value="custom">Custom</MenuItem>
-              </Select>
-            </FormControl>
+            <Divider sx={{ my: 2 }} />
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              SEO Settings
+            </Typography>
 
-            <TextField
-              label="Meta Title"
-              name="meta_title"
-              fullWidth
-              required
-              value={formData.meta_title}
-              onChange={handleChange}
-              helperText="SEO title"
+            {/* SEO Score Card */}
+            <SEOScoreCard
+              title={formData.title}
+              metaDescription={formData.meta_description}
+              h1Tag={formData.h1_tag || ''}
+              slug={formData.slug}
+              keywords={formData.keywords || ''}
             />
 
-            <TextField
-              label="Meta Description"
-              name="meta_description"
-              fullWidth
+            {/* AI Meta Generator */}
+            <AIMetaGenerator
+              pageTitle={formData.title}
+              pageContent=""
+              currentMeta={{
+                title: formData.title,
+                meta_description: formData.meta_description,
+                h1_tag: formData.h1_tag || '',
+                keywords: formData.keywords || '',
+              }}
+              siteDomain={sites?.find(s => s.id === formData.site)?.domain}
+              onApplyMeta={handleApplyGeneratedMeta}
+            />
+
+            {/* LSI Keyword Research */}
+            <LSIKeywordResearch
+              pageContent=""
+              onAddKeywords={handleAddKeywords}
+            />
+
+            {/* Competitor Analysis */}
+            <CompetitorAnalysis
+              targetKeywords={getTargetKeywords()}
+              onInsightsGenerated={handleCompetitorInsights}
+            />
+
+            {/* Sitemap Manager */}
+            {formData.site && (
+              <SitemapManager
+                siteId={formData.site}
+                siteDomain={sites?.find(s => s.id === formData.site)?.domain}
+              />
+            )}
+
+            {/* Schema Manager */}
+            {isEdit && id && (
+              <SchemaManager
+                pageId={parseInt(id)}
+                siteId={formData.site}
+                siteDomain={sites?.find(s => s.id === formData.site)?.domain}
+              />
+            )}
+
+            {/* Google Search Preview */}
+            <GoogleSearchPreview
+              title={formData.title}
+              description={formData.meta_description}
+              url={`${sites?.find(s => s.id === formData.site)?.domain || 'example.com'}/${formData.slug}`}
+              siteName={sites?.find(s => s.id === formData.site)?.brand_name}
+            />
+
+            {/* Duplicate Meta Warning */}
+            {formData.site > 0 && (
+              <DuplicateMetaWarning
+                siteId={formData.site}
+                title={formData.title}
+                metaDescription={formData.meta_description}
+                excludeId={isEdit ? Number(id) : undefined}
+              />
+            )}
+
+            {/* Meta Title with Counter */}
+            <MetaFieldWithCounter
+              label="Meta Title"
+              value={formData.title}
+              onChange={(value) => setFormData({ ...formData, title: value })}
+              minLength={30}
+              maxLength={60}
+              helperText="The title that appears in search results and browser tabs"
+              placeholder="Enter your SEO-optimized title here..."
               required
+            />
+
+            {/* Meta Description with Counter */}
+            <MetaFieldWithCounter
+              label="Meta Description"
+              value={formData.meta_description}
+              onChange={(value) => setFormData({ ...formData, meta_description: value })}
+              minLength={50}
+              maxLength={160}
+              helperText="A brief description that appears under your title in search results"
               multiline
               rows={3}
-              value={formData.meta_description}
+              placeholder="Write a compelling description that encourages clicks..."
+              required
+            />
+
+            {/* H1 Tag with Counter */}
+            <MetaFieldWithCounter
+              label="H1 Tag"
+              value={formData.h1_tag || ''}
+              onChange={(value) => setFormData({ ...formData, h1_tag: value })}
+              minLength={1}
+              maxLength={70}
+              helperText="The main heading that appears on your page"
+              placeholder="Enter your main page heading..."
+            />
+
+            {/* Keywords */}
+            <TextField
+              label="Keywords"
+              name="keywords"
+              fullWidth
+              multiline
+              rows={3}
+              value={formData.keywords}
               onChange={handleChange}
-              helperText="SEO description"
+              helperText="Enter keywords one per line (e.g., casino games, online slots, gambling)"
+              placeholder="casino games&#10;online slots&#10;gambling&#10;best casino"
             />
 
             <TextField
