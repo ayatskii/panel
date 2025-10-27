@@ -225,6 +225,16 @@ export const mediaApi = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ['MediaTag'],
     }),
+    
+    // Favicon Generation
+    generateFavicons: builder.mutation<FaviconGenerationResult, { media_id: number; site_domain: string }>({
+      query: ({ media_id, site_domain }) => ({
+        url: `/media/${media_id}/generate_favicons/`,
+        method: 'POST',
+        body: { site_domain },
+      }),
+      invalidatesTags: ['Media'],
+    }),
   }),
 })
 
@@ -248,4 +258,5 @@ export const {
   useCreateTagMutation,
   useUpdateTagMutation,
   useDeleteTagMutation,
+  useGenerateFaviconsMutation,
 } = mediaApi

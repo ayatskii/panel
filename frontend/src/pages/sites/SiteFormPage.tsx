@@ -20,6 +20,7 @@ import {
 } from '@mui/material'
 import {
   ExpandMore as ExpandMoreIcon,
+  Check as CheckIcon,
 } from '@mui/icons-material'
 import {
   useGetSiteQuery,
@@ -29,6 +30,7 @@ import {
 import { useGetTemplatesQuery } from '@/store/api/templatesApi'
 import { useGetAffiliateLinksQuery } from '@/store/api/sitesApi'
 import { useGetCloudflareTokensQuery } from '@/store/api/integrationsApi'
+import DomainSetupModal from '@/components/sites/DomainSetupModal'
 import toast from 'react-hot-toast'
 import type { SiteFormData } from '@/types'
 
@@ -63,6 +65,10 @@ const SiteFormPage = () => {
     redirect_404_to_home: false,
     use_www_version: false,
   })
+
+  // Domain setup modal state
+  const [domainSetupOpen, setDomainSetupOpen] = useState(false)
+  const [selectedCloudflareToken, setSelectedCloudflareToken] = useState<number | null>(null)
 
   // Set default template when templates are loaded
   useEffect(() => {
@@ -123,6 +129,23 @@ const SiteFormPage = () => {
         [colorKey]: value,
       },
     })
+  }
+
+  const handleDomainSetup = () => {
+    if (!formData.domain) {
+      toast.error('Please enter a domain first')
+      return
+    }
+    setDomainSetupOpen(true)
+  }
+
+  const handleDomainSetupContinue = (tokenId: number, nameservers: string[]) => {
+    setSelectedCloudflareToken(tokenId)
+    setFormData(prev => ({
+      ...prev,
+      cloudflare_token: tokenId
+    }))
+    toast.success(`Domain setup completed. Nameservers: ${nameservers.join(', ')}`)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -190,16 +213,42 @@ const SiteFormPage = () => {
               helperText="The name of your website"
             />
 
-            <TextField
-              label="Domain"
-              name="domain"
-              fullWidth
-              required
-              value={formData.domain}
-              onChange={handleChange}
-              helperText="e.g., example.com (without http://)"
-              placeholder="example.com"
-            />
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+              <TextField
+                label="Domain"
+                name="domain"
+                fullWidth
+                required
+                value={formData.domain}
+                onChange={handleChange}
+                helperText="e.g., example.com (without http://)"
+                placeholder="example.com"
+              />
+              <Button
+                variant="outlined"
+                onClick={handleDomainSetup}
+                disabled={!formData.domain}
+                sx={{ mt: 1, minWidth: '140px' }}
+              >
+                Setup Domain
+              </Button>
+            </Box>
+            
+            {selectedCloudflareToken && (
+              <Box sx={{ 
+                p: 2, 
+                bgcolor: 'success.light', 
+                borderRadius: 1,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1
+              }}>
+                <CheckIcon color="success" />
+                <Typography variant="body2" color="success.dark">
+                  Domain setup completed with Cloudflare token
+                </Typography>
+              </Box>
+            )}
 
             <FormControl fullWidth required>
               <InputLabel>Language</InputLabel>
@@ -415,6 +464,14 @@ const SiteFormPage = () => {
           </Button>
         </Box>
       </form>
+
+      {/* Domain Setup Modal */}
+      <DomainSetupModal
+        open={domainSetupOpen}
+        onClose={() => setDomainSetupOpen(false)}
+        onContinue={handleDomainSetupContinue}
+        domain={formData.domain}
+      />
     </Box>
   )
 }

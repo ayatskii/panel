@@ -5,14 +5,11 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Count, Q, Prefetch
 from django.utils import timezone
-from .models import Site, Language, AffiliateLink
+from .models import Site
 from .serializers import (
     SiteSerializer,
     SiteListSerializer,
-    SiteCreateSerializer,
-    LanguageSerializer,
-    AffiliateLinkSerializer,
-    AffiliateLinkListSerializer
+    SiteCreateSerializer
 )
 from users.permissions import IsOwnerOrAdmin, IsSiteOwnerOrAdmin, IsAdminUser
 
@@ -186,127 +183,3 @@ class SiteViewSet(viewsets.ModelViewSet):
         serializer = TemplateListSerializer(templates, many=True)
         return Response(serializer.data)
 
-
-class LanguageViewSet(viewsets.ReadOnlyModelViewSet):
-    """Read-only viewset for languages"""
-    queryset = Language.objects.filter(is_active=True)
-    serializer_class = LanguageSerializer
-    permission_classes = [IsAuthenticated]
-    pagination_class = None  
-
-
-class AffiliateLinkViewSet(viewsets.ModelViewSet):
-    """
-    Complete CRUD for affiliate links with usage tracking
-    - List: All authenticated users (read-only for regular users)
-    - Create/Update/Delete: Admin only
-    """
-    serializer_class = AffiliateLinkSerializer
-    permission_classes = [IsAuthenticated]
-    search_fields = ['name', 'description', 'url']
-    filterset_fields = ['click_tracking']
-    ordering_fields = ['created_at', 'name']
-    ordering = ['-created_at']
-    
-    def get_queryset(self):
-        """Optimized with usage counts"""
-        return AffiliateLink.objects.annotate(
-            site_count=Count('sites', distinct=True),
-            swiper_preset_count=Count('swiper_presets', distinct=True),
-            total_usage=Count('sites', distinct=True) + Count('swiper_presets', distinct=True)
-        )
-    
-    def get_serializer_class(self):
-        """Use lightweight serializer for lists"""
-        if self.action == 'list':
-            return AffiliateLinkListSerializer
-        return AffiliateLinkSerializer
-    
-    def get_permissions(self):
-        """Admin-only for create/update/delete"""
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            return [IsAdminUser()]
-        return [IsAuthenticated()]
-    
-    @action(detail=True, methods=['get'])
-    def usage(self, request, pk=None):
-        """Get detailed usage statistics for this affiliate link"""
-        affiliate_link = self.get_object()
-        
-        # Get all sites using this link
-        sites = affiliate_link.sites.select_related('user').values(
-            'id', 'domain', 'brand_name', 'user__username', 'created_at'
-        )
-        
-        # Get all swiper presets using this link
-        presets = affiliate_link.swiper_presets.values(
-            'id', 'name', 'created_at'
-        )
-        
-        return Response({
-            'affiliate_link': {
-                'id': affiliate_link.id,
-                'name': affiliate_link.name,
-                'url': affiliate_link.url
-            },
-            'usage_summary': {
-                'total_sites': sites.count(),
-                'total_presets': presets.count(),
-                'total_usage': sites.count() + presets.count()
-            },
-            'sites': list(sites),
-            'swiper_presets': list(presets)
-        })
-    
-    @action(detail=True, methods=['post'])
-    def duplicate(self, request, pk=None):
-        """Duplicate an affiliate link"""
-        original = self.get_object()
-        
-        new_link = AffiliateLink.objects.create(
-            name=f"{original.name} (Copy)",
-            url=original.url,
-            description=original.description,
-            click_tracking=original.click_tracking
-        )
-        
-        serializer = self.get_serializer(new_link)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    
-    @action(detail=True, methods=['post'])
-    def toggle_tracking(self, request, pk=None):
-        """Toggle click tracking on/off"""
-        affiliate_link = self.get_object()
-        affiliate_link.click_tracking = not affiliate_link.click_tracking
-        affiliate_link.save()
-        
-        return Response({
-            'id': affiliate_link.id,
-            'name': affiliate_link.name,
-            'click_tracking': affiliate_link.click_tracking,
-            'message': f"Click tracking {'enabled' if affiliate_link.click_tracking else 'disabled'}"
-        })
-    
-    @action(detail=False, methods=['get'])
-    def most_used(self, request):
-        """Get most used affiliate links"""
-        links = self.get_queryset().order_by('-total_usage')[:10]
-        serializer = self.get_serializer(links, many=True)
-        return Response(serializer.data)
-    
-    def perform_destroy(self, instance):
-        """Check if can be deleted before deleting"""
-        site_count = instance.sites.count()
-        preset_count = instance.swiper_presets.count()
-        
-        if site_count > 0 or preset_count > 0:
-            from rest_framework.exceptions import ValidationError
-            raise ValidationError({
-                'error': f'Cannot delete affiliate link in use',
-                'details': {
-                    'sites_using': site_count,
-                    'presets_using': preset_count
-                }
-            })
-        
-        instance.delete()

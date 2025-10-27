@@ -1,4 +1,4 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -10,6 +10,8 @@ from .serializers import (
     TemplatePreviewSerializer,
     TemplateFootprintSerializer
 )
+from .services.uniqueness_service import template_uniqueness_service
+from .services.template_uniqueness_service import template_uniqueness_service as template_uniqueness
 from users.permissions import IsAdminUser
 
 
@@ -67,6 +69,156 @@ class TemplateViewSet(viewsets.ModelViewSet):
         from .serializers import TemplateVariableSerializer
         serializer = TemplateVariableSerializer(variables, many=True)
         return Response(serializer.data)
+    
+    @action(detail=True, methods=['post'])
+    def generate_unique_css(self, request, pk=None):
+        """Generate unique CSS classes for a template"""
+        template = self.get_object()
+        site_id = request.data.get('site_id')
+        class_list_name = request.data.get('class_list_name')
+        
+        if not site_id:
+            return Response(
+                {'error': 'site_id is required'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            # Generate unique CSS classes
+            modified_css, class_mappings = template_uniqueness_service.generate_unique_css_classes(
+                template.css_content,
+                site_id,
+                class_list_name
+            )
+            
+            return Response({
+                'modified_css': modified_css,
+                'class_mappings': class_mappings,
+                'total_classes': len(class_mappings)
+            })
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to generate unique CSS: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=True, methods=['post'])
+    def validate_css(self, request, pk=None):
+        """Validate CSS content and return analysis"""
+        template = self.get_object()
+        
+        try:
+            analysis = template_uniqueness_service.validate_css_classes(template.css_content)
+            return Response(analysis)
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to validate CSS: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=False, methods=['get'])
+    def class_lists(self, request):
+        """Get available custom class lists"""
+        try:
+            class_lists = template_uniqueness_service.get_available_class_lists()
+            return Response({'class_lists': class_lists})
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to get class lists: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=False, methods=['post'])
+    def create_class_list(self, request):
+        """Create a new custom class list (admin only)"""
+        name = request.data.get('name')
+        classes = request.data.get('classes', [])
+        
+        if not name or not classes:
+            return Response(
+                {'error': 'name and classes are required'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            success = template_uniqueness_service.create_custom_class_list(name, classes)
+            
+            if success:
+                return Response({'message': 'Class list created successfully'})
+            else:
+                return Response(
+                    {'error': 'Class list already exists'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+                
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to create class list: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=True, methods=['post'])
+    def generate_unique_template(self, request, pk=None):
+        """Generate unique CSS classes and styles for a template"""
+        template = self.get_object()
+        site_id = request.data.get('site_id')
+        
+        if not site_id:
+            return Response(
+                {'error': 'site_id is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            from sites.models import Site
+            site = Site.objects.get(id=site_id)
+            
+            result = template_uniqueness.generate_unique_template(template, site)
+            return Response(result)
+            
+        except Site.DoesNotExist:
+            return Response(
+                {'error': 'Site not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to generate unique template: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=False, methods=['post'])
+    def generate_css_class_list(self, request):
+        """Generate a custom CSS class list for a site"""
+        site_id = request.data.get('site_id')
+        list_name = request.data.get('list_name', 'default')
+        
+        if not site_id:
+            return Response(
+                {'error': 'site_id is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            from sites.models import Site
+            site = Site.objects.get(id=site_id)
+            
+            result = template_uniqueness.generate_css_class_list(site, list_name)
+            return Response(result)
+            
+        except Site.DoesNotExist:
+            return Response(
+                {'error': 'Site not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to generate CSS class list: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class TemplateFootprintViewSet(viewsets.ModelViewSet):

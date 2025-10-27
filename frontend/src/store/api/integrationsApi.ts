@@ -58,6 +58,54 @@ export const integrationsApi = apiSlice.injectEndpoints({
       },
       providesTags: ['CloudflareToken'],
     }),
+    getAvailableCloudflareTokens: builder.query<CloudflareTokenWithSites[], void>({
+      query: () => '/integrations/cloudflare-tokens/available_for_site_creation/',
+      providesTags: ['CloudflareToken'],
+    }),
+    
+    // Page Rules
+    getPageRules: builder.query<PageRulesResponse, { site_id: number }>({
+      query: (params) => ({
+        url: '/integrations/cloudflare-tokens/page_rules/',
+        params,
+      }),
+      providesTags: ['PageRules'],
+    }),
+    
+    create404Redirect: builder.mutation<PageRuleResult, { site_id: number }>({
+      query: (data) => ({
+        url: '/integrations/cloudflare-tokens/create_404_redirect/',
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['PageRules'],
+    }),
+    
+    createWwwRedirect: builder.mutation<PageRuleResult, { site_id: number }>({
+      query: (data) => ({
+        url: '/integrations/cloudflare-tokens/create_www_redirect/',
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['PageRules'],
+    }),
+    
+    applyRedirectRules: builder.mutation<RedirectRulesResult, { site_id: number }>({
+      query: (data) => ({
+        url: '/integrations/cloudflare-tokens/apply_redirect_rules/',
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['PageRules'],
+    }),
+    
+    getRuleExpressions: builder.query<RuleExpressions, { site_id: number }>({
+      query: (params) => ({
+        url: '/integrations/cloudflare-tokens/rule_expressions/',
+        params,
+      }),
+      providesTags: ['PageRules'],
+    }),
     getCloudflareToken: builder.query<CloudflareToken, number>({
       query: (id) => `/integrations/cloudflare-tokens/${id}/`,
       providesTags: (_result, _error, id) => [{ type: 'CloudflareToken', id }],
@@ -116,5 +164,11 @@ export const {
   useUpdateCloudflareTokenMutation,
   useDeleteCloudflareTokenMutation,
   useValidateCloudflareTokenMutation,
+  useGetAvailableCloudflareTokensQuery,
+  useGetPageRulesQuery,
+  useCreate404RedirectMutation,
+  useCreateWwwRedirectMutation,
+  useApplyRedirectRulesMutation,
+  useGetRuleExpressionsQuery,
 } = integrationsApi
 

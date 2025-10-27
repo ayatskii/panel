@@ -18,16 +18,47 @@ class DeploymentViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if user.is_admin:
             return Deployment.objects.select_related('site', 'cloudflare_token')
-        return Response(Deployment.objects.filter(site__user=user).select_related('site', 'cloudflare_token'))
+        return Deployment.objects.filter(site__user=user).select_related('site', 'cloudflare_token')
 
     @action(detail=True, methods=['get'])
     def logs(self, request, pk=None):
         """Retrieve build logs for a deployment."""
         dep = self.get_object()
+        # Convert build_log string to array of lines for frontend compatibility
+        logs = dep.build_log.split('\n') if dep.build_log else []
         return Response({
-            'build_log': dep.build_log,
+            'logs': logs,
             'status': dep.status
         })
+
+    @action(detail=True, methods=['post'])
+    def trigger(self, request, pk=None):
+        """Trigger a new deployment for this deployment's site."""
+        from .tasks import deploy_site_async
+        
+        dep = self.get_object()
+        
+        # Check if deployment is already in progress
+        if dep.status in ['pending', 'building']:
+            return Response(
+                {'error': 'Deployment already in progress'},
+                status=400
+            )
+        
+        # Create a new deployment for the same site
+        new_deployment = Deployment.objects.create(
+            site=dep.site,
+            cloudflare_token=dep.cloudflare_token,
+            status='pending'
+        )
+        
+        # Trigger the deployment task
+        deploy_site_async.delay(new_deployment.id, request.user.id)
+        
+        return Response({
+            'message': 'Deployment triggered successfully',
+            'deployment_id': new_deployment.id
+        }, status=201)
 
     @action(detail=True, methods=['post'])
     def cancel(self, request, pk=None):

@@ -139,6 +139,174 @@ export interface AffiliateLink {
     created_at: string
   }
 
+  export interface CloudflareTokenWithSites {
+    id: number
+    name: string
+    account_id: string
+    zone_id: string
+    site_count: number
+    sites: Array<{
+      id: number
+      domain: string
+      brand_name: string
+      deployed_at: string | null
+    }>
+    is_available: boolean
+  }
+
+  export interface PageRule {
+    id: string
+    targets: Array<{
+      target: string
+      constraint: {
+        operator: string
+        value: string
+      }
+    }>
+    actions: Array<{
+      id: string
+      value: {
+        url?: string
+        status_code?: number
+      }
+    }>
+    priority: number
+    status: string
+    created_on: string
+    modified_on: string
+  }
+
+  export interface PageRulesResponse {
+    success: boolean
+    rules?: PageRule[]
+    count?: number
+    error?: string
+  }
+
+  export interface PageRuleResult {
+    success: boolean
+    message?: string
+    rule_id?: string
+    created_at?: string
+    error?: string
+  }
+
+  export interface RedirectRulesResult {
+    success: boolean
+    rules_created: Array<{
+      type: string
+      rule_id?: string
+      message: string
+    }>
+    errors: Array<{
+      type: string
+      error: string
+    }>
+  }
+
+  export interface RuleExpressions {
+    '404_redirect': string
+    'www_redirect': string
+  }
+
+  export interface FaviconFile {
+    filename: string
+    path: string
+    url: string
+    size?: number
+    format?: string
+    monochrome?: boolean
+    sizes?: number[]
+  }
+
+  export interface FaviconGenerationResult {
+    success: boolean
+    generated_files?: {
+      ico?: FaviconFile
+      png_16?: FaviconFile
+      png_32?: FaviconFile
+      png_48?: FaviconFile
+      png_180?: FaviconFile
+      svg?: FaviconFile
+      apple_touch_icon?: FaviconFile
+      safari_pinned_tab?: FaviconFile
+    }
+    html_links?: string[]
+    total_files?: number
+    error?: string
+  }
+
+  export interface UniqueTemplateResult {
+    success: boolean
+    template_id?: number
+    site_id?: number
+    unique_classes?: Record<string, string>
+    unique_styles?: Record<string, Record<string, string>>
+    processed_content?: string
+    custom_css?: string
+    total_classes?: number
+    total_styles?: number
+    error?: string
+  }
+
+  export interface CssClassListResult {
+    success: boolean
+    list_name?: string
+    classes?: string[]
+    count?: number
+    error?: string
+  }
+
+  export interface EnhancedContentResult {
+    success: boolean
+    page_id?: number
+    generated_blocks?: Array<{
+      success: boolean
+      block_type: string
+      block_id?: number
+      generated_data?: Record<string, unknown>
+      error?: string
+    }>
+    errors?: string[]
+    total_blocks?: number
+    error?: string
+  }
+
+  export interface AvailablePromptsResult {
+    success: boolean
+    block_type?: string
+    prompts?: Array<{
+      id: number
+      name: string
+      type: string
+      description: string
+      ai_model: string
+      temperature: number
+      max_tokens: number
+    }>
+    error?: string
+  }
+
+  export interface BlockTypesResult {
+    success: boolean
+    block_types?: Record<string, {
+      name: string
+      description: string
+      required_fields: string[]
+      optional_fields: string[]
+      ai_prompts: string[]
+    }>
+    error?: string
+  }
+
+  export interface RegenerateBlockResult {
+    success: boolean
+    block_id?: number
+    updated_content?: string
+    prompt_type?: string
+    error?: string
+  }
+
   export interface SiteFormData {
     domain: string
     brand_name: string

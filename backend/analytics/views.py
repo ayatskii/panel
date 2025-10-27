@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 from .models import PageView, Analytics
 from .serializers import PageViewSerializer, SiteAnalyticsSerializer
 from .services.advanced_analytics_service import AdvancedAnalyticsService
+from .services.realtime_analytics_service import realtime_analytics_service
 
 
 class PageViewViewSet(viewsets.ModelViewSet):
@@ -73,6 +74,121 @@ class PageViewViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response(
                 {'error': f'Failed to get real-time analytics: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=False, methods=['get'])
+    def realtime_metrics(self, request):
+        """Get real-time metrics for a site"""
+        site_id = request.query_params.get('site_id')
+        
+        if not site_id:
+            return Response(
+                {'error': 'site_id is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            metrics = realtime_analytics_service.get_realtime_metrics(int(site_id))
+            return Response(metrics, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to get real-time metrics: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=False, methods=['get'])
+    def live_visitors(self, request):
+        """Get current live visitors for a site"""
+        site_id = request.query_params.get('site_id')
+        
+        if not site_id:
+            return Response(
+                {'error': 'site_id is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            visitors = realtime_analytics_service.get_live_visitors(int(site_id))
+            return Response({'visitors': visitors}, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to get live visitors: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=False, methods=['get'])
+    def realtime_alerts(self, request):
+        """Get real-time alerts for a site"""
+        site_id = request.query_params.get('site_id')
+        
+        if not site_id:
+            return Response(
+                {'error': 'site_id is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            alerts = realtime_analytics_service.get_realtime_alerts(int(site_id))
+            return Response({'alerts': alerts}, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to get real-time alerts: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=False, methods=['post'])
+    def track_realtime_view(self, request):
+        """Track a page view in real-time"""
+        site_id = request.data.get('site_id')
+        page_id = request.data.get('page_id')
+        user_data = request.data.get('user_data', {})
+        
+        if not site_id or not page_id:
+            return Response(
+                {'error': 'site_id and page_id are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            result = realtime_analytics_service.track_realtime_view(
+                int(site_id), 
+                int(page_id), 
+                user_data
+            )
+            
+            if result['success']:
+                return Response(result, status=status.HTTP_201_CREATED)
+            else:
+                return Response(result, status=status.HTTP_400_BAD_REQUEST)
+                
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to track real-time view: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=False, methods=['get'])
+    def websocket_url(self, request):
+        """Get WebSocket URL for real-time analytics"""
+        site_id = request.query_params.get('site_id')
+        
+        if not site_id:
+            return Response(
+                {'error': 'site_id is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            websocket_url = realtime_analytics_service.get_analytics_websocket_url(int(site_id))
+            return Response({'websocket_url': websocket_url}, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to get WebSocket URL: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     

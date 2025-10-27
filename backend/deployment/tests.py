@@ -364,3 +364,182 @@ class DeploymentModelTestCase(TestCase):
         # Snapshot should still be created
         self.assertIsNotNone(deployment.template_snapshot)
         self.assertIsNone(deployment.template_snapshot["footprint"])
+
+
+class DeploymentViewSetTestCase(TestCase):
+    """Test DeploymentViewSet API endpoints"""
+    
+    def setUp(self):
+        """Set up test data"""
+        self.user = User.objects.create_user(
+            username="testuser",
+            email="test@example.com",
+            password="testpass123"
+        )
+
+        self.template = Template.objects.create(
+            name="Test Template",
+            html_content="<html>{{brand_name}}</html>",
+            css_content="body { color: #000; }",
+            type="sectional",
+            version="1.0.0",
+        )
+
+        self.site = Site.objects.create(
+            user=self.user,
+            domain="example.com",
+            brand_name="Example",
+            template=self.template,
+        )
+
+        self.api_token = ApiToken.objects.create(
+            name="CF Token",
+            service="cloudflare",
+            token_value="test-token-123",
+        )
+
+        self.cf_token = CloudflareToken.objects.create(
+            api_token=self.api_token,
+            name="My CF Token",
+            account_id="account123",
+            zone_id="zone123",
+        )
+
+        self.deployment = Deployment.objects.create(
+            site=self.site,
+            cloudflare_token=self.cf_token,
+            status="success",
+        )
+
+    def test_trigger_deployment_success(self):
+        """Test successful deployment trigger"""
+        from django.test import Client
+        from rest_framework.test import APIClient
+        from rest_framework_simplejwt.tokens import RefreshToken
+        from unittest.mock import patch
+        
+        client = APIClient()
+        
+        # Get JWT token
+        refresh = RefreshToken.for_user(self.user)
+        client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
+        
+        # Mock the Celery task to prevent it from running
+        with patch('deployment.tasks.deploy_site_async.delay') as mock_task:
+            # Trigger deployment
+            response = client.post(f'/api/deployments/{self.deployment.id}/trigger/')
+            
+            self.assertEqual(response.status_code, 201)
+            self.assertIn('deployment_id', response.data)
+            self.assertEqual(response.data['message'], 'Deployment triggered successfully')
+            
+            # Check that a new deployment was created
+            new_deployment = Deployment.objects.get(id=response.data['deployment_id'])
+            self.assertEqual(new_deployment.site, self.site)
+            self.assertEqual(new_deployment.cloudflare_token, self.cf_token)
+            self.assertEqual(new_deployment.status, 'pending')
+            
+            # Verify the task was called
+            mock_task.assert_called_once_with(new_deployment.id, self.user.id)
+
+    def test_trigger_deployment_already_in_progress(self):
+        """Test triggering deployment when one is already in progress"""
+        from django.test import Client
+        from rest_framework.test import APIClient
+        from rest_framework_simplejwt.tokens import RefreshToken
+        
+        # Create a deployment that's already in progress
+        in_progress_deployment = Deployment.objects.create(
+            site=self.site,
+            cloudflare_token=self.cf_token,
+            status="building",
+        )
+        
+        client = APIClient()
+        
+        # Get JWT token
+        refresh = RefreshToken.for_user(self.user)
+        client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
+        
+        # Try to trigger deployment
+        response = client.post(f'/api/deployments/{in_progress_deployment.id}/trigger/')
+        
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('error', response.data)
+        self.assertEqual(response.data['error'], 'Deployment already in progress')
+
+    def test_get_deployment_logs(self):
+        """Test getting deployment logs"""
+        from django.test import Client
+        from rest_framework.test import APIClient
+        from rest_framework_simplejwt.tokens import RefreshToken
+        
+        # Set some build log
+        self.deployment.build_log = "Build started\nCompiling assets\nDeployment complete"
+        self.deployment.save()
+        
+        client = APIClient()
+        
+        # Get JWT token
+        refresh = RefreshToken.for_user(self.user)
+        client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
+        
+        # Get logs
+        response = client.get(f'/api/deployments/{self.deployment.id}/logs/')
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('logs', response.data)
+        self.assertIn('status', response.data)
+        self.assertEqual(len(response.data['logs']), 3)
+        self.assertEqual(response.data['logs'][0], 'Build started')
+        self.assertEqual(response.data['logs'][1], 'Compiling assets')
+        self.assertEqual(response.data['logs'][2], 'Deployment complete')
+
+    def test_cancel_deployment_success(self):
+        """Test successful deployment cancellation"""
+        from django.test import Client
+        from rest_framework.test import APIClient
+        from rest_framework_simplejwt.tokens import RefreshToken
+        
+        # Create a pending deployment
+        pending_deployment = Deployment.objects.create(
+            site=self.site,
+            cloudflare_token=self.cf_token,
+            status="pending",
+        )
+        
+        client = APIClient()
+        
+        # Get JWT token
+        refresh = RefreshToken.for_user(self.user)
+        client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
+        
+        # Cancel deployment
+        response = client.post(f'/api/deployments/{pending_deployment.id}/cancel/')
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['message'], 'Deployment cancelled')
+        
+        # Check that deployment was cancelled
+        pending_deployment.refresh_from_db()
+        self.assertEqual(pending_deployment.status, 'failed')
+        self.assertEqual(pending_deployment.build_log, 'Cancelled by user')
+
+    def test_cancel_deployment_not_pending(self):
+        """Test cancelling deployment that's not pending"""
+        from django.test import Client
+        from rest_framework.test import APIClient
+        from rest_framework_simplejwt.tokens import RefreshToken
+        
+        client = APIClient()
+        
+        # Get JWT token
+        refresh = RefreshToken.for_user(self.user)
+        client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
+        
+        # Try to cancel a completed deployment
+        response = client.post(f'/api/deployments/{self.deployment.id}/cancel/')
+        
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('error', response.data)
+        self.assertEqual(response.data['error'], 'Cannot cancel deployment in current status')

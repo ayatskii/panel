@@ -526,6 +526,38 @@ export const pagesApi = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ['Page'],
     }),
+    
+    // Enhanced Content Generation
+    generateEnhancedContent: builder.mutation<EnhancedContentResult, { page_id: number; block_types: string[]; prompts: Record<string, number> }>({
+      query: ({ page_id, block_types, prompts }) => ({
+        url: `/pages/${page_id}/generate_enhanced_content/`,
+        method: 'POST',
+        body: { block_types, prompts },
+      }),
+      invalidatesTags: ['Page', 'PageBlock'],
+    }),
+    
+    getAvailablePrompts: builder.query<AvailablePromptsResult, { block_type: string }>({
+      query: (params) => ({
+        url: '/pages/get_available_prompts/',
+        params,
+      }),
+      providesTags: ['Prompt'],
+    }),
+    
+    getBlockTypes: builder.query<BlockTypesResult, void>({
+      query: () => '/pages/get_block_types/',
+      providesTags: ['Page'],
+    }),
+    
+    regenerateBlockContent: builder.mutation<RegenerateBlockResult, { block_id: number; prompt_id: number }>({
+      query: ({ block_id, prompt_id }) => ({
+        url: `/page-blocks/${block_id}/regenerate_content/`,
+        method: 'POST',
+        body: { prompt_id },
+      }),
+      invalidatesTags: ['PageBlock'],
+    }),
   }),
 })
 
@@ -565,4 +597,8 @@ export const {
   useCreateSwiperPresetMutation,
   useUpdateSwiperPresetMutation,
   useDeleteSwiperPresetMutation,
+  useGenerateEnhancedContentMutation,
+  useGetAvailablePromptsQuery,
+  useGetBlockTypesQuery,
+  useRegenerateBlockContentMutation,
 } = pagesApi

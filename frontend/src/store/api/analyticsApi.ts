@@ -26,6 +26,56 @@ export interface SiteAnalytics {
   site_domain?: string
 }
 
+export interface RealtimeMetrics {
+  online_users: number
+  hourly_views: number
+  top_pages: Array<{
+    page__title: string
+    page__slug: string
+    views: number
+  }>
+  traffic_sources: Array<{
+    referrer: string
+    visits: number
+  }>
+  device_breakdown: Array<{
+    device_type: string
+    count: number
+  }>
+  country_breakdown: Array<{
+    country: string
+    visits: number
+  }>
+  minute_data: Array<{
+    minute: string
+    views: number
+  }>
+  last_updated: string
+  site_id: number
+}
+
+export interface LiveVisitor {
+  ip_address: string
+  country: string
+  city: string
+  device_type: string
+  browser: string
+  os: string
+  last_activity: string
+  page_count: number
+  current_page?: {
+    title: string
+    url: string
+  }
+}
+
+export interface RealtimeAlert {
+  type: string
+  severity: 'low' | 'medium' | 'high'
+  message: string
+  timestamp: string
+}
+
 export interface AnalyticsOverview {
   success: boolean
   site_id: number
@@ -239,7 +289,7 @@ export const analyticsApi = createApi({
       return headers
     },
   }),
-  tagTypes: ['PageView', 'SiteAnalytics', 'AnalyticsOverview', 'RealTimeAnalytics'],
+  tagTypes: ['PageView', 'SiteAnalytics', 'AnalyticsOverview', 'RealTimeAnalytics', 'RealtimeMetrics', 'LiveVisitors', 'RealtimeAlerts'],
   endpoints: (builder) => ({
     // Page Views
     getPageViews: builder.query<PageView[], { site_id?: number }>({
@@ -323,6 +373,47 @@ export const analyticsApi = createApi({
         body: data,
       }),
     }),
+
+    // Real-time Analytics
+    getRealtimeMetrics: builder.query<RealtimeMetrics, number>({
+      query: (siteId) => ({
+        url: `page-views/realtime_metrics/?site_id=${siteId}`,
+      }),
+      providesTags: ['RealtimeMetrics'],
+    }),
+
+    getLiveVisitors: builder.query<{ visitors: LiveVisitor[] }, number>({
+      query: (siteId) => ({
+        url: `page-views/live_visitors/?site_id=${siteId}`,
+      }),
+      providesTags: ['LiveVisitors'],
+    }),
+
+    getRealtimeAlerts: builder.query<{ alerts: RealtimeAlert[] }, number>({
+      query: (siteId) => ({
+        url: `page-views/realtime_alerts/?site_id=${siteId}`,
+      }),
+      providesTags: ['RealtimeAlerts'],
+    }),
+
+    trackRealtimeView: builder.mutation<{ success: boolean; page_view_id: number; timestamp: string }, {
+      site_id: number
+      page_id: number
+      user_data: Record<string, unknown>
+    }>({
+      query: (data) => ({
+        url: 'page-views/track_realtime_view/',
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['RealtimeMetrics', 'LiveVisitors', 'RealtimeAlerts'],
+    }),
+
+    getWebsocketUrl: builder.query<{ websocket_url: string }, number>({
+      query: (siteId) => ({
+        url: `page-views/websocket_url/?site_id=${siteId}`,
+      }),
+    }),
   }),
 })
 
@@ -336,4 +427,9 @@ export const {
   useGetTopPagesQuery,
   useGetPerformanceMetricsQuery,
   useExportAnalyticsMutation,
+  useGetRealtimeMetricsQuery,
+  useGetLiveVisitorsQuery,
+  useGetRealtimeAlertsQuery,
+  useTrackRealtimeViewMutation,
+  useGetWebsocketUrlQuery,
 } = analyticsApi

@@ -13,6 +13,9 @@ from .serializers import (
     SwiperPresetSerializer
 )
 from .permissions import IsPageOwnerOrAdmin
+from .services.advanced_ai_service import advanced_ai_service
+from .services.content_workflow_service import content_workflow_service
+from .services.enhanced_content_generation_service import enhanced_content_generation_service
 from users.permissions import IsAdminUser
 
 
@@ -126,6 +129,235 @@ class PageViewSet(viewsets.ModelViewSet):
             Page.objects.filter(id=item['id']).update(order=item['order'])
         
         return Response({'message': 'Pages reordered successfully'})
+    
+    @action(detail=True, methods=['post'])
+    def generate_content(self, request, pk=None):
+        """Generate AI content for page blocks"""
+        page = self.get_object()
+        
+        block_types = request.data.get('block_types', [])
+        prompt_ids = request.data.get('prompt_ids', {})
+        model = request.data.get('model')
+        
+        if not block_types:
+            return Response(
+                {'error': 'block_types is required'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            # Prepare context for AI generation
+            context = {
+                'brand_name': page.site.brand_name,
+                'keywords': page.keywords_list,
+                'lsi_phrases': page.lsi_phrases_list,
+                'page_title': page.title,
+                'domain': page.site.domain,
+                'language': page.site.language_code,
+                'affiliate_link': page.site.affiliate_link.url if page.site.affiliate_link else '#',
+                'background_image': '',
+                'default_image': '',
+                'button_text': 'Learn More',
+                'cta_text': 'Get Started'
+            }
+            
+            generated_content = {}
+            
+            for block_type in block_types:
+                prompt_id = prompt_ids.get(block_type)
+                result = advanced_ai_service.generate_block_content(
+                    block_type=block_type,
+                    context=context,
+                    prompt_id=prompt_id,
+                    model=model
+                )
+                generated_content[block_type] = result
+            
+            return Response({
+                'message': 'Content generated successfully',
+                'content': generated_content
+            })
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to generate content: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=True, methods=['post'])
+    def generate_meta(self, request, pk=None):
+        """Generate AI meta content (title, description, H1)"""
+        page = self.get_object()
+        
+        try:
+            context = {
+                'brand_name': page.site.brand_name,
+                'keywords': page.keywords_list,
+                'lsi_phrases': page.lsi_phrases_list,
+                'page_title': page.title,
+                'domain': page.site.domain,
+                'language': page.site.language_code
+            }
+            
+            # Generate meta title
+            title_prompt = f"Generate an SEO-optimized meta title (max 60 characters) for a page about {', '.join(context['keywords'])} for {context['brand_name']}. Include primary keywords naturally."
+            meta_title = advanced_ai_service._call_ai_api(title_prompt, max_tokens=50)
+            
+            # Generate meta description
+            desc_prompt = f"Generate an SEO-optimized meta description (max 160 characters) for a page about {', '.join(context['keywords'])} for {context['brand_name']}. Make it compelling and include a call-to-action."
+            meta_description = advanced_ai_service._call_ai_api(desc_prompt, max_tokens=80)
+            
+            # Generate H1
+            h1_prompt = f"Generate an SEO-optimized H1 heading for a page about {', '.join(context['keywords'])} for {context['brand_name']}. Make it engaging and include primary keywords."
+            h1_tag = advanced_ai_service._call_ai_api(h1_prompt, max_tokens=50)
+            
+            return Response({
+                'title': meta_title.strip(),
+                'meta_description': meta_description.strip(),
+                'h1_tag': h1_tag.strip()
+            })
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to generate meta content: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=True, methods=['post'])
+    def start_workflow(self, request, pk=None):
+        """Start a content generation workflow for the page"""
+        page = self.get_object()
+        
+        workflow_config = request.data.get('config', {})
+        
+        try:
+            result = content_workflow_service.create_generation_workflow(
+                page_id=page.id,
+                workflow_config=workflow_config
+            )
+            
+            if result.get('success'):
+                return Response({
+                    'message': 'Workflow started successfully',
+                    'workflow': result['workflow']
+                })
+            else:
+                return Response(
+                    {'error': result.get('error', 'Failed to start workflow')}, 
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+                
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to start workflow: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=False, methods=['get'])
+    def workflow_status(self, request):
+        """Get workflow status"""
+        workflow_id = request.query_params.get('workflow_id')
+        
+        if not workflow_id:
+            return Response(
+                {'error': 'workflow_id is required'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            status_info = content_workflow_service.get_workflow_status(workflow_id)
+            return Response(status_info)
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to get workflow status: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=False, methods=['post'])
+    def cancel_workflow(self, request):
+        """Cancel a workflow"""
+        workflow_id = request.data.get('workflow_id')
+        
+        if not workflow_id:
+            return Response(
+                {'error': 'workflow_id is required'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            result = content_workflow_service.cancel_workflow(workflow_id)
+            return Response(result)
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to cancel workflow: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=True, methods=['post'])
+    def generate_enhanced_content(self, request, pk=None):
+        """Generate enhanced content for a page with AI integration"""
+        page = self.get_object()
+        block_types = request.data.get('block_types', [])
+        prompts = request.data.get('prompts', {})
+        
+        if not block_types:
+            return Response(
+                {'error': 'block_types is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            result = enhanced_content_generation_service.generate_content_for_page(
+                page, block_types, prompts
+            )
+            return Response(result)
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to generate enhanced content: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=False, methods=['get'])
+    def get_available_prompts(self, request):
+        """Get available prompts for content generation"""
+        block_type = request.query_params.get('block_type')
+        
+        if not block_type:
+            return Response(
+                {'error': 'block_type parameter is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            prompts = enhanced_content_generation_service.get_available_prompts(block_type)
+            return Response({
+                'success': True,
+                'block_type': block_type,
+                'prompts': prompts
+            })
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to get available prompts: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=False, methods=['get'])
+    def get_block_types(self, request):
+        """Get available block types for content generation"""
+        try:
+            block_types = enhanced_content_generation_service.BLOCK_TYPES
+            return Response({
+                'success': True,
+                'block_types': block_types
+            })
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to get block types: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class PageBlockViewSet(viewsets.ModelViewSet):
@@ -936,6 +1168,153 @@ class PageBlockViewSet(viewsets.ModelViewSet):
                 {'error': f'Failed to get automation analytics: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+    
+    @action(detail=True, methods=['post'])
+    def generate_content(self, request, pk=None):
+        """Generate AI content for a specific block"""
+        block = self.get_object()
+        
+        prompt_id = request.data.get('prompt_id')
+        model = request.data.get('model')
+        
+        try:
+            # Prepare context for AI generation
+            context = {
+                'brand_name': block.page.site.brand_name,
+                'keywords': block.page.keywords_list,
+                'lsi_phrases': block.page.lsi_phrases_list,
+                'page_title': block.page.title,
+                'domain': block.page.site.domain,
+                'language': block.page.site.language_code,
+                'affiliate_link': block.page.site.affiliate_link.url if block.page.site.affiliate_link else '#',
+                'background_image': '',
+                'default_image': '',
+                'button_text': 'Learn More',
+                'cta_text': 'Get Started'
+            }
+            
+            # Generate content for the block type
+            result = advanced_ai_service.generate_block_content(
+                block_type=block.block_type,
+                context=context,
+                prompt_id=prompt_id,
+                model=model
+            )
+            
+            return Response({
+                'message': 'Content generated successfully',
+                'content': result
+            })
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to generate content: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=True, methods=['post'])
+    def regenerate_content(self, request, pk=None):
+        """Regenerate AI content for a specific block and update it"""
+        block = self.get_object()
+        
+        prompt_id = request.data.get('prompt_id')
+        model = request.data.get('model')
+        
+        try:
+            # Prepare context for AI generation
+            context = {
+                'brand_name': block.page.site.brand_name,
+                'keywords': block.page.keywords_list,
+                'lsi_phrases': block.page.lsi_phrases_list,
+                'page_title': block.page.title,
+                'domain': block.page.site.domain,
+                'language': block.page.site.language_code,
+                'affiliate_link': block.page.site.affiliate_link.url if block.page.site.affiliate_link else '#',
+                'background_image': '',
+                'default_image': '',
+                'button_text': 'Learn More',
+                'cta_text': 'Get Started'
+            }
+            
+            # Generate content for the block type
+            result = advanced_ai_service.generate_block_content(
+                block_type=block.block_type,
+                context=context,
+                prompt_id=prompt_id,
+                model=model
+            )
+            
+            # Update the block with generated content
+            if block.block_type == 'hero':
+                block.content_data.update({
+                    'title': result.get('title', ''),
+                    'subtitle': result.get('subtitle', ''),
+                    'cta_text': result.get('cta_text', ''),
+                    'buttons': result.get('buttons', [])
+                })
+            elif block.block_type == 'article':
+                block.content_data.update({
+                    'title': result.get('title', ''),
+                    'text': result.get('text', ''),
+                    'alignment': result.get('alignment', 'left')
+                })
+            elif block.block_type == 'faq':
+                block.content_data.update({
+                    'title': result.get('title', ''),
+                    'faqs': result.get('faqs', [])
+                })
+            elif block.block_type == 'swiper':
+                block.content_data.update({
+                    'title': result.get('title', ''),
+                    'slides': result.get('slides', []),
+                    'button_text': result.get('button_text', 'Learn More')
+                })
+            elif block.block_type == 'cta':
+                block.content_data.update({
+                    'title': result.get('title', ''),
+                    'description': result.get('description', ''),
+                    'buttons': result.get('buttons', [])
+                })
+            else:
+                # Generic content update
+                block.content_data.update(result)
+            
+            block.save()
+            
+            return Response({
+                'message': 'Content regenerated and updated successfully',
+                'content': block.content_data
+            })
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to regenerate content: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=True, methods=['post'])
+    def regenerate_content(self, request, pk=None):
+        """Regenerate content for a specific block using AI"""
+        block = self.get_object()
+        prompt_id = request.data.get('prompt_id')
+        
+        if not prompt_id:
+            return Response(
+                {'error': 'prompt_id is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            result = enhanced_content_generation_service.regenerate_block_content(
+                block, prompt_id
+            )
+            return Response(result)
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to regenerate block content: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class SwiperPresetViewSet(viewsets.ModelViewSet):
@@ -951,3 +1330,149 @@ class SwiperPresetViewSet(viewsets.ModelViewSet):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
             return [IsAuthenticated(), IsAdminUser()]
         return [IsAuthenticated()]
+    
+    @action(detail=True, methods=['post'])
+    def apply_to_block(self, request, pk=None):
+        """Apply this preset to a specific swiper block"""
+        preset = self.get_object()
+        block_id = request.data.get('block_id')
+        
+        if not block_id:
+            return Response(
+                {'error': 'block_id is required'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            block = PageBlock.objects.get(id=block_id)
+            
+            if block.block_type != 'swiper':
+                return Response(
+                    {'error': 'Block must be of type swiper'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Update block content with preset data
+            block.content_data.update({
+                'title': f"Featured {preset.name}",
+                'slides': preset.games_data,
+                'button_text': preset.button_text
+            })
+            
+            # Set the preset reference
+            block.swiper_preset = preset
+            block.save()
+            
+            return Response({
+                'message': 'Preset applied successfully',
+                'content': block.content_data
+            })
+            
+        except PageBlock.DoesNotExist:
+            return Response(
+                {'error': 'Block not found'}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to apply preset: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=False, methods=['post'])
+    def create_from_ai(self, request):
+        """Create a new swiper preset using AI generation"""
+        name = request.data.get('name')
+        keywords = request.data.get('keywords', [])
+        game_count = request.data.get('game_count', 6)
+        button_text = request.data.get('button_text', 'Play Now')
+        model = request.data.get('model')
+        
+        if not name:
+            return Response(
+                {'error': 'name is required'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            # Prepare context for AI generation
+            context = {
+                'brand_name': 'Gaming Platform',
+                'keywords': keywords,
+                'lsi_phrases': [],
+                'page_title': name,
+                'domain': 'example.com',
+                'language': 'English',
+                'button_text': button_text
+            }
+            
+            # Generate swiper content using AI
+            result = advanced_ai_service.generate_block_content(
+                block_type='swiper',
+                context=context,
+                model=model
+            )
+            
+            # Create the preset
+            preset = SwiperPreset.objects.create(
+                name=name,
+                games_data=result.get('slides', []),
+                button_text=button_text
+            )
+            
+            return Response({
+                'message': 'Swiper preset created successfully',
+                'preset': SwiperPresetSerializer(preset).data
+            })
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to create preset: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=True, methods=['post'])
+    def duplicate(self, request, pk=None):
+        """Duplicate an existing swiper preset"""
+        preset = self.get_object()
+        
+        try:
+            # Create a duplicate with a new name
+            new_name = f"{preset.name} (Copy)"
+            counter = 1
+            while SwiperPreset.objects.filter(name=new_name).exists():
+                new_name = f"{preset.name} (Copy {counter})"
+                counter += 1
+            
+            duplicate = SwiperPreset.objects.create(
+                name=new_name,
+                games_data=preset.games_data,
+                button_text=preset.button_text,
+                affiliate_link=preset.affiliate_link
+            )
+            
+            return Response({
+                'message': 'Preset duplicated successfully',
+                'preset': SwiperPresetSerializer(duplicate).data
+            })
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to duplicate preset: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=False, methods=['get'])
+    def categories(self, request):
+        """Get available preset categories"""
+        # This could be enhanced to group presets by category
+        categories = [
+            {'id': 'slots', 'name': 'Slot Games', 'count': 0},
+            {'id': 'table', 'name': 'Table Games', 'count': 0},
+            {'id': 'live', 'name': 'Live Casino', 'count': 0},
+            {'id': 'sports', 'name': 'Sports Betting', 'count': 0},
+            {'id': 'new', 'name': 'New Games', 'count': 0},
+            {'id': 'popular', 'name': 'Popular Games', 'count': 0},
+        ]
+        
+        return Response({'categories': categories})

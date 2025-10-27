@@ -38,6 +38,8 @@ import {
   SmartToy as RobotIcon,
   Download as DownloadIcon,
   ContentCopy as CopyIcon,
+  Settings as SettingsIcon,
+  Visibility as ViewIcon,
 } from '@mui/icons-material'
 import {
   useGenerateSitemapMutation,

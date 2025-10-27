@@ -66,3 +66,7 @@ class AIContentService:
         )
         
         return response.content[0].text
+
+
+# Create a singleton instance
+ai_service = AIContentService()

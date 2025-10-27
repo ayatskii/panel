@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from .models import ApiToken, CloudflareToken
 from .serializers import ApiTokenSerializer, CloudflareTokenSerializer
 from .services.third_party_integrations_service import ThirdPartyIntegrationsService
+from .services.page_rules_service import page_rules_service
 from users.permissions import IsAdminUser
 
 
@@ -43,15 +44,361 @@ class CloudflareTokenViewSet(viewsets.ModelViewSet):
     search_fields = ['name']
     ordering = ['-created_at']
     
+    @action(detail=False, methods=['get'])
+    def available_for_site_creation(self, request):
+        """Get Cloudflare tokens available for site creation with their associated sites"""
+        from django.db.models import Count
+        from sites.models import Site
+        
+        # Get all active Cloudflare tokens with site counts
+        tokens = CloudflareToken.objects.filter(
+            api_token__is_active=True
+        ).select_related('api_token').annotate(
+            site_count=Count('sites', distinct=True)
+        ).order_by('name')
+        
+        # Get sites for each token
+        result = []
+        for token in tokens:
+            sites = Site.objects.filter(
+                cloudflare_token=token
+            ).values('id', 'domain', 'brand_name', 'deployed_at')
+            
+            result.append({
+                'id': token.id,
+                'name': token.name,
+                'account_id': token.account_id,
+                'zone_id': token.zone_id,
+                'site_count': token.site_count,
+                'sites': list(sites),
+                'is_available': token.api_token.is_active
+            })
+        
+        return Response(result)
+    
+    @action(detail=False, methods=['get'])
+    def page_rules(self, request):
+        """Get page rules for a site"""
+        site_id = request.query_params.get('site_id')
+        if not site_id:
+            return Response(
+                {'error': 'site_id parameter is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            from sites.models import Site
+            site = Site.objects.get(id=site_id)
+            
+            result = page_rules_service.get_page_rules(site)
+            return Response(result)
+            
+        except Site.DoesNotExist:
+            return Response(
+                {'error': 'Site not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to get page rules: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=False, methods=['post'])
+    def create_404_redirect(self, request):
+        """Create 404 redirect rule for a site"""
+        site_id = request.data.get('site_id')
+        if not site_id:
+            return Response(
+                {'error': 'site_id is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            from sites.models import Site
+            site = Site.objects.get(id=site_id)
+            
+            result = page_rules_service.create_404_redirect_rule(site)
+            return Response(result)
+            
+        except Site.DoesNotExist:
+            return Response(
+                {'error': 'Site not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to create 404 redirect rule: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=False, methods=['post'])
+    def create_www_redirect(self, request):
+        """Create www redirect rule for a site"""
+        site_id = request.data.get('site_id')
+        if not site_id:
+            return Response(
+                {'error': 'site_id is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            from sites.models import Site
+            site = Site.objects.get(id=site_id)
+            
+            result = page_rules_service.create_www_redirect_rule(site)
+            return Response(result)
+            
+        except Site.DoesNotExist:
+            return Response(
+                {'error': 'Site not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to create www redirect rule: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=False, methods=['post'])
+    def apply_redirect_rules(self, request):
+        """Apply all configured redirect rules for a site"""
+        site_id = request.data.get('site_id')
+        if not site_id:
+            return Response(
+                {'error': 'site_id is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            from sites.models import Site
+            site = Site.objects.get(id=site_id)
+            
+            result = page_rules_service.apply_site_redirect_rules(site)
+            return Response(result)
+            
+        except Site.DoesNotExist:
+            return Response(
+                {'error': 'Site not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to apply redirect rules: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=False, methods=['get'])
+    def rule_expressions(self, request):
+        """Get rule expressions for a site"""
+        site_id = request.query_params.get('site_id')
+        if not site_id:
+            return Response(
+                {'error': 'site_id parameter is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            from sites.models import Site
+            site = Site.objects.get(id=site_id)
+            
+            result = page_rules_service.get_rule_expressions(site)
+            return Response(result)
+            
+        except Site.DoesNotExist:
+            return Response(
+                {'error': 'Site not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to get rule expressions: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
     @action(detail=True, methods=['post'])
     def validate(self, request, pk=None):
         """Test connection to Cloudflare using this token config."""
         token = self.get_object()
-        from .services.cloudflare_service import CloudflareService
+        from .cloudflare import CloudflareService
         try:
-            cf_service = CloudflareService(token.api_token)
+            cf_service = CloudflareService(token.token, token.account_id)
             valid = cf_service.test_credentials()
             return Response({'valid': valid})
+        except Exception as e:
+            return Response({'error': str(e)}, status=400)
+    
+    @action(detail=True, methods=['get'])
+    def get_nameservers(self, request, pk=None):
+        """Get nameservers for a domain using this token."""
+        domain = request.query_params.get('domain')
+        if not domain:
+            return Response({'error': 'domain parameter is required'}, status=400)
+        
+        token = self.get_object()
+        from .cloudflare import CloudflareService
+        try:
+            cf_service = CloudflareService(token.token, token.account_id)
+            nameservers = cf_service.get_nameservers(domain)
+            return Response({'nameservers': nameservers})
+        except Exception as e:
+            return Response({'error': str(e)}, status=400)
+    
+    @action(detail=True, methods=['post'])
+    def verify_domain(self, request, pk=None):
+        """Verify domain ownership using this token."""
+        domain = request.data.get('domain')
+        if not domain:
+            return Response({'error': 'domain is required'}, status=400)
+        
+        token = self.get_object()
+        from .cloudflare import CloudflareService
+        try:
+            cf_service = CloudflareService(token.token, token.account_id)
+            verification = cf_service.verify_domain_ownership(domain)
+            return Response(verification)
+        except Exception as e:
+            return Response({'error': str(e)}, status=400)
+    
+    @action(detail=True, methods=['get'])
+    def get_dns_records(self, request, pk=None):
+        """Get DNS records for a domain using this token."""
+        domain = request.query_params.get('domain')
+        if not domain:
+            return Response({'error': 'domain parameter is required'}, status=400)
+        
+        token = self.get_object()
+        from .cloudflare import CloudflareService
+        try:
+            cf_service = CloudflareService(token.token, token.account_id)
+            records = cf_service.get_dns_records(domain)
+            return Response({'records': records})
+        except Exception as e:
+            return Response({'error': str(e)}, status=400)
+    
+    @action(detail=True, methods=['post'])
+    def create_dns_record(self, request, pk=None):
+        """Create a DNS record for a domain using this token."""
+        domain = request.data.get('domain')
+        record_type = request.data.get('type')
+        name = request.data.get('name')
+        content = request.data.get('content')
+        ttl = request.data.get('ttl', 1)
+        
+        if not all([domain, record_type, name, content]):
+            return Response({'error': 'domain, type, name, and content are required'}, status=400)
+        
+        token = self.get_object()
+        from .cloudflare import CloudflareService
+        try:
+            cf_service = CloudflareService(token.token, token.account_id)
+            result = cf_service.create_dns_record(domain, record_type, name, content, ttl)
+            return Response(result)
+        except Exception as e:
+            return Response({'error': str(e)}, status=400)
+    
+    @action(detail=True, methods=['get'])
+    def get_page_rules(self, request, pk=None):
+        """Get page rules for a domain using this token."""
+        domain = request.query_params.get('domain')
+        if not domain:
+            return Response({'error': 'domain parameter is required'}, status=400)
+        
+        token = self.get_object()
+        from .cloudflare import CloudflareService
+        try:
+            cf_service = CloudflareService(token.token, token.account_id)
+            rules = cf_service.get_page_rules(domain)
+            return Response({'rules': rules})
+        except Exception as e:
+            return Response({'error': str(e)}, status=400)
+    
+    @action(detail=True, methods=['post'])
+    def create_redirect_rule(self, request, pk=None):
+        """Create a redirect page rule for a domain using this token."""
+        domain = request.data.get('domain')
+        from_pattern = request.data.get('from_pattern')
+        to_url = request.data.get('to_url')
+        status_code = request.data.get('status_code', 301)
+        
+        if not all([domain, from_pattern, to_url]):
+            return Response({'error': 'domain, from_pattern, and to_url are required'}, status=400)
+        
+        token = self.get_object()
+        from .cloudflare import CloudflareService
+        try:
+            cf_service = CloudflareService(token.token, token.account_id)
+            result = cf_service.create_redirect_rule(domain, from_pattern, to_url, status_code)
+            return Response(result)
+        except Exception as e:
+            return Response({'error': str(e)}, status=400)
+    
+    @action(detail=True, methods=['post'])
+    def create_404_redirect_rule(self, request, pk=None):
+        """Create a 404 redirect rule for a domain using this token."""
+        domain = request.data.get('domain')
+        redirect_to = request.data.get('redirect_to', '/')
+        
+        if not domain:
+            return Response({'error': 'domain is required'}, status=400)
+        
+        token = self.get_object()
+        from .cloudflare import CloudflareService
+        try:
+            cf_service = CloudflareService(token.token, token.account_id)
+            result = cf_service.create_404_redirect_rule(domain, redirect_to)
+            return Response(result)
+        except Exception as e:
+            return Response({'error': str(e)}, status=400)
+    
+    @action(detail=True, methods=['post'])
+    def create_www_redirect_rule(self, request, pk=None):
+        """Create a www redirect rule for a domain using this token."""
+        domain = request.data.get('domain')
+        
+        if not domain:
+            return Response({'error': 'domain is required'}, status=400)
+        
+        token = self.get_object()
+        from .cloudflare import CloudflareService
+        try:
+            cf_service = CloudflareService(token.token, token.account_id)
+            result = cf_service.create_www_redirect_rule(domain)
+            return Response(result)
+        except Exception as e:
+            return Response({'error': str(e)}, status=400)
+    
+    @action(detail=True, methods=['get'])
+    def get_ssl_settings(self, request, pk=None):
+        """Get SSL settings for a domain using this token."""
+        domain = request.query_params.get('domain')
+        if not domain:
+            return Response({'error': 'domain parameter is required'}, status=400)
+        
+        token = self.get_object()
+        from .cloudflare import CloudflareService
+        try:
+            cf_service = CloudflareService(token.token, token.account_id)
+            settings = cf_service.get_ssl_settings(domain)
+            return Response(settings)
+        except Exception as e:
+            return Response({'error': str(e)}, status=400)
+    
+    @action(detail=True, methods=['post'])
+    def update_ssl_settings(self, request, pk=None):
+        """Update SSL settings for a domain using this token."""
+        domain = request.data.get('domain')
+        ssl_mode = request.data.get('ssl_mode', 'flexible')
+        
+        if not domain:
+            return Response({'error': 'domain is required'}, status=400)
+        
+        token = self.get_object()
+        from .cloudflare import CloudflareService
+        try:
+            cf_service = CloudflareService(token.token, token.account_id)
+            result = cf_service.update_ssl_settings(domain, ssl_mode)
+            return Response(result)
         except Exception as e:
             return Response({'error': str(e)}, status=400)
 

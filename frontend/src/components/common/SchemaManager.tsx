@@ -43,6 +43,7 @@ import {
   Lightbulb as LightbulbIcon,
   Download as DownloadIcon,
   ContentCopy as CopyIcon,
+  Settings as SettingsIcon,
 } from '@mui/icons-material'
 import {
   useGeneratePageSchemaMutation,

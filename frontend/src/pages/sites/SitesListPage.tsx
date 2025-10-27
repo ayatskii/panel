@@ -28,6 +28,7 @@ import {
   Palette as PaletteIcon,
 } from '@mui/icons-material'
 import { useGetSitesQuery, useDeleteSiteMutation, useDeploySiteMutation } from '@/store/api/sitesApi'
+import SiteCreationWizard from '@/components/sites/SiteCreationWizard'
 import toast from 'react-hot-toast'
 import { format } from 'date-fns'
 
@@ -39,6 +40,7 @@ const SitesListPage = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [selectedSiteId, setSelectedSiteId] = useState<number | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const [wizardOpen, setWizardOpen] = useState(false)
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, siteId: number) => {
     setAnchorEl(event.currentTarget)
@@ -48,6 +50,16 @@ const SitesListPage = () => {
   const handleMenuClose = () => {
     setAnchorEl(null)
     setSelectedSiteId(null)
+  }
+
+  const handleCreateSite = () => {
+    setWizardOpen(true)
+  }
+
+  const handleSiteCreated = (siteId: number) => {
+    toast.success('Site created successfully!')
+    setWizardOpen(false)
+    navigate(`/sites/${siteId}`)
   }
 
   const handleDelete = async (siteId: number) => {
@@ -95,7 +107,7 @@ const SitesListPage = () => {
         <Button
           variant="contained"
           startIcon={<AddIcon />}
-          onClick={() => navigate('/sites/create')}
+          onClick={handleCreateSite}
         >
           Create Site
         </Button>
@@ -279,6 +291,12 @@ const SitesListPage = () => {
           Delete
         </MenuItem>
       </Menu>
+
+      <SiteCreationWizard
+        open={wizardOpen}
+        onClose={() => setWizardOpen(false)}
+        onSiteCreated={handleSiteCreated}
+      />
     </Box>
   )
 }

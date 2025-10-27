@@ -78,6 +78,12 @@ class Site(models.Model):
         default=True,
         help_text='Enable page speed optimizations (img to picture tags)'
     )
+    custom_css_class_list = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        help_text='Custom CSS class list name for template uniqueness'
+    )
     
     # External Services
     cloudflare_token = models.ForeignKey(

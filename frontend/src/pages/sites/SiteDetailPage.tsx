@@ -21,6 +21,8 @@ import {
 } from '@mui/icons-material'
 import { useGetSiteQuery, useDeleteSiteMutation } from '@/store/api/sitesApi'
 import { useCreateDeploymentMutation } from '@/store/api/deploymentsApi' // Add this import
+import PageRulesManager from '@/components/sites/PageRulesManager'
+import TemplateUniquenessManager from '@/components/templates/TemplateUniquenessManager'
 import toast from 'react-hot-toast'
 import { format } from 'date-fns'
 
@@ -392,6 +394,20 @@ const SiteDetailPage = () => {
           >
             View Analytics
           </Button>
+        </Paper>
+      </Box>
+
+      {/* Page Rules Section */}
+      <Box sx={{ mt: 3 }}>
+        <Paper sx={{ p: 3 }}>
+          <PageRulesManager site={site} />
+        </Paper>
+      </Box>
+
+      {/* Template Uniqueness Section */}
+      <Box sx={{ mt: 3 }}>
+        <Paper sx={{ p: 3 }}>
+          <TemplateUniquenessManager site={site} />
         </Paper>
       </Box>
     </Box>

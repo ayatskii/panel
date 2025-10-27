@@ -90,6 +90,25 @@ export const templatesApi = apiSlice.injectEndpoints({
         return []
       },
     }),
+    
+    // Template Uniqueness
+    generateUniqueTemplate: builder.mutation<UniqueTemplateResult, { template_id: number; site_id: number }>({
+      query: ({ template_id, site_id }) => ({
+        url: `/templates/${template_id}/generate_unique_template/`,
+        method: 'POST',
+        body: { site_id },
+      }),
+      invalidatesTags: ['Template'],
+    }),
+    
+    generateCssClassList: builder.mutation<CssClassListResult, { site_id: number; list_name?: string }>({
+      query: ({ site_id, list_name = 'default' }) => ({
+        url: '/templates/generate_css_class_list/',
+        method: 'POST',
+        body: { site_id, list_name },
+      }),
+      invalidatesTags: ['Template'],
+    }),
   }),
 })
 
@@ -105,4 +124,6 @@ export const {
   useGetFootprintsQuery,
   useCreateFootprintMutation,
   useGetVariablesQuery,
+  useGenerateUniqueTemplateMutation,
+  useGenerateCssClassListMutation,
 } = templatesApi

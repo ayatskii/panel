@@ -2,15 +2,18 @@ import random
 import string
 import re
 from django.utils import timezone
+from templates.services.uniqueness_service import template_uniqueness_service
 
 
 class TemplateProcessor:
     """Process templates with variables and generate unique variations"""
     
-    def __init__(self, site):
+    def __init__(self, site, page=None):
         self.site = site
         self.template = site.template
         self.footprint = site.template_footprint
+        self.page = page
+        self.uniqueness_service = template_uniqueness_service
     
     def generate_unique_class_prefix(self):
         """Generate unique CSS class prefix"""
@@ -51,21 +54,17 @@ class TemplateProcessor:
         return css_content
     
     def add_unique_classes(self, html_content):
-        """Add unique class prefix to avoid conflicts"""
-        unique_prefix = self.site.unique_class_prefix
+        """Add unique class prefix to avoid conflicts using the uniqueness service"""
+        # Get or generate class mappings for this site
+        class_mappings = self.uniqueness_service.get_class_mappings_for_site(self.site.id)
         
-        if not unique_prefix:
-            unique_prefix = self.generate_unique_class_prefix()
-            self.site.unique_class_prefix = unique_prefix
-            self.site.save()
+        if not class_mappings:
+            # Generate new mappings if none exist
+            # This would typically be done during template processing
+            return html_content
         
-        html_content = re.sub(
-            r'class="([^"]+)"',
-            lambda m: f'class="{unique_prefix}-{m.group(1)}"',
-            html_content
-        )
-        
-        return html_content
+        # Apply class mappings to HTML
+        return self.uniqueness_service.apply_class_mappings_to_html(html_content, class_mappings)
     
     def optimize_images(self, html_content):
         """Convert img tags to picture tags for page speed"""
@@ -115,11 +114,26 @@ class TemplateProcessor:
         return html
     
     def generate_css(self):
-        """Generate CSS with custom colors"""
+        """Generate CSS with custom colors and unique classes"""
         css = self.template.css_content
         
         # Apply custom colors
         css = self.apply_custom_colors(css)
+        
+        # Generate unique CSS classes
+        if hasattr(self.site, 'custom_css_class_list') and self.site.custom_css_class_list:
+            # Use custom class list if specified
+            css, class_mappings = self.uniqueness_service.generate_unique_css_classes(
+                css, 
+                self.site.id, 
+                self.site.custom_css_class_list
+            )
+        else:
+            # Generate random unique classes
+            css, class_mappings = self.uniqueness_service.generate_unique_css_classes(
+                css, 
+                self.site.id
+            )
         
         return css
     
