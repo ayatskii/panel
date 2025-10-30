@@ -36,6 +36,7 @@ import {
 } from '@mui/icons-material'
 import { useGetPromptsQuery } from '@/store/api/promptsApi'
 import toast from 'react-hot-toast'
+import { useTranslation } from 'react-i18next'
 
 interface ContentGenerationModalProps {
   open: boolean
@@ -67,6 +68,7 @@ const ContentGenerationModal = ({
   onContentGenerated,
   initialConfig
 }: ContentGenerationModalProps) => {
+  const { t } = useTranslation()
   const [activeStep, setActiveStep] = useState(0)
   const [workflowId, setWorkflowId] = useState<string | null>(null)
   const [workflowStatus, setWorkflowStatus] = useState<'idle' | 'running' | 'completed' | 'failed'>('idle')
@@ -164,7 +166,7 @@ const ContentGenerationModal = ({
 
   const startWorkflow = async () => {
     if (selectedBlockTypes.length === 0 && !generateMeta) {
-      toast.error('Please select at least one content type to generate')
+      toast.error(t('pages.selectAtLeastOne'))
       return
     }
 
@@ -193,19 +195,19 @@ const ContentGenerationModal = ({
       if (response.ok) {
         const data = await response.json()
         setWorkflowId(data.workflow.workflow_id)
-        toast.success('Content generation workflow started')
+        toast.success(t('pages.workflowStarted'))
         
         // Start polling for workflow status
         pollWorkflowStatus(data.workflow.workflow_id)
       } else {
         const errorData = await response.json()
-        setWorkflowError(errorData.error || 'Failed to start workflow')
+        setWorkflowError(errorData.error || t('pages.failedStartWorkflow'))
         setWorkflowStatus('failed')
       }
     } catch {
-      setWorkflowError('Failed to start workflow')
+      setWorkflowError(t('pages.failedStartWorkflow'))
       setWorkflowStatus('failed')
-      toast.error('Failed to start workflow')
+      toast.error(t('pages.failedStartWorkflow'))
     }
   }
 
@@ -225,16 +227,16 @@ const ContentGenerationModal = ({
             setWorkflowStatus('completed')
             setSteps(prev => prev.map(step => ({ ...step, status: 'completed' })))
             clearInterval(pollInterval)
-            toast.success('Content generation completed!')
+            toast.success(t('pages.generationCompleted'))
             
             if (onContentGenerated) {
               onContentGenerated(statusData.results)
             }
           } else if (statusData.status === 'failed') {
             setWorkflowStatus('failed')
-            setWorkflowError(statusData.error || 'Workflow failed')
+            setWorkflowError(statusData.error || t('pages.workflowFailed'))
             clearInterval(pollInterval)
-            toast.error('Content generation failed')
+            toast.error(t('pages.generationFailed'))
           }
         }
       } catch (error) {
@@ -264,10 +266,10 @@ const ContentGenerationModal = ({
       if (response.ok) {
         setWorkflowStatus('idle')
         setWorkflowId(null)
-        toast.success('Workflow cancelled')
+        toast.success(t('pages.workflowCancelled'))
       }
     } catch {
-      toast.error('Failed to cancel workflow')
+      toast.error(t('pages.failedCancelWorkflow'))
     }
   }
 
@@ -303,10 +305,10 @@ const ContentGenerationModal = ({
       }}
     >
       <DialogTitle>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <AIIcon color="primary" />
-            <Typography variant="h6">AI Content Generation</Typography>
+            <Typography variant="h6">{t('pages.aiContentGeneration')}</Typography>
           </Box>
           <IconButton onClick={onClose} size="small">
             <CloseIcon />
@@ -318,7 +320,7 @@ const ContentGenerationModal = ({
         {workflowStatus === 'idle' && (
           <Box>
             <Typography variant="h6" sx={{ mb: 3 }}>
-              Configure Content Generation
+              {t('pages.configureGeneration')}
             </Typography>
 
             {/* Meta Generation */}
@@ -333,9 +335,9 @@ const ContentGenerationModal = ({
                   }
                   label={
                     <Box>
-                      <Typography variant="subtitle1">Generate Meta Content</Typography>
+                      <Typography variant="subtitle1">{t('pages.generateMeta')}</Typography>
                       <Typography variant="body2" color="text.secondary">
-                        Generate SEO-optimized title, description, and H1 tag
+                        {t('pages.generateMetaDescription')}
                       </Typography>
                     </Box>
                   }
@@ -347,7 +349,7 @@ const ContentGenerationModal = ({
             <Card sx={{ mb: 3 }}>
               <CardContent>
                 <Typography variant="subtitle1" sx={{ mb: 2 }}>
-                  Select Content Blocks to Generate
+                  {t('pages.selectBlocksToGenerate')}
                 </Typography>
                 <FormGroup>
                   {availableBlockTypes.map((blockType) => (
@@ -361,9 +363,9 @@ const ContentGenerationModal = ({
                         }
                         label={
                           <Box>
-                            <Typography variant="subtitle2">{blockType.name}</Typography>
+                      <Typography variant="subtitle2">{blockType.name}</Typography>
                             <Typography variant="body2" color="text.secondary">
-                              {blockType.description}
+                          {blockType.description}
                             </Typography>
                           </Box>
                         }
@@ -373,14 +375,14 @@ const ContentGenerationModal = ({
                       {selectedBlockTypes.includes(blockType.id) && prompts && (
                         <Box sx={{ ml: 4, mt: 1 }}>
                           <FormControl size="small" sx={{ minWidth: 200 }}>
-                            <InputLabel>Select Prompt</InputLabel>
+                            <InputLabel>{t('pages.selectPrompt')}</InputLabel>
                             <Select
                               value={selectedPrompts[blockType.id] || ''}
                               onChange={(e) => handlePromptChange(blockType.id, Number(e.target.value))}
-                              label="Select Prompt"
+                              label={t('pages.selectPrompt')}
                             >
                               <MenuItem value="">
-                                <em>Use Default Prompt</em>
+                                <em>{t('pages.useDefaultPrompt')}</em>
                               </MenuItem>
                               {prompts
                                 .filter(prompt => prompt.block_type === blockType.id)
@@ -411,9 +413,9 @@ const ContentGenerationModal = ({
                   }
                   label={
                     <Box>
-                      <Typography variant="subtitle1">Generate Images</Typography>
+                      <Typography variant="subtitle1">{t('pages.generateImages')}</Typography>
                       <Typography variant="body2" color="text.secondary">
-                        Generate relevant images for the content (requires image generation API)
+                        {t('pages.generateImagesDescription')}
                       </Typography>
                     </Box>
                   }
@@ -425,14 +427,14 @@ const ContentGenerationModal = ({
             <Card>
               <CardContent>
                 <Typography variant="subtitle1" sx={{ mb: 2 }}>
-                  Select AI Model
+                  {t('pages.selectAiModel')}
                 </Typography>
                 <FormControl fullWidth>
-                  <InputLabel>AI Model</InputLabel>
+                  <InputLabel>{t('pages.aiModel')}</InputLabel>
                   <Select
                     value={selectedModel}
                     onChange={(e) => setSelectedModel(e.target.value)}
-                    label="AI Model"
+                    label={t('pages.aiModel')}
                   >
                     {availableModels.map((model) => (
                       <MenuItem key={model.id} value={model.id}>
@@ -454,7 +456,7 @@ const ContentGenerationModal = ({
         {workflowStatus === 'running' && (
           <Box>
             <Typography variant="h6" sx={{ mb: 3 }}>
-              Generating Content...
+              {t('pages.generatingContent')}
             </Typography>
             
             <Stepper activeStep={activeStep} orientation="vertical">
@@ -465,7 +467,7 @@ const ContentGenerationModal = ({
                     optional={
                       step.status === 'completed' && (
                         <Typography variant="caption" color="success.main">
-                          Completed
+                          {t('common.completed')}
                         </Typography>
                       )
                     }
@@ -476,12 +478,12 @@ const ContentGenerationModal = ({
                     {step.status === 'running' && (
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <CircularProgress size={16} />
-                        <Typography variant="body2">Generating content...</Typography>
+                        <Typography variant="body2">{t('pages.generatingContent')}</Typography>
                       </Box>
                     )}
                     {step.status === 'failed' && (
                       <Alert severity="error" sx={{ mt: 1 }}>
-                        {step.error || 'Generation failed'}
+                        {step.error || t('pages.generationFailed')}
                       </Alert>
                     )}
                   </StepContent>
@@ -494,11 +496,11 @@ const ContentGenerationModal = ({
         {workflowStatus === 'completed' && (
           <Box>
             <Alert severity="success" sx={{ mb: 3 }}>
-              Content generation completed successfully!
+              {t('pages.generationCompleted')}
             </Alert>
             
             <Typography variant="h6" sx={{ mb: 2 }}>
-              Generated Content Summary
+              {t('pages.generatedContentSummary')}
             </Typography>
             
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
@@ -517,7 +519,7 @@ const ContentGenerationModal = ({
         {workflowStatus === 'failed' && (
           <Box>
             <Alert severity="error" sx={{ mb: 3 }}>
-              {workflowError || 'Content generation failed'}
+              {workflowError || t('pages.generationFailed')}
             </Alert>
             
             <Button
@@ -525,7 +527,7 @@ const ContentGenerationModal = ({
               startIcon={<RefreshIcon />}
               onClick={resetWorkflow}
             >
-              Try Again
+              {t('common.tryAgain')}
             </Button>
           </Box>
         )}
@@ -534,14 +536,14 @@ const ContentGenerationModal = ({
       <DialogActions>
         {workflowStatus === 'idle' && (
           <>
-            <Button onClick={onClose}>Cancel</Button>
+            <Button onClick={onClose}>{t('common.cancel')}</Button>
             <Button
               variant="contained"
               startIcon={<StartIcon />}
               onClick={startWorkflow}
               disabled={selectedBlockTypes.length === 0 && !generateMeta}
             >
-              Start Generation
+              {t('pages.startGeneration')}
             </Button>
           </>
         )}
@@ -553,19 +555,19 @@ const ContentGenerationModal = ({
             onClick={cancelWorkflow}
             color="error"
           >
-            Cancel Workflow
+            {t('pages.cancelWorkflow')}
           </Button>
         )}
         
         {(workflowStatus === 'completed' || workflowStatus === 'failed') && (
           <>
-            <Button onClick={onClose}>Close</Button>
+            <Button onClick={onClose}>{t('common.close')}</Button>
             <Button
               variant="outlined"
               startIcon={<RefreshIcon />}
               onClick={resetWorkflow}
             >
-              Generate More
+              {t('pages.generateMore')}
             </Button>
           </>
         )}

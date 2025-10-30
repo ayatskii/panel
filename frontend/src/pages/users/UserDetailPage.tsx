@@ -15,10 +15,12 @@ import {
 } from '@mui/material'
 import { useGetUserQuery, useUpdateUserMutation, useChangePasswordMutation } from '@/store/api/usersApi'
 import toast from 'react-hot-toast'
+import { useTranslation } from 'react-i18next'
 
 const UserDetailPage = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const { data: user, isLoading } = useGetUserQuery(Number(id))
   const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation()
   const [changePassword] = useChangePasswordMutation()
@@ -68,9 +70,9 @@ const UserDetailPage = () => {
         id: Number(id),
         data: formData
       }).unwrap()
-      toast.success('User updated successfully')
+      toast.success(t('users.userUpdated'))
     } catch {
-      toast.error('Failed to update user');
+      toast.error(t('users.updateFailed'));
     }
   }
 
@@ -80,12 +82,12 @@ const UserDetailPage = () => {
         id: Number(id),
         data: passwordData
       }).unwrap()
-      toast.success('Password changed successfully')
+      toast.success(t('users.passwordChanged'))
       setPasswordDialogOpen(false)
       setPasswordData({ old_password: '', new_password: '', new_password_confirm: '' })
     } catch (error) {
       const apiError = error as { data?: { message?: string } };
-      toast.error(apiError.data?.message || 'Failed to change password');
+      toast.error(apiError.data?.message || t('users.passwordChangeFailed'));
     }
   }
 
@@ -100,9 +102,9 @@ const UserDetailPage = () => {
   if (!user) {
     return (
       <Box sx={{ textAlign: 'center', mt: 4 }}>
-        <Typography>User not found</Typography>
+        <Typography>{t('users.userNotFound')}</Typography>
         <Button onClick={() => navigate('/users')} sx={{ mt: 2 }}>
-          Back to Users
+          {t('users.backToUsers')}
         </Button>
       </Box>
     )
@@ -111,7 +113,7 @@ const UserDetailPage = () => {
   return (
     <Box>
       <Typography variant="h4" sx={{ mb: 3, fontWeight: 'bold' }}>
-        User Profile
+        {t('users.userProfile')}
       </Typography>
 
       <Paper sx={{ p: 3 }}>
@@ -129,7 +131,7 @@ const UserDetailPage = () => {
             }}
           >
             <TextField
-              label="Username"
+              label={t('users.username')}
               name="username"
               fullWidth
               value={formData.username}
@@ -138,7 +140,7 @@ const UserDetailPage = () => {
             />
             
             <TextField
-              label="Email"
+              label={t('users.email')}
               name="email"
               type="email"
               fullWidth
@@ -157,21 +159,21 @@ const UserDetailPage = () => {
               variant="contained"
               disabled={isUpdating}
             >
-              {isUpdating ? <CircularProgress size={24} /> : 'Save Changes'}
+              {isUpdating ? <CircularProgress size={24} /> : t('users.saveChanges')}
             </Button>
             
             <Button
               variant="outlined"
               onClick={() => setPasswordDialogOpen(true)}
             >
-              Change Password
+              {t('users.changePassword')}
             </Button>
             
             <Button
               variant="outlined"
               onClick={() => navigate('/users')}
             >
-              Cancel
+              {t('common.cancel')}
             </Button>
           </Box>
         </form>
@@ -179,11 +181,11 @@ const UserDetailPage = () => {
 
       {/* Change Password Dialog */}
       <Dialog open={passwordDialogOpen} onClose={() => setPasswordDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Change Password</DialogTitle>
+        <DialogTitle>{t('users.changePassword')}</DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
             <TextField
-              label="Old Password"
+              label={t('users.oldPassword')}
               name="old_password"
               type="password"
               fullWidth
@@ -192,7 +194,7 @@ const UserDetailPage = () => {
               required
             />
             <TextField
-              label="New Password"
+              label={t('users.newPassword')}
               name="new_password"
               type="password"
               fullWidth
@@ -201,7 +203,7 @@ const UserDetailPage = () => {
               required
             />
             <TextField
-              label="Confirm New Password"
+              label={t('users.confirmNewPassword')}
               name="new_password_confirm"
               type="password"
               fullWidth
@@ -212,9 +214,9 @@ const UserDetailPage = () => {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setPasswordDialogOpen(false)}>Cancel</Button>
+          <Button onClick={() => setPasswordDialogOpen(false)}>{t('common.cancel')}</Button>
           <Button onClick={handlePasswordSubmit} variant="contained">
-            Change Password
+            {t('users.changePassword')}
           </Button>
         </DialogActions>
       </Dialog>

@@ -28,10 +28,12 @@ import {
 } from '@mui/icons-material'
 import { useGetUsersQuery, useDeleteUserMutation } from '@/store/api/usersApi'
 import toast from 'react-hot-toast'
-import { format } from 'date-fns'
+import { formatDate } from '@/utils/formatDate'
+import { useTranslation } from 'react-i18next'
 
 const UsersListPage = () => {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const { data: users, isLoading } = useGetUsersQuery()
   const [deleteUser] = useDeleteUserMutation()
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
@@ -49,13 +51,13 @@ const UsersListPage = () => {
   }
 
   const handleDelete = async (userId: number) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
+    if (window.confirm(t('users.confirmDelete'))) {
       try {
         await deleteUser(userId).unwrap()
-        toast.success('User deleted successfully')
+        toast.success(t('users.userDeleted'))
         handleMenuClose()
       } catch {
-        toast.error('Failed to delete user');
+        toast.error(t('users.deleteFailed'));
       }
     }
   }
@@ -77,20 +79,20 @@ const UsersListPage = () => {
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
         <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-          Users
+          {t('users.title')}
         </Typography>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={() => navigate('/users/create')}
         >
-          Add User
+          {t('users.addUser')}
         </Button>
       </Box>
 
       <Paper sx={{ p: 2, mb: 2 }}>
         <TextField
-          placeholder="Search users..."
+          placeholder={t('users.searchUsers') as string}
           fullWidth
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
@@ -108,18 +110,18 @@ const UsersListPage = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Username</TableCell>
-              <TableCell>Email</TableCell>
-              <TableCell>Role</TableCell>
-              <TableCell>Created</TableCell>
-              <TableCell align="right">Actions</TableCell>
+              <TableCell>{t('users.username')}</TableCell>
+              <TableCell>{t('users.email')}</TableCell>
+              <TableCell>{t('users.role')}</TableCell>
+              <TableCell>{t('users.created')}</TableCell>
+              <TableCell align="right">{t('users.actions')}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {filteredUsers.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} align="center">
-                  <Typography color="textSecondary">No users found</Typography>
+                  <Typography color="textSecondary">{t('users.noUsersFound')}</Typography>
                 </TableCell>
               </TableRow>
             ) : (
@@ -135,7 +137,7 @@ const UsersListPage = () => {
                     />
                   </TableCell>
                   <TableCell>
-                    {format(new Date(user.created_at), 'MMM dd, yyyy')}
+                    {formatDate(user.created_at, 'PPP')}
                   </TableCell>
                   <TableCell align="right">
                     <IconButton
@@ -162,14 +164,14 @@ const UsersListPage = () => {
           handleMenuClose()
         }}>
           <EditIcon fontSize="small" sx={{ mr: 1 }} />
-          View/Edit
+          {t('users.viewEdit')}
         </MenuItem>
         <MenuItem
           onClick={() => selectedUserId && handleDelete(selectedUserId)}
           sx={{ color: 'error.main' }}
         >
           <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
-          Delete
+          {t('common.delete')}
         </MenuItem>
       </Menu>
     </Box>

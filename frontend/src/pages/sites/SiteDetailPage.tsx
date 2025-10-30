@@ -1,4 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import {
   Box,
   Typography,
@@ -24,23 +25,24 @@ import { useCreateDeploymentMutation } from '@/store/api/deploymentsApi' // Add 
 import PageRulesManager from '@/components/sites/PageRulesManager'
 import TemplateUniquenessManager from '@/components/templates/TemplateUniquenessManager'
 import toast from 'react-hot-toast'
-import { format } from 'date-fns'
+import { formatDate } from '@/utils/formatDate'
 
 const SiteDetailPage = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const { data: site, isLoading } = useGetSiteQuery(Number(id))
   const [deleteSite] = useDeleteSiteMutation()
   const [createDeployment, { isLoading: isDeploying }] = useCreateDeploymentMutation() // Add this
 
   const handleDelete = async () => {
-    if (window.confirm('Are you sure you want to delete this site? This action cannot be undone.')) {
+    if (window.confirm(t('sites.deleteConfirm'))) {
       try {
         await deleteSite(Number(id)).unwrap()
-        toast.success('Site deleted successfully')
+        toast.success(t('sites.siteDeleted'))
         navigate('/sites')
       } catch {
-        toast.error('Failed to delete site');
+        toast.error(t('sites.siteDeleteFailed'));
       }
     }
   }
@@ -54,7 +56,7 @@ const SiteDetailPage = () => {
       // navigate('/deployments')
     } catch (error) {
       const apiError = error as { data?: { message?: string } };
-      toast.error(apiError.data?.message || 'Failed to start deployment');
+      toast.error(apiError.data?.message || t('deployments.deploymentFailed'));
     }
   }
 
@@ -71,7 +73,7 @@ const SiteDetailPage = () => {
       <Box sx={{ textAlign: 'center', mt: 4 }}>
         <Typography>Site not found</Typography>
         <Button onClick={() => navigate('/sites')} sx={{ mt: 2 }}>
-          Back to Sites
+          {t('sites.backToSites')}
         </Button>
       </Box>
     )
@@ -95,7 +97,7 @@ const SiteDetailPage = () => {
             startIcon={<EditIcon />}
             onClick={() => navigate(`/sites/${id}/edit`)}
           >
-            Edit
+            {t('common.edit')}
           </Button>
           <Button
             variant="contained"
@@ -104,7 +106,7 @@ const SiteDetailPage = () => {
             disabled={isDeploying}
             color={site.is_deployed ? 'success' : 'primary'}
           >
-            {isDeploying ? <CircularProgress size={20} color="inherit" /> : site.is_deployed ? 'Redeploy' : 'Deploy'}
+            {isDeploying ? <CircularProgress size={20} color="inherit" /> : site.is_deployed ? t('common.redeploy') : t('common.deploy')}
           </Button>
           <Button
             variant="outlined"
@@ -112,7 +114,7 @@ const SiteDetailPage = () => {
             startIcon={<DeleteIcon />}
             onClick={handleDelete}
           >
-            Delete
+            {t('common.delete')}
           </Button>
         </Box>
       </Box>
@@ -297,7 +299,7 @@ const SiteDetailPage = () => {
                 Last Deployed
               </Typography>
               <Typography variant="body1">
-                {format(new Date(site.deployed_at), 'PPpp')}
+                {formatDate(site.deployed_at, 'PPpp')}
               </Typography>
             </Box>
           </Box>
@@ -334,7 +336,7 @@ const SiteDetailPage = () => {
               Created
             </Typography>
             <Typography variant="body1">
-              {site.created_at ? format(new Date(site.created_at), 'PPpp') : 'Not available'}
+              {site.created_at ? formatDate(site.created_at, 'PPpp') : t('sites.notAvailable')}
             </Typography>
           </Box>
 
@@ -344,7 +346,7 @@ const SiteDetailPage = () => {
                 Last Deployed
               </Typography>
               <Typography variant="body1">
-                {format(new Date(site.deployed_at), 'PPpp')}
+                {formatDate(site.deployed_at, 'PPpp')}
               </Typography>
             </Box>
           )}
@@ -365,34 +367,34 @@ const SiteDetailPage = () => {
         {/* Pages */}
         <Paper sx={{ p: 3 }}>
           <Typography variant="h6" sx={{ mb: 2 }}>
-            Pages
+            {t('sites.pages')}
           </Typography>
           <Typography color="text.secondary" sx={{ mb: 2 }}>
-            {site.page_count || 0} pages
+            {t('sites.pageCount', { count: site.page_count || 0 })}
           </Typography>
           <Button
             variant="outlined"
             size="small"
             onClick={() => navigate(`/pages?site=${site.id}`)}
           >
-            Manage Pages
+            {t('sites.managePages')}
           </Button>
         </Paper>
 
         {/* Analytics */}
         <Paper sx={{ p: 3 }}>
           <Typography variant="h6" sx={{ mb: 2 }}>
-            Analytics
+            {t('sites.analytics')}
           </Typography>
           <Typography color="text.secondary" sx={{ mb: 2 }}>
-            View site analytics and performance metrics
+            {t('sites.analyticsDescription')}
           </Typography>
           <Button
             variant="outlined"
             size="small"
             onClick={() => navigate(`/analytics?site=${site.id}`)}
           >
-            View Analytics
+            {t('sites.viewAnalytics')}
           </Button>
         </Paper>
       </Box>

@@ -37,7 +37,7 @@ import {
   useDeleteCloudflareTokenMutation,
 } from '@/store/api/integrationsApi'
 import toast from 'react-hot-toast'
-import { format } from 'date-fns'
+import { formatDate } from '@/utils/formatDate'
 import type { CloudflareToken } from '@/types'
 
 const CloudflareTokensPage = () => {
@@ -206,7 +206,7 @@ const CloudflareTokensPage = () => {
                   <TableCell>{token.account_id || '-'}</TableCell>
                   <TableCell>{token.zone_id || '-'}</TableCell>
                   <TableCell>{token.pages_project_name || '-'}</TableCell>
-                  <TableCell>{format(new Date(token.created_at), 'MMM dd, yyyy')}</TableCell>
+                  <TableCell>{formatDate(token.created_at, 'PPP')}</TableCell>
                   <TableCell align="right">
                     <IconButton
                       size="small"

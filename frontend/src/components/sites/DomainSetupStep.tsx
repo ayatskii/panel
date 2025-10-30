@@ -18,6 +18,7 @@ import {
   Refresh as RefreshIcon,
 } from '@mui/icons-material'
 import TokenSelectionModal from './TokenSelectionModal'
+import { useTranslation } from 'react-i18next'
 import type { SiteFormData } from '@/types'
 
 interface DomainSetupStepProps {
@@ -38,6 +39,7 @@ const DomainSetupStep: React.FC<DomainSetupStepProps> = ({
   onChange,
   errors,
 }) => {
+  const { t } = useTranslation()
   const [tokenModalOpen, setTokenModalOpen] = useState(false)
   const [nsRecords, setNsRecords] = useState<NSRecord[]>([])
   const [isValidatingDomain, setIsValidatingDomain] = useState(false)
@@ -100,21 +102,21 @@ const DomainSetupStep: React.FC<DomainSetupStepProps> = ({
   return (
     <Box>
       <Typography variant="h6" gutterBottom>
-        Domain Setup
+        {t('common.domainSetup')}
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Enter your domain name and select a Cloudflare token for DNS management and deployment.
+        {t('common.domainSetupDescription')}
       </Typography>
 
       <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
         <TextField
           fullWidth
-          label="Domain Name"
-          placeholder="example.com"
+          label={t('common.domainName')}
+          placeholder={t('common.enterDomain')}
           value={data.domain || ''}
           onChange={handleDomainChange}
           error={!!errors.domain}
-          helperText={errors.domain || 'Enter the domain name for your site'}
+          helperText={errors.domain || t('common.domainHelper')}
           InputProps={{
             startAdornment: <DomainIcon sx={{ mr: 1, color: 'text.secondary' }} />,
           }}
@@ -126,7 +128,7 @@ const DomainSetupStep: React.FC<DomainSetupStepProps> = ({
           startIcon={isValidatingDomain ? <RefreshIcon /> : <DomainIcon />}
           sx={{ minWidth: 140 }}
         >
-          {isValidatingDomain ? 'Validating...' : 'Validate'}
+          {isValidatingDomain ? t('common.validating') : t('common.validate')}
         </Button>
       </Box>
 
@@ -141,18 +143,18 @@ const DomainSetupStep: React.FC<DomainSetupStepProps> = ({
           <CardContent>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
               <Typography variant="h6">
-                Nameserver Records
+                {t('domains.nameserverRecords')}
               </Typography>
               <Button
                 size="small"
                 onClick={copyAllRecords}
                 startIcon={copiedRecord === 'all' ? <CheckIcon /> : <CopyIcon />}
               >
-                {copiedRecord === 'all' ? 'Copied!' : 'Copy All'}
+                {copiedRecord === 'all' ? t('common.copied') : t('common.copyAll')}
               </Button>
             </Box>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Add these nameserver records to your domain registrar:
+              {t('domains.addNsRecordsInstruction')}
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
               {nsRecords.map((record, index) => (
@@ -183,7 +185,7 @@ const DomainSetupStep: React.FC<DomainSetupStepProps> = ({
                       TTL: {record.ttl}
                     </Typography>
                   </Box>
-                  <Tooltip title={copiedRecord === record.content ? 'Copied!' : 'Copy'}>
+                  <Tooltip title={copiedRecord === record.content ? t('common.copied') : t('common.copy')}>
                     <IconButton
                       size="small"
                       onClick={() => handleCopyRecord(record.content)}
@@ -200,10 +202,10 @@ const DomainSetupStep: React.FC<DomainSetupStepProps> = ({
 
       <Box sx={{ mb: 3 }}>
         <Typography variant="h6" gutterBottom>
-          Cloudflare Token
+          {t('domains.cloudflareToken')}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Select a Cloudflare token to use for DNS management and Pages deployment.
+          {t('domains.cloudflareTokenDescription')}
         </Typography>
 
         {data.cloudflare_token_id ? (
@@ -215,7 +217,7 @@ const DomainSetupStep: React.FC<DomainSetupStepProps> = ({
                   {data.cloudflare_token_name}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Token ID: {data.cloudflare_token_id}
+                  {t('domains.tokenId')}: {data.cloudflare_token_id}
                 </Typography>
               </Box>
               <Button
@@ -223,7 +225,7 @@ const DomainSetupStep: React.FC<DomainSetupStepProps> = ({
                 onClick={() => setTokenModalOpen(true)}
                 sx={{ ml: 'auto' }}
               >
-                Change
+                {t('common.change')}
               </Button>
             </Box>
           </Card>
@@ -235,7 +237,7 @@ const DomainSetupStep: React.FC<DomainSetupStepProps> = ({
             fullWidth
             sx={{ py: 2 }}
           >
-            Select Cloudflare Token
+            {t('domains.selectCloudflareToken')}
           </Button>
         )}
       </Box>

@@ -31,6 +31,7 @@ import {
 } from '@mui/icons-material'
 import { useGetRealtimeMetricsQuery, useGetLiveVisitorsQuery, useGetRealtimeAlertsQuery } from '@/store/api/analyticsApi'
 import toast from 'react-hot-toast'
+import { useTranslation } from 'react-i18next'
 
 interface RealtimeAnalyticsDashboardProps {
   siteId: number
@@ -63,6 +64,7 @@ const RealtimeAnalyticsDashboard: React.FC<RealtimeAnalyticsDashboardProps> = ({
   siteId,
   refreshInterval = 5000
 }) => {
+  const { t } = useTranslation()
   const [isConnected, setIsConnected] = useState(false)
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
   const wsRef = useRef<WebSocket | null>(null)
@@ -109,7 +111,7 @@ const RealtimeAnalyticsDashboard: React.FC<RealtimeAnalyticsDashboardProps> = ({
 
       wsRef.current.onopen = () => {
         setIsConnected(true)
-        toast.success('Real-time analytics connected')
+        toast.success(t('analytics.realtimeConnected'))
       }
 
       wsRef.current.onmessage = (event) => {
@@ -123,7 +125,7 @@ const RealtimeAnalyticsDashboard: React.FC<RealtimeAnalyticsDashboardProps> = ({
 
       wsRef.current.onclose = () => {
         setIsConnected(false)
-        toast.error('Real-time analytics disconnected')
+        toast.error(t('analytics.realtimeDisconnected'))
         // Attempt to reconnect after 5 seconds
         reconnectTimeoutRef.current = setTimeout(() => {
           connectWebSocket()
@@ -139,7 +141,7 @@ const RealtimeAnalyticsDashboard: React.FC<RealtimeAnalyticsDashboardProps> = ({
       console.error('Failed to connect to WebSocket:', error)
       setIsConnected(false)
     }
-  }, [siteId, handleWebSocketMessage])
+  }, [siteId, handleWebSocketMessage, t])
 
   const handleWebSocketMessage = useCallback((data: { type: string; payload?: unknown }) => {
     switch (data.type) {
@@ -151,7 +153,8 @@ const RealtimeAnalyticsDashboard: React.FC<RealtimeAnalyticsDashboardProps> = ({
         refetchAlerts()
         break
       case 'alert':
-        toast.error(`Analytics Alert: ${data.data.message}`)
+        // @ts-expect-error dynamic payload shape from server
+        toast.error(t('analytics.analyticsAlert', { message: data.data.message }))
         break
       case 'initial_data':
         setLastUpdate(new Date())
@@ -159,7 +162,7 @@ const RealtimeAnalyticsDashboard: React.FC<RealtimeAnalyticsDashboardProps> = ({
       default:
         console.log('Unknown WebSocket message type:', data.type)
     }
-  }, [refetchMetrics, refetchVisitors, refetchAlerts])
+  }, [refetchMetrics, refetchVisitors, refetchAlerts, t])
 
   const getDeviceIcon = (deviceType: string) => {
     switch (deviceType.toLowerCase()) {
@@ -191,7 +194,7 @@ const RealtimeAnalyticsDashboard: React.FC<RealtimeAnalyticsDashboardProps> = ({
     refetchVisitors()
     refetchAlerts()
     setLastUpdate(new Date())
-    toast.success('Analytics data refreshed')
+    toast.success(t('analytics.dataRefreshed'))
   }
 
   return (
@@ -199,16 +202,16 @@ const RealtimeAnalyticsDashboard: React.FC<RealtimeAnalyticsDashboardProps> = ({
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h5" component="h2">
-          Real-Time Analytics
+          {t('analytics.title')}
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Chip
             icon={isConnected ? <WifiIcon /> : <WifiOffIcon />}
-            label={isConnected ? 'Connected' : 'Disconnected'}
+            label={isConnected ? t('common.connected') : t('common.disconnected')}
             color={isConnected ? 'success' : 'error'}
             variant="outlined"
           />
-          <Tooltip title="Refresh Data">
+          <Tooltip title={t('common.refreshData') as string}>
             <IconButton onClick={handleRefresh} disabled={metricsLoading || visitorsLoading || alertsLoading}>
               <RefreshIcon />
             </IconButton>
@@ -223,14 +226,14 @@ const RealtimeAnalyticsDashboard: React.FC<RealtimeAnalyticsDashboardProps> = ({
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                 <PeopleIcon color="primary" sx={{ mr: 1 }} />
-                <Typography variant="h6">Online Users</Typography>
+                <Typography variant="h6">{t('analytics.onlineUsers')}</Typography>
               </Box>
               <Typography variant="h4" color="primary">
                 {metrics?.online_users || 0}
               </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Last 5 minutes
-              </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {t('analytics.last5minutes')}
+                </Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -240,14 +243,14 @@ const RealtimeAnalyticsDashboard: React.FC<RealtimeAnalyticsDashboardProps> = ({
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                 <VisibilityIcon color="secondary" sx={{ mr: 1 }} />
-                <Typography variant="h6">Hourly Views</Typography>
+                <Typography variant="h6">{t('analytics.hourlyViews')}</Typography>
               </Box>
               <Typography variant="h4" color="secondary">
                 {metrics?.hourly_views || 0}
               </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Last hour
-              </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {t('analytics.lastHour')}
+                </Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -257,14 +260,14 @@ const RealtimeAnalyticsDashboard: React.FC<RealtimeAnalyticsDashboardProps> = ({
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                 <TrendingUpIcon color="success" sx={{ mr: 1 }} />
-                <Typography variant="h6">Live Visitors</Typography>
+                <Typography variant="h6">{t('analytics.liveVisitors')}</Typography>
               </Box>
               <Typography variant="h4" color="success.main">
                 {visitors.length}
               </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Currently active
-              </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {t('analytics.currentlyActive')}
+                </Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -274,14 +277,14 @@ const RealtimeAnalyticsDashboard: React.FC<RealtimeAnalyticsDashboardProps> = ({
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                 <WarningIcon color="warning" sx={{ mr: 1 }} />
-                <Typography variant="h6">Active Alerts</Typography>
+                <Typography variant="h6">{t('analytics.activeAlerts')}</Typography>
               </Box>
               <Typography variant="h4" color="warning.main">
                 {alerts.length}
               </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Real-time alerts
-              </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {t('analytics.realtimeAlerts')}
+                </Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -293,13 +296,13 @@ const RealtimeAnalyticsDashboard: React.FC<RealtimeAnalyticsDashboardProps> = ({
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                Live Visitors
+                {t('analytics.liveVisitors')}
               </Typography>
               {visitorsLoading ? (
                 <LinearProgress />
               ) : visitors.length === 0 ? (
                 <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
-                  No active visitors
+                  {t('analytics.noActiveVisitors')}
                 </Typography>
               ) : (
                 <List dense>
@@ -324,15 +327,15 @@ const RealtimeAnalyticsDashboard: React.FC<RealtimeAnalyticsDashboardProps> = ({
                             <Typography variant="caption" display="block">
                               {visitor.country && visitor.city 
                                 ? `${visitor.city}, ${visitor.country}` 
-                                : visitor.country || 'Unknown location'
+                                : visitor.country || t('analytics.unknownLocation')
                               }
                             </Typography>
                             <Typography variant="caption" display="block">
-                              {visitor.browser} on {visitor.os} • {visitor.page_count} pages
+                              {visitor.browser} {t('analytics.onOs', { os: visitor.os })} • {visitor.page_count} {t('analytics.pages')}
                             </Typography>
                             {visitor.current_page && (
                               <Typography variant="caption" display="block" color="primary">
-                                Currently viewing: {visitor.current_page.title}
+                                {t('analytics.currentlyViewing')}: {visitor.current_page.title}
                               </Typography>
                             )}
                           </Box>
@@ -351,13 +354,13 @@ const RealtimeAnalyticsDashboard: React.FC<RealtimeAnalyticsDashboardProps> = ({
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                Real-time Alerts
+                {t('analytics.realtimeAlerts')}
               </Typography>
               {alertsLoading ? (
                 <LinearProgress />
               ) : alerts.length === 0 ? (
                 <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
-                  No active alerts
+                  {t('analytics.noActiveAlerts')}
                 </Typography>
               ) : (
                 <Box sx={{ maxHeight: 400, overflowY: 'auto' }}>
@@ -385,21 +388,21 @@ const RealtimeAnalyticsDashboard: React.FC<RealtimeAnalyticsDashboardProps> = ({
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                Top Pages (Last Hour)
+                {t('analytics.topPagesLastHour')}
               </Typography>
               {metricsLoading ? (
                 <LinearProgress />
               ) : metrics?.top_pages?.length === 0 ? (
                 <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
-                  No page views in the last hour
+                  {t('analytics.noPageViewsLastHour')}
                 </Typography>
               ) : (
                 <List dense>
                   {metrics?.top_pages?.map((page: { title: string; views: number }, index: number) => (
                     <ListItem key={index} divider>
                       <ListItemText
-                        primary={page.page__title || 'Unknown Page'}
-                        secondary={`${page.views} views`}
+                        primary={page.page__title || t('analytics.unknownPage')}
+                        secondary={`${page.views} ${t('analytics.views')}`}
                       />
                     </ListItem>
                   ))}
@@ -413,7 +416,7 @@ const RealtimeAnalyticsDashboard: React.FC<RealtimeAnalyticsDashboardProps> = ({
       {/* Last Update Info */}
       <Box sx={{ mt: 2, textAlign: 'center' }}>
         <Typography variant="caption" color="text.secondary">
-          Last updated: {lastUpdate.toLocaleTimeString()}
+          {t('analytics.lastUpdated')}: {lastUpdate.toLocaleTimeString()}
         </Typography>
       </Box>
     </Box>

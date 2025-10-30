@@ -37,7 +37,7 @@ import {
   useDeleteApiTokenMutation,
 } from '@/store/api/integrationsApi'
 import toast from 'react-hot-toast'
-import { format } from 'date-fns'
+import { formatDate } from '@/utils/formatDate'
 import type { ApiToken } from '@/types'
 
 const ApiTokensPage = () => {
@@ -208,7 +208,7 @@ const ApiTokensPage = () => {
                   </TableCell>
                   <TableCell>{token.usage_count} times</TableCell>
                   <TableCell>
-                    {token.last_used ? format(new Date(token.last_used), 'MMM dd, yyyy') : 'Never'}
+                    {token.last_used ? formatDate(token.last_used, 'PPP') : t('integrations.never')}
                   </TableCell>
                   <TableCell align="right">
                     <IconButton

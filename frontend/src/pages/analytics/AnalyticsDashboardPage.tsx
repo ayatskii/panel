@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Box, Typography, Paper, TextField, Button, CircularProgress } from '@mui/material'
 import { Bar } from 'react-chartjs-2'
-import { format } from 'date-fns'
+import { formatDate } from '@/utils/formatDate'
 import { useGetSiteAnalyticsQuery } from '@/store/api/analyticsApi'
 
 const AnalyticsDashboardPage = () => {
@@ -11,7 +11,7 @@ const AnalyticsDashboardPage = () => {
   })
 
   const chartData = {
-    labels: data?.map(d => d.date ? format(new Date(d.date), 'MMM dd') : '') || [],
+    labels: data?.map(d => d.date ? formatDate(d.date, 'MMM dd') : '') || [],
     datasets: [{ label: 'Page Views', data: data?.map(d => d.page_views) || [], backgroundColor: '#3f51b5' }]
   }
 

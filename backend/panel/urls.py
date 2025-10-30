@@ -6,7 +6,7 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView #type:ignore
 from django.urls import include
 
-from users.views import UserViewSet, current_user
+from users.views import UserViewSet, current_user, register
 from sites.views import SiteViewSet
 from sites.views_settings import SettingsViewSet, LanguageViewSet, AffiliateLinkViewSet
 from templates.views import TemplateViewSet, TemplateFootprintViewSet
@@ -52,6 +52,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path('api/auth/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/auth/register/', register, name='register'),
     path('api/', include(router.urls)),
     path('_nested_admin/', include('nested_admin.urls')),
     path('api/users/me/', current_user, name='current_user'),

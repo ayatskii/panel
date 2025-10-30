@@ -22,7 +22,8 @@ import {
 import { useGetCurrentUserQuery } from '@/store/api/authApi'
 import { useUpdateUserMutation, useChangePasswordMutation } from '@/store/api/usersApi'
 import toast from 'react-hot-toast'
-import { format } from 'date-fns'
+import { formatDate } from '@/utils/formatDate'
+import { useTranslation } from 'react-i18next'
 
 interface TabPanelProps {
   children?: React.ReactNode
@@ -40,6 +41,7 @@ const TabPanel = ({ children, value, index }: TabPanelProps) => {
 
 const SettingsPage = () => {
   const [activeTab, setActiveTab] = useState(0)
+  const { t } = useTranslation()
   const { data: currentUser, isLoading } = useGetCurrentUserQuery()
   const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation()
   const [changePassword, { isLoading: isChangingPassword }] = useChangePasswordMutation()
@@ -98,7 +100,7 @@ const SettingsPage = () => {
         id: currentUser.id,
         data: profileData
       }).unwrap()
-      toast.success('Profile updated successfully')
+      toast.success(t('settings.profileUpdated'))
     } catch (error) {
       const apiError = error as { data?: { username?: string[]; email?: string[]; detail?: string } };
       
@@ -109,7 +111,7 @@ const SettingsPage = () => {
       } else if (apiError.data?.detail) {
         toast.error(apiError.data.detail)
       } else {
-        toast.error('Failed to update profile')
+        toast.error(t('settings.profileUpdateFailed'))
       }
     }
   }
@@ -121,12 +123,12 @@ const SettingsPage = () => {
     
     // Client-side validation
     if (passwordData.new_password !== passwordData.new_password_confirm) {
-      setPasswordError('New passwords do not match')
+      setPasswordError(t('settings.passwordsDoNotMatch'))
       return
     }
     
     if (passwordData.new_password.length < 8) {
-      setPasswordError('Password must be at least 8 characters long')
+      setPasswordError(t('settings.passwordTooShort'))
       return
     }
     
@@ -135,7 +137,7 @@ const SettingsPage = () => {
         id: currentUser.id,
         data: passwordData
       }).unwrap()
-      toast.success('Password changed successfully')
+      toast.success(t('settings.passwordChanged'))
       setPasswordData({ old_password: '', new_password: '', new_password_confirm: '' })
       setPasswordError('')
     } catch (error) {
@@ -157,7 +159,7 @@ const SettingsPage = () => {
       } else if (apiError.data?.detail) {
         setPasswordError(apiError.data.detail)
       } else {
-        setPasswordError('Failed to change password')
+        setPasswordError(t('settings.passwordChangeFailed'))
       }
     }
   }
@@ -173,7 +175,7 @@ const SettingsPage = () => {
   if (!currentUser) {
     return (
       <Box sx={{ textAlign: 'center', mt: 4 }}>
-        <Typography>Unable to load user data</Typography>
+        <Typography>{t('settings.unableToLoadUserData')}</Typography>
       </Box>
     )
   }
@@ -189,7 +191,7 @@ const SettingsPage = () => {
             mb: 0.5
           }}
         >
-          Settings
+          {t('settings.title')}
         </Typography>
         <Typography 
           variant="body2" 
@@ -198,7 +200,7 @@ const SettingsPage = () => {
             fontSize: '0.875rem'
           }}
         >
-          Manage your account settings and preferences.
+          {t('settings.description')}
         </Typography>
       </Box>
 
@@ -226,17 +228,17 @@ const SettingsPage = () => {
           <Tab 
             icon={<PersonIcon />} 
             iconPosition="start" 
-            label="Profile" 
+            label={t('settings.tabs.profile')} 
           />
           <Tab 
             icon={<SecurityIcon />} 
             iconPosition="start" 
-            label="Security" 
+            label={t('settings.tabs.security')} 
           />
           <Tab 
             icon={<InfoIcon />} 
             iconPosition="start" 
-            label="Account Info" 
+            label={t('settings.tabs.accountInfo')} 
           />
         </Tabs>
 
@@ -251,7 +253,7 @@ const SettingsPage = () => {
                 color: '#1a2027'
               }}
             >
-              Profile Information
+              {t('settings.profileInformation')}
             </Typography>
             <Typography 
               variant="body2" 
@@ -261,7 +263,7 @@ const SettingsPage = () => {
                 fontSize: '0.875rem'
               }}
             >
-              Update your account's profile information and email address.
+              {t('settings.profileInformationDescription')}
             </Typography>
 
             <form onSubmit={handleProfileSubmit}>
@@ -277,24 +279,24 @@ const SettingsPage = () => {
                 }}
               >
                 <TextField
-                  label="Username"
+                  label={t('settings.username')}
                   name="username"
                   fullWidth
                   value={profileData.username}
                   onChange={handleProfileChange}
                   required
-                  helperText="Your unique username for logging in"
+                  helperText={t('settings.usernameHelper')}
                 />
                 
                 <TextField
-                  label="Email"
+                  label={t('settings.email')}
                   name="email"
                   type="email"
                   fullWidth
                   value={profileData.email}
                   onChange={handleProfileChange}
                   required
-                  helperText="Your email address for notifications"
+                  helperText={t('settings.emailHelper')}
                 />
               </Box>
               
@@ -306,7 +308,7 @@ const SettingsPage = () => {
                   variant="contained"
                   disabled={isUpdating}
                 >
-                  {isUpdating ? <CircularProgress size={24} /> : 'Save Changes'}
+                  {isUpdating ? <CircularProgress size={24} /> : t('settings.saveChanges')}
                 </Button>
               </Box>
             </form>
@@ -324,7 +326,7 @@ const SettingsPage = () => {
                 color: '#1a2027'
               }}
             >
-              Change Password
+              {t('settings.changePassword')}
             </Typography>
             <Typography 
               variant="body2" 
@@ -334,7 +336,7 @@ const SettingsPage = () => {
                 fontSize: '0.875rem'
               }}
             >
-              Ensure your account is using a long, random password to stay secure.
+              {t('settings.passwordSecurityDescription')}
             </Typography>
 
             {passwordError && (
@@ -346,7 +348,7 @@ const SettingsPage = () => {
             <form onSubmit={handlePasswordSubmit}>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, maxWidth: 500 }}>
                 <TextField
-                  label="Current Password"
+                  label={t('settings.currentPassword')}
                   name="old_password"
                   type="password"
                   fullWidth
@@ -356,18 +358,18 @@ const SettingsPage = () => {
                 />
                 
                 <TextField
-                  label="New Password"
+                  label={t('settings.newPassword')}
                   name="new_password"
                   type="password"
                   fullWidth
                   value={passwordData.new_password}
                   onChange={handlePasswordChange}
                   required
-                  helperText="Must be at least 8 characters"
+                  helperText={t('settings.passwordHelper')}
                 />
                 
                 <TextField
-                  label="Confirm New Password"
+                  label={t('settings.confirmNewPassword')}
                   name="new_password_confirm"
                   type="password"
                   fullWidth
@@ -385,7 +387,7 @@ const SettingsPage = () => {
                   variant="contained"
                   disabled={isChangingPassword}
                 >
-                  {isChangingPassword ? <CircularProgress size={24} /> : 'Update Password'}
+                  {isChangingPassword ? <CircularProgress size={24} /> : t('settings.updatePassword')}
                 </Button>
                 <Button
                   variant="outlined"
@@ -395,7 +397,7 @@ const SettingsPage = () => {
                   }}
                   disabled={isChangingPassword}
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </Button>
               </Box>
             </form>
@@ -413,7 +415,7 @@ const SettingsPage = () => {
                 color: '#1a2027'
               }}
             >
-              Account Information
+              {t('settings.accountInformation')}
             </Typography>
             <Typography 
               variant="body2" 
@@ -423,7 +425,7 @@ const SettingsPage = () => {
                 fontSize: '0.875rem'
               }}
             >
-              View your account details and status.
+              {t('settings.accountInformationDescription')}
             </Typography>
 
             <Card 
@@ -446,7 +448,7 @@ const SettingsPage = () => {
                 >
                   <Box>
                     <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                      User ID
+                      {t('settings.userId')}
                     </Typography>
                     <Typography variant="body1">
                       #{currentUser.id}
@@ -455,7 +457,7 @@ const SettingsPage = () => {
 
                   <Box>
                     <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                      Username
+                      {t('settings.username')}
                     </Typography>
                     <Typography variant="body1">
                       {currentUser.username}
@@ -464,7 +466,7 @@ const SettingsPage = () => {
 
                   <Box>
                     <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                      Email
+                      {t('settings.email')}
                     </Typography>
                     <Typography variant="body1">
                       {currentUser.email}
@@ -473,7 +475,7 @@ const SettingsPage = () => {
 
                   <Box>
                     <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                      Role
+                      {t('settings.role')}
                     </Typography>
                     <Chip 
                       label={currentUser.role.toUpperCase()} 
@@ -484,19 +486,19 @@ const SettingsPage = () => {
 
                   <Box>
                     <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                      Account Created
+                      {t('settings.accountCreated')}
                     </Typography>
                     <Typography variant="body1">
-                      {format(new Date(currentUser.created_at), 'PPP')}
+                      {formatDate(currentUser.created_at, 'PPP')}
                     </Typography>
                   </Box>
 
                   <Box>
                     <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                      Account Status
+                      {t('settings.accountStatus')}
                     </Typography>
                     <Chip 
-                      label="Active" 
+                      label={t('settings.active')} 
                       color="success"
                       size="small"
                     />

@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
+import { useTranslation } from 'react-i18next'
 import { useLoginMutation } from '@/store/api/authApi'
 import { setCredentials } from '@/store/slices/authSlice'
 import { Box, TextField, Button, Typography, Paper, Container } from '@mui/material'
@@ -12,6 +13,7 @@ const LoginPage = () => {
   const [login, { isLoading }] = useLoginMutation()
   const dispatch = useDispatch()
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -19,11 +21,11 @@ const LoginPage = () => {
       const response = await login({ username, password }).unwrap()
       dispatch(setCredentials({ user: response.user, access: response.access }))
       localStorage.setItem('refresh_token', response.refresh)
-      toast.success('Login successful!')
+      toast.success(t('auth.loginSuccess'))
       navigate('/dashboard')
     } catch (error) {
       const apiError = error as { data?: { detail?: string } };
-      toast.error(apiError.data?.detail || 'Login failed');
+      toast.error(apiError.data?.detail || t('auth.loginFailed'));
     }
   }
 
@@ -32,12 +34,12 @@ const LoginPage = () => {
       <Box sx={{ mt: 8 }}>
         <Paper elevation={3} sx={{ p: 4 }}>
           <Typography variant="h4" gutterBottom>
-            Login
+            {t('auth.login')}
           </Typography>
           <form onSubmit={handleSubmit}>
             <TextField
               fullWidth
-              label="Username"
+              label={t('auth.username')}
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               margin="normal"
@@ -45,7 +47,7 @@ const LoginPage = () => {
             />
             <TextField
               fullWidth
-              label="Password"
+              label={t('auth.password')}
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -59,9 +61,15 @@ const LoginPage = () => {
               sx={{ mt: 3 }}
               disabled={isLoading}
             >
-              {isLoading ? 'Logging in...' : 'Login'}
+              {isLoading ? t('auth.loggingIn') : t('auth.loginButton')}
             </Button>
           </form>
+          
+          <Box sx={{ mt: 2, textAlign: 'center' }}>
+            <Typography variant="body2" color="textSecondary">
+              {t('auth.noAccount')} <Link to="/register">{t('auth.registerHere')}</Link>
+            </Typography>
+          </Box>
         </Paper>
       </Box>
     </Container>

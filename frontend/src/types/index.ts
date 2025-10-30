@@ -81,6 +81,14 @@ export interface LoginResponse {
     user: User
 }
 
+export interface RegisterResponse {
+    user: User
+    tokens: {
+        access: string
+        refresh: string
+    }
+}
+
   export interface RegisterRequest {
     username: string
     email: string

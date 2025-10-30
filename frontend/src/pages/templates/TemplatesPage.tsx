@@ -28,9 +28,11 @@ import {
   Edit as EditIcon,
 } from '@mui/icons-material'
 import { useGetTemplatesQuery, useLazyPreviewTemplateQuery } from '@/store/api/templatesApi'
+import { useTranslation } from 'react-i18next'
 
 const TemplatesPage = () => {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const { data: templates, isLoading } = useGetTemplatesQuery()
   const [triggerPreview, { data: previewData, isLoading: isLoadingPreview }] = useLazyPreviewTemplateQuery()
   
@@ -64,20 +66,20 @@ const TemplatesPage = () => {
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
         <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-          Templates
+          {t('templates.title')}
         </Typography>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={() => navigate('/templates/create')}
         >
-          Create Template
+          {t('templates.createTemplate')}
         </Button>
       </Box>
 
       {/* Search */}
       <TextField
-        placeholder="Search templates..."
+        placeholder={t('templates.searchTemplates') as string}
         fullWidth
         sx={{ mb: 3 }}
         value={searchQuery}
@@ -95,14 +97,14 @@ const TemplatesPage = () => {
       {filteredTemplates.length === 0 ? (
         <Box sx={{ textAlign: 'center', py: 8 }}>
           <Typography color="textSecondary" sx={{ mb: 2 }}>
-            No templates found
+            {t('templates.noTemplatesFound')}
           </Typography>
           <Button
             variant="contained"
             startIcon={<AddIcon />}
             onClick={() => navigate('/templates/create')}
           >
-            Create First Template
+            {t('templates.createFirstTemplate')}
           </Button>
         </Box>
       ) : (
@@ -138,7 +140,7 @@ const TemplatesPage = () => {
                     justifyContent: 'center',
                   }}
                 >
-                  <Typography color="text.secondary">No Preview</Typography>
+                  <Typography color="text.secondary">{t('templates.noPreview')}</Typography>
                 </Box>
               )}
 
@@ -157,7 +159,7 @@ const TemplatesPage = () => {
                   {template.supports_color_customization && (
                     <Chip
                       icon={<PaletteIcon fontSize="small" />}
-                      label="Customizable"
+                      label={t('templates.customizable')}
                       size="small"
                       variant="outlined"
                     />
@@ -165,7 +167,7 @@ const TemplatesPage = () => {
                   {template.supports_page_speed && (
                     <Chip
                       icon={<SpeedIcon fontSize="small" />}
-                      label="Fast"
+                      label={t('templates.fast')}
                       size="small"
                       variant="outlined"
                     />
@@ -175,10 +177,10 @@ const TemplatesPage = () => {
                 {/* Counts */}
                 <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
                   <Typography variant="caption" color="text.secondary">
-                    {template.sites_count || 0} sites
+                    {template.sites_count || 0} {t('templates.sites')}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
-                    {template.footprints_count || 0} footprints
+                    {template.footprints_count || 0} {t('templates.footprints')}
                   </Typography>
                 </Box>
               </CardContent>
@@ -189,14 +191,14 @@ const TemplatesPage = () => {
                   startIcon={<ViewIcon />}
                   onClick={() => handlePreview(template.id)}
                 >
-                  Preview
+                  {t('common.preview')}
                 </Button>
                 <Button
                   size="small"
                   startIcon={<EditIcon />}
                   onClick={() => navigate(`/templates/${template.id}/edit`)}
                 >
-                  Edit
+                  {t('common.edit')}
                 </Button>
               </CardActions>
             </Card>
@@ -212,7 +214,7 @@ const TemplatesPage = () => {
       >
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="h6">
-            Template Preview: {previewData?.name}
+            {t('templates.templatePreview')}: {previewData?.name}
           </Typography>
           <IconButton onClick={handleClosePreview} size="small">
             <CloseIcon />
@@ -240,15 +242,15 @@ const TemplatesPage = () => {
                   height: '600px',
                   border: 'none',
                 }}
-                title="Template Preview"
+                title={t('templates.templatePreview')}
               />
             </Box>
           ) : (
-            <Typography color="text.secondary">No preview available</Typography>
+            <Typography color="text.secondary">{t('templates.noPreviewAvailable')}</Typography>
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClosePreview}>Close</Button>
+          <Button onClick={handleClosePreview}>{t('common.close')}</Button>
         </DialogActions>
       </Dialog>
     </Box>

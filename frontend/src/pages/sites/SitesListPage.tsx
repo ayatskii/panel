@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import {
   Box,
   Typography,
@@ -30,10 +31,11 @@ import {
 import { useGetSitesQuery, useDeleteSiteMutation, useDeploySiteMutation } from '@/store/api/sitesApi'
 import SiteCreationWizard from '@/components/sites/SiteCreationWizard'
 import toast from 'react-hot-toast'
-import { format } from 'date-fns'
+import { formatDate } from '@/utils/formatDate'
 
 const SitesListPage = () => {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const { data: sites, isLoading } = useGetSitesQuery()
   const [deleteSite] = useDeleteSiteMutation()
   const [deploySite] = useDeploySiteMutation()
@@ -57,19 +59,19 @@ const SitesListPage = () => {
   }
 
   const handleSiteCreated = (siteId: number) => {
-    toast.success('Site created successfully!')
+    toast.success(t('sites.siteCreated'))
     setWizardOpen(false)
     navigate(`/sites/${siteId}`)
   }
 
   const handleDelete = async (siteId: number) => {
-    if (window.confirm('Are you sure you want to delete this site? This action cannot be undone.')) {
+    if (window.confirm(t('sites.deleteConfirm'))) {
       try {
         await deleteSite(siteId).unwrap()
-        toast.success('Site deleted successfully')
+        toast.success(t('sites.siteDeleted'))
         handleMenuClose()
       } catch {
-        toast.error('Failed to delete site');
+        toast.error(t('sites.siteDeleteFailed'));
       }
     }
   }
@@ -80,7 +82,7 @@ const SitesListPage = () => {
       toast.success(result.message)
       handleMenuClose()
     } catch {
-      toast.error('Failed to deploy site');
+      toast.error(t('sites.siteDeployFailed'));
     }
   }
 
@@ -102,20 +104,20 @@ const SitesListPage = () => {
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-          Sites
+          {t('sites.title')}
         </Typography>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={handleCreateSite}
         >
-          Create Site
+          {t('sites.createSite')}
         </Button>
       </Box>
 
       <Paper sx={{ p: 2, mb: 3 }}>
         <TextField
-          placeholder="Search sites..."
+          placeholder={t('common.search') + ' sites...'}
           fullWidth
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
@@ -218,7 +220,7 @@ const SitesListPage = () => {
                   {/* Page Count */}
                   {site.page_count !== undefined && (
                     <Chip 
-                      label={`${site.page_count} pages`} 
+                      label={t('sites.pageCount', { count: site.page_count })} 
                       size="small" 
                       variant="outlined" 
                     />
@@ -226,12 +228,12 @@ const SitesListPage = () => {
                 </Box>
 
                 <Typography variant="caption" color="text.secondary">
-                  {site.created_at ? `Created ${format(new Date(site.created_at), 'MMM dd, yyyy')}` : 'Created date unavailable'}
+                  {site.created_at ? t('sites.createdOn', { date: formatDate(site.created_at, 'PPP') }) : t('sites.createdDateUnavailable')}
                 </Typography>
                 
                 {site.deployed_at && (
                   <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                    Deployed {format(new Date(site.deployed_at), 'MMM dd, yyyy')}
+                    {t('sites.deployedOn', { date: formatDate(site.deployed_at, 'PPP') })}
                   </Typography>
                 )}
               </CardContent>
@@ -242,7 +244,7 @@ const SitesListPage = () => {
                   startIcon={<ViewIcon />}
                   onClick={() => navigate(`/sites/${site.id}`)}
                 >
-                  View
+                  {t('common.view')}
                 </Button>
                 <Button
                   size="small"
@@ -250,7 +252,7 @@ const SitesListPage = () => {
                   onClick={() => handleDeploy(site.id)}
                   color={site.is_deployed ? 'success' : 'primary'}
                 >
-                  {site.is_deployed ? 'Redeploy' : 'Deploy'}
+                  {site.is_deployed ? t('common.redeploy') : t('common.deploy')}
                 </Button>
               </CardActions>
             </Card>
@@ -268,27 +270,27 @@ const SitesListPage = () => {
           handleMenuClose()
         }}>
           <ViewIcon fontSize="small" sx={{ mr: 1 }} />
-          View Details
+          {t('common.view')} Details
         </MenuItem>
         <MenuItem onClick={() => {
           navigate(`/sites/${selectedSiteId}/edit`)
           handleMenuClose()
         }}>
           <EditIcon fontSize="small" sx={{ mr: 1 }} />
-          Edit
+          {t('common.edit')}
         </MenuItem>
         <MenuItem
           onClick={() => selectedSiteId && handleDeploy(selectedSiteId)}
         >
           <DeployIcon fontSize="small" sx={{ mr: 1 }} />
-          Deploy
+          {t('common.deploy')}
         </MenuItem>
         <MenuItem
           onClick={() => selectedSiteId && handleDelete(selectedSiteId)}
           sx={{ color: 'error.main' }}
         >
           <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
-          Delete
+          {t('common.delete')}
         </MenuItem>
       </Menu>
 

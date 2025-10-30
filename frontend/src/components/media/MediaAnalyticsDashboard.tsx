@@ -23,7 +23,7 @@ import {
   CheckCircle as OptimizedIcon,
 } from '@mui/icons-material'
 import { useGetMediaAnalyticsQuery } from '@/store/api/mediaApi'
-import { format } from 'date-fns'
+import { formatDate } from '@/utils/formatDate'
 
 const MediaAnalyticsDashboard = () => {
   const { data: analytics, isLoading, error } = useGetMediaAnalyticsQuery()
@@ -233,7 +233,7 @@ const MediaAnalyticsDashboard = () => {
                             {file.original_name}
                           </Typography>
                         }
-                        secondary={format(new Date(file.created_at), 'MMM d, yyyy')}
+                        secondary={formatDate(file.created_at, 'PPP')}
                       />
                       <Typography variant="body2" fontWeight="bold" color="error.main">
                         {formatFileSize(file.file_size)}

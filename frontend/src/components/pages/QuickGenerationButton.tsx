@@ -19,6 +19,7 @@ import {
   PlayArrow as StartIcon,
 } from '@mui/icons-material'
 import ContentGenerationModal from './ContentGenerationModal'
+import { useTranslation } from 'react-i18next'
 
 interface QuickGenerationButtonProps {
   pageId: number
@@ -38,6 +39,7 @@ const QuickGenerationButton = ({
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [generationModalOpen, setGenerationModalOpen] = useState(false)
   const [quickGenerateType, setQuickGenerateType] = useState<string | null>(null)
+  const { t } = useTranslation()
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget)
@@ -62,43 +64,43 @@ const QuickGenerationButton = ({
   const quickOptions = [
     {
       id: 'meta',
-      label: 'Meta Content',
-      description: 'Title, description, H1',
+      label: t('pages.metaContent'),
+      description: t('pages.metaContentDescription'),
       icon: <TitleIcon />,
       color: 'primary' as const
     },
     {
       id: 'hero',
-      label: 'Hero Banner',
-      description: 'Main banner content',
+      label: t('pages.heroBanner'),
+      description: t('pages.heroBannerDescription'),
       icon: <StartIcon />,
       color: 'secondary' as const
     },
     {
       id: 'article',
-      label: 'Article',
-      description: 'Text content',
+      label: t('pages.article'),
+      description: t('pages.articleDescription'),
       icon: <ArticleIcon />,
       color: 'info' as const
     },
     {
       id: 'faq',
-      label: 'FAQ Section',
-      description: 'Questions & answers',
+      label: t('pages.faqSection'),
+      description: t('pages.faqDescription'),
       icon: <FAQIcon />,
       color: 'warning' as const
     },
     {
       id: 'swiper',
-      label: 'Game Carousel',
-      description: 'Interactive showcase',
+      label: t('pages.gameCarousel'),
+      description: t('pages.carouselDescription'),
       icon: <SwiperIcon />,
       color: 'success' as const
     },
     {
       id: 'cta',
-      label: 'Call to Action',
-      description: 'Action buttons',
+      label: t('pages.callToAction'),
+      description: t('pages.ctaDescription'),
       icon: <CTAIcon />,
       color: 'error' as const
     }
@@ -176,7 +178,7 @@ const QuickGenerationButton = ({
           }
         }}
       >
-        {showLabel && 'AI Generate'}
+        {showLabel && t('pages.generateContent')}
       </Button>
 
       <Menu
@@ -189,7 +191,7 @@ const QuickGenerationButton = ({
       >
         <Box sx={{ px: 2, py: 1 }}>
           <Typography variant="subtitle2" color="text.secondary">
-            Quick Generate
+            {t('pages.quickGenerate')}
           </Typography>
         </Box>
         
@@ -218,8 +220,8 @@ const QuickGenerationButton = ({
             <AIIcon color="primary" />
           </ListItemIcon>
           <ListItemText
-            primary="Full Generation"
-            secondary="Configure all options"
+            primary={t('pages.generateContent')}
+            secondary={t('pages.quickGenerate')}
           />
         </MenuItem>
       </Menu>

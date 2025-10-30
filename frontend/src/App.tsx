@@ -7,7 +7,7 @@ import theme from './theme'
 
 // Pages
 import LoginPage from './pages/auth/LoginPage'
-import RegisterPage from './pages/auth/RegisterPage'
+import RegisterPage from './components/auth/RegisterPage'
 import UsersListPage from './pages/users/UsersListPage'
 import UserDetailPage from './pages/users/UserDetailPage'
 import DashboardPage from './pages/dashboard/DashboardPage'

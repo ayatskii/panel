@@ -35,6 +35,7 @@ import {
   useGetBlockTypesQuery,
 } from '@/store/api/pagesApi'
 import toast from 'react-hot-toast'
+import { useTranslation } from 'react-i18next'
 import type { Page, Prompt } from '@/types'
 
 interface EnhancedContentGenerationModalProps {
@@ -50,6 +51,7 @@ const EnhancedContentGenerationModal: React.FC<EnhancedContentGenerationModalPro
   page,
   onContentGenerated,
 }) => {
+  const { t } = useTranslation()
   const [selectedBlockTypes, setSelectedBlockTypes] = useState<string[]>([])
   const [selectedPrompts, setSelectedPrompts] = useState<Record<string, number>>({})
   const [isGenerating, setIsGenerating] = useState(false)
@@ -86,7 +88,7 @@ const EnhancedContentGenerationModal: React.FC<EnhancedContentGenerationModalPro
 
   const handleGenerate = async () => {
     if (selectedBlockTypes.length === 0) {
-      toast.error('Please select at least one block type')
+      toast.error(t('pages.selectAtLeastOneBlock'))
       return
     }
 
@@ -102,12 +104,12 @@ const EnhancedContentGenerationModal: React.FC<EnhancedContentGenerationModalPro
       onContentGenerated?.(result)
       
       if (result.success) {
-        toast.success(`Generated ${result.generated_blocks?.length || 0} content blocks!`)
+        toast.success(t('pages.generatedBlocksCount', { count: result.generated_blocks?.length || 0 }))
       } else {
-        toast.error(result.error || 'Failed to generate content')
+        toast.error(result.error || t('pages.generationFailed'))
       }
     } catch {
-      toast.error('Failed to generate content')
+      toast.error(t('pages.generationFailed'))
     } finally {
       setIsGenerating(false)
     }
@@ -139,7 +141,7 @@ const EnhancedContentGenerationModal: React.FC<EnhancedContentGenerationModalPro
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Box display="flex" alignItems="center" gap={1}>
             <AutoAwesomeIcon color="primary" />
-            <Typography variant="h6">Enhanced Content Generation</Typography>
+            <Typography variant="h6">{t('pages.enhancedContentGeneration')}</Typography>
           </Box>
           <IconButton onClick={handleClose}>
             <CloseIcon />
@@ -149,13 +151,13 @@ const EnhancedContentGenerationModal: React.FC<EnhancedContentGenerationModalPro
 
       <DialogContent>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-          Generate AI-powered content blocks for your page. Select block types and configure prompts for each.
+          {t('pages.enhancedContentDescription')}
         </Typography>
 
         {/* Block Types Selection */}
         <Box sx={{ mb: 3 }}>
           <Typography variant="h6" gutterBottom>
-            Select Block Types
+            {t('pages.selectBlockTypes')}
           </Typography>
           <Grid container spacing={2}>
             {Object.entries(blockTypes).map(([blockType, config]) => (
@@ -213,7 +215,7 @@ const EnhancedContentGenerationModal: React.FC<EnhancedContentGenerationModalPro
         {selectedBlockTypes.length > 0 && (
           <Box sx={{ mb: 3 }}>
             <Typography variant="h6" gutterBottom>
-              Configure Prompts
+              {t('pages.configurePrompts')}
             </Typography>
             {selectedBlockTypes.map((blockType) => (
               <BlockTypePromptConfig
@@ -233,13 +235,13 @@ const EnhancedContentGenerationModal: React.FC<EnhancedContentGenerationModalPro
             <Card variant="outlined">
               <CardContent>
                 <Typography variant="h6" gutterBottom>
-                  Generation Results
+                  {t('pages.generationResults')}
                 </Typography>
                 
                 {generationResult.success ? (
                   <Box>
                     <Alert severity="success" sx={{ mb: 2 }}>
-                      Successfully generated {generationResult.generated_blocks?.length || 0} content blocks!
+                      {t('pages.generatedBlocksCount', { count: generationResult.generated_blocks?.length || 0 })}
                     </Alert>
                     
                     {generationResult.generated_blocks?.map((block: PageBlock, index: number) => (
@@ -251,7 +253,7 @@ const EnhancedContentGenerationModal: React.FC<EnhancedContentGenerationModalPro
                             <ErrorIcon color="error" fontSize="small" />
                           )}
                           <Typography variant="body2">
-                            {block.block_type} - {block.success ? 'Success' : 'Failed'}
+                            {block.block_type} - {block.success ? t('common.success') : t('common.failed')}
                           </Typography>
                         </Box>
                         {block.error && (
@@ -264,7 +266,7 @@ const EnhancedContentGenerationModal: React.FC<EnhancedContentGenerationModalPro
                   </Box>
                 ) : (
                   <Alert severity="error">
-                    {generationResult.error || 'Failed to generate content'}
+                    {generationResult.error || t('pages.generationFailed')}
                   </Alert>
                 )}
               </CardContent>
@@ -275,9 +277,9 @@ const EnhancedContentGenerationModal: React.FC<EnhancedContentGenerationModalPro
         {/* Errors */}
         {generationResult?.errors && generationResult.errors.length > 0 && (
           <Alert severity="warning" sx={{ mb: 2 }}>
-            <Typography variant="body2">
-              <strong>Warnings:</strong>
-            </Typography>
+          <Typography variant="body2">
+            <strong>{t('common.warnings')}:</strong>
+          </Typography>
             <ul style={{ margin: 0, paddingLeft: '20px' }}>
               {generationResult.errors.map((error: string, index: number) => (
                 <li key={index}>
@@ -291,7 +293,7 @@ const EnhancedContentGenerationModal: React.FC<EnhancedContentGenerationModalPro
 
       <DialogActions>
         <Button onClick={handleClose}>
-          {generationResult ? 'Close' : 'Cancel'}
+          {generationResult ? t('common.close') : t('common.cancel')}
         </Button>
         <Button
           onClick={handleGenerate}
@@ -299,7 +301,7 @@ const EnhancedContentGenerationModal: React.FC<EnhancedContentGenerationModalPro
           disabled={isGenerating || selectedBlockTypes.length === 0}
           startIcon={isGenerating ? <CircularProgress size={16} /> : <AutoAwesomeIcon />}
         >
-          {isGenerating ? 'Generating...' : 'Generate Content'}
+          {isGenerating ? t('pages.generating') : t('pages.generateContent')}
         </Button>
       </DialogActions>
     </Dialog>

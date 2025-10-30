@@ -12,15 +12,18 @@ import {
   import { useState } from 'react'
   import { useSelector, useDispatch } from 'react-redux'
   import { useNavigate } from 'react-router-dom'
+  import { useTranslation } from 'react-i18next'
   import type { RootState } from '@/store'
   import { logout } from '@/store/slices/authSlice'
   import toast from 'react-hot-toast'
+  import LanguageSwitcher from '../common/LanguageSwitcher'
   
   const TopBar = () => {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
     const user = useSelector((state: RootState) => state.auth.user)
     const dispatch = useDispatch()
     const navigate = useNavigate()
+    const { t } = useTranslation()
   
     const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
       setAnchorEl(event.currentTarget)
@@ -32,7 +35,7 @@ import {
   
     const handleLogout = () => {
       dispatch(logout())
-      toast.success('Logged out successfully')
+      toast.success(t('auth.logoutSuccess'))
       navigate('/login')
     }
   
@@ -54,6 +57,8 @@ import {
           </Typography>
   
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <LanguageSwitcher />
+            
             <IconButton 
               sx={{ 
                 color: '#5a6872',
@@ -145,7 +150,7 @@ import {
                   '&:hover': { backgroundColor: 'rgba(25, 118, 210, 0.04)' }
                 }}
               >
-                Settings
+                {t('navigation.settings')}
               </MenuItem>
               <MenuItem 
                 onClick={handleLogout}
@@ -155,7 +160,7 @@ import {
                   '&:hover': { backgroundColor: 'rgba(244, 67, 54, 0.04)' }
                 }}
               >
-                Logout
+                {t('auth.logout')}
               </MenuItem>
             </Menu>
           </Box>

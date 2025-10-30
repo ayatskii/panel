@@ -59,17 +59,19 @@ import {
 } from '@/store/api/mediaApi';
 import TagManager from '@/components/media/TagManager';
 import MediaTagSelector from '@/components/media/MediaTagSelector';
-import AdvancedFilters, { MediaFilters } from '@/components/media/AdvancedFilters';
+import AdvancedFilters, { type MediaFilters } from '@/components/media/AdvancedFilters';
 import FolderMoveDialog from '@/components/media/FolderMoveDialog';
 import MediaUsageDialog from '@/components/media/MediaUsageDialog';
 import MediaAnalyticsDashboard from '@/components/media/MediaAnalyticsDashboard';
 import toast from 'react-hot-toast';
 import { useDropzone } from 'react-dropzone';
-import { format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
+import { formatDate } from '@/utils/formatDate';
 import type { Media, MediaTag } from '@/types';
 
 const MediaLibraryPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { t } = useTranslation();
   const currentFolder = searchParams.get('folder');
   const currentType = searchParams.get('type');
 
@@ -128,9 +130,9 @@ const MediaLibraryPage = () => {
 
       try {
         await uploadMedia(formData).unwrap();
-        toast.success(`${file.name} uploaded successfully`);
+        toast.success(t('media.uploadedSuccessfully', { name: file.name }));
       } catch {
-        toast.error(`Failed to upload ${file.name}`);
+        toast.error(t('media.failedToUploadNamed', { name: file.name }));
       }
     } else if (acceptedFiles.length > 1) {
       // Bulk upload
@@ -144,13 +146,13 @@ const MediaLibraryPage = () => {
 
       try {
         await bulkUpload(formData).unwrap();
-        toast.success(`${acceptedFiles.length} files uploaded successfully`);
+        toast.success(t('media.filesUploadedSuccessfully', { count: acceptedFiles.length }));
       } catch {
-        toast.error('Failed to upload files');
+        toast.error(t('media.failedToUploadFiles'));
       }
     }
     setUploadDialogOpen(false);
-  }, [uploadMedia, bulkUpload, currentFolder]);
+  }, [uploadMedia, bulkUpload, currentFolder, t]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -170,45 +172,45 @@ const MediaLibraryPage = () => {
         name: newFolderName,
         parent_folder: currentFolder ? Number(currentFolder) : undefined,
       }).unwrap();
-      toast.success('Folder created successfully');
+      toast.success(t('media.folderCreated'));
       setFolderDialogOpen(false);
       setNewFolderName('');
     } catch (error) {
       const apiError = error as { data?: { name?: string[] } };
-      toast.error(apiError.data?.name?.[0] || 'Failed to create folder');
+      toast.error(apiError.data?.name?.[0] || t('media.failedToCreateFolder'));
     }
   };
 
   const handleDeleteMedia = async (mediaId: number) => {
-    if (window.confirm('Are you sure you want to delete this file?')) {
+    if (window.confirm(t('media.confirmDeleteFile'))) {
       try {
         await deleteMedia(mediaId).unwrap();
-        toast.success('File deleted successfully');
+        toast.success(t('media.fileDeleted'));
       } catch {
-        toast.error('Failed to delete file');
+        toast.error(t('media.failedToDeleteFile'));
       }
     }
   };
 
   const handleDeleteFolder = async (folderId: number) => {
-    if (window.confirm('Delete this folder and all its contents?')) {
+    if (window.confirm(t('media.confirmDeleteFolder'))) {
       try {
         await deleteFolder(folderId).unwrap();
-        toast.success('Folder deleted successfully');
+        toast.success(t('media.folderDeleted'));
       } catch {
-        toast.error('Failed to delete folder');
+        toast.error(t('media.failedToDeleteFolder'));
       }
     }
   };
 
   const handleBulkDelete = async () => {
-    if (window.confirm(`Delete ${selectedMedia.length} selected files?`)) {
+    if (window.confirm(t('media.confirmDeleteFilesCount', { count: selectedMedia.length }))) {
       try {
         await bulkDelete(selectedMedia).unwrap();
-        toast.success('Files deleted successfully');
+        toast.success(t('media.filesDeleted'));
         setSelectedMedia([]);
       } catch {
-        toast.error('Failed to delete files');
+        toast.error(t('media.failedToDeleteFiles'));
       }
     }
   };
@@ -220,7 +222,7 @@ const MediaLibraryPage = () => {
       setSelectedMedia([]);
       setMoveDialogOpen(false);
     } catch (error) {
-      toast.error('Failed to move files');
+      toast.error(t('media.failedToMoveFiles'));
       console.error(error);
     }
   };
@@ -270,7 +272,7 @@ const MediaLibraryPage = () => {
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
         <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-          Media Library
+          {t('media.title')}
         </Typography>
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Button
@@ -279,28 +281,28 @@ const MediaLibraryPage = () => {
             onClick={() => setAnalyticsOpen(!analyticsOpen)}
             color={analyticsOpen ? 'primary' : 'inherit'}
           >
-            {analyticsOpen ? 'Hide Analytics' : 'Show Analytics'}
+            {analyticsOpen ? t('media.hideAnalytics') : t('media.showAnalytics')}
           </Button>
           <Button
             variant="outlined"
             startIcon={<NewFolderIcon />}
             onClick={() => setFolderDialogOpen(true)}
           >
-            New Folder
+            {t('media.newFolder')}
           </Button>
           <Button
             variant="outlined"
             startIcon={<LabelIcon />}
             onClick={() => setTagManagerOpen(true)}
           >
-            Manage Tags
+            {t('media.manageTags')}
           </Button>
           <Button
             variant="contained"
             startIcon={<UploadIcon />}
             onClick={() => setUploadDialogOpen(true)}
           >
-            Upload
+            {t('media.upload')}
           </Button>
         </Box>
       </Box>
@@ -322,10 +324,10 @@ const MediaLibraryPage = () => {
             sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
           >
             <HomeIcon fontSize="small" />
-            Home
+            {t('media.home')}
           </Link>
           {currentFolder && (
-            <Typography color="text.primary">Current Folder</Typography>
+            <Typography color="text.primary">{t('media.currentFolder')}</Typography>
           )}
         </Breadcrumbs>
       </Paper>
@@ -336,13 +338,13 @@ const MediaLibraryPage = () => {
           {/* File type filter */}
           <Box sx={{ display: 'flex', gap: 1 }}>
             <Chip
-              label="All"
+              label={t('media.all')}
               onClick={() => setSearchParams(currentFolder ? { folder: currentFolder } : {})}
               color={!currentType ? 'primary' : 'default'}
               clickable
             />
             <Chip
-              label="Images"
+              label={t('media.images')}
               icon={<ImageIcon />}
               onClick={() => {
                 const params: Record<string, string> = { type: 'image' };
@@ -353,7 +355,7 @@ const MediaLibraryPage = () => {
               clickable
             />
             <Chip
-              label="Documents"
+              label={t('media.documents')}
               icon={<DocumentIcon />}
               onClick={() => {
                 const params: Record<string, string> = { type: 'document' };
@@ -364,7 +366,7 @@ const MediaLibraryPage = () => {
               clickable
             />
             <Chip
-              label="Videos"
+              label={t('media.videos')}
               icon={<VideoIcon />}
               onClick={() => {
                 const params: Record<string, string> = { type: 'video' };
@@ -377,7 +379,7 @@ const MediaLibraryPage = () => {
           </Box>
 
           <TextField
-            placeholder="Search files..."
+            placeholder={t('media.searchFiles') as string}
             size="small"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -396,7 +398,7 @@ const MediaLibraryPage = () => {
             startIcon={<FilterIcon />}
             onClick={() => setFiltersOpen(true)}
           >
-            Filters
+            {t('media.filters')}
           </Button>
 
           {selectedMedia.length > 0 && (
@@ -406,7 +408,7 @@ const MediaLibraryPage = () => {
                 startIcon={<MoveIcon />}
                 onClick={() => setMoveDialogOpen(true)}
               >
-                Move ({selectedMedia.length})
+                {t('media.moveCount', { count: selectedMedia.length })}
               </Button>
               <Button
                 variant="outlined"
@@ -414,7 +416,7 @@ const MediaLibraryPage = () => {
                 startIcon={<DeleteIcon />}
                 onClick={handleBulkDelete}
               >
-                Delete ({selectedMedia.length})
+                {t('media.deleteCount', { count: selectedMedia.length })}
               </Button>
             </>
           )}
@@ -424,7 +426,7 @@ const MediaLibraryPage = () => {
       {/* Folders */}
       {folders && folders.length > 0 && (
         <Box sx={{ mb: 3 }}>
-          <Typography variant="h6" sx={{ mb: 2 }}>Folders</Typography>
+          <Typography variant="h6" sx={{ mb: 2 }}>{t('media.folders')}</Typography>
           <Box
             sx={{
               display: 'grid',
@@ -461,7 +463,7 @@ const MediaLibraryPage = () => {
                     {folder.name}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
-                    {folder.media_count || folder.file_count || 0} files
+                    {folder.media_count || folder.file_count || 0} {t('media.files')}
                   </Typography>
                 </CardContent>
               </Card>
@@ -474,21 +476,21 @@ const MediaLibraryPage = () => {
       {filteredMedia.length === 0 && (!folders || folders.length === 0) ? (
         <Paper sx={{ p: 8, textAlign: 'center' }}>
           <Typography color="textSecondary" sx={{ mb: 2 }}>
-            No media files found
+            {t('media.noFiles')}
           </Typography>
           <Button
             variant="contained"
             startIcon={<UploadIcon />}
             onClick={() => setUploadDialogOpen(true)}
           >
-            Upload Your First File
+            {t('media.uploadFirstFile')}
           </Button>
         </Paper>
       ) : (
         <>
           {filteredMedia.length > 0 && (
             <>
-              <Typography variant="h6" sx={{ mb: 2 }}>Files</Typography>
+              <Typography variant="h6" sx={{ mb: 2 }}>{t('media.filesTitle')}</Typography>
               <Box
                 sx={{
                   display: 'grid',
@@ -545,7 +547,7 @@ const MediaLibraryPage = () => {
                         </Typography>
                       </Tooltip>
                       <Typography variant="caption" color="text.secondary">
-                        {item.size_mb.toFixed(2)} MB • {format(new Date(item.created_at), 'MMM dd, yyyy')}
+                        {item.size_mb.toFixed(2)} MB • {formatDate(item.created_at, 'PPP')}
                       </Typography>
                     </CardContent>
                     <CardActions sx={{ flexDirection: 'column', alignItems: 'flex-start', gap: 0.5 }}>
@@ -604,7 +606,7 @@ const MediaLibraryPage = () => {
               handleMenuClose();
             }}>
               <EditIcon fontSize="small" sx={{ mr: 1 }} />
-              Edit Details
+              {t('media.editDetails')}
             </MenuItem>
             <MenuItem onClick={() => {
               const mediaItem = media?.find(m => m.id === selectedItem.id);
@@ -614,7 +616,7 @@ const MediaLibraryPage = () => {
               handleMenuClose();
             }}>
               <LabelIcon fontSize="small" sx={{ mr: 1 }} />
-              Edit Tags
+              {t('media.editTags')}
             </MenuItem>
             <MenuItem onClick={() => {
               const mediaItem = media?.find(m => m.id === selectedItem.id);
@@ -626,7 +628,7 @@ const MediaLibraryPage = () => {
               handleMenuClose();
             }}>
               <ViewUsageIcon fontSize="small" sx={{ mr: 1 }} />
-              Show Usage
+              {t('media.showUsage')}
             </MenuItem>
             <MenuItem
               onClick={() => {
@@ -636,7 +638,7 @@ const MediaLibraryPage = () => {
               sx={{ color: 'error.main' }}
             >
               <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
-              Delete
+              {t('common.delete')}
             </MenuItem>
           </>
         ) : (
@@ -648,14 +650,14 @@ const MediaLibraryPage = () => {
             sx={{ color: 'error.main' }}
           >
             <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
-            Delete Folder
+            {t('media.deleteFolder')}
           </MenuItem>
         )}
       </Menu>
 
       {/* Upload Dialog */}
       <Dialog open={uploadDialogOpen} onClose={() => setUploadDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Upload Files</DialogTitle>
+        <DialogTitle>{t('media.uploadFiles')}</DialogTitle>
         <DialogContent>
           <Box
             {...getRootProps()}
@@ -673,30 +675,30 @@ const MediaLibraryPage = () => {
             <input {...getInputProps()} />
             <UploadIcon sx={{ fontSize: 60, color: 'text.secondary', mb: 2 }} />
             <Typography variant="h6">
-              {isDragActive ? 'Drop files here' : 'Drag & drop files here'}
+              {isDragActive ? t('media.dropFilesHere') : t('media.dragDropHere')}
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              or click to browse
+              {t('media.orClickToBrowse')}
             </Typography>
             <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
-              Supported: Images (JPG, PNG, GIF, WebP, SVG), PDFs, Videos (MP4, WebM, OGG)
+              {t('media.supportedFormatsDetailed')}
             </Typography>
             <Typography variant="caption" color="error" sx={{ display: 'block' }}>
-              Maximum file size: 50MB
+              {t('media.maxFileSize')}
             </Typography>
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setUploadDialogOpen(false)}>Cancel</Button>
+          <Button onClick={() => setUploadDialogOpen(false)}>{t('common.cancel')}</Button>
         </DialogActions>
       </Dialog>
 
       {/* New Folder Dialog */}
       <Dialog open={folderDialogOpen} onClose={() => setFolderDialogOpen(false)}>
-        <DialogTitle>Create New Folder</DialogTitle>
+        <DialogTitle>{t('media.createNewFolder')}</DialogTitle>
         <DialogContent>
           <TextField
-            label="Folder Name"
+            label={t('media.folderName')}
             fullWidth
             value={newFolderName}
             onChange={(e) => setNewFolderName(e.target.value)}
@@ -710,9 +712,9 @@ const MediaLibraryPage = () => {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setFolderDialogOpen(false)}>Cancel</Button>
+          <Button onClick={() => setFolderDialogOpen(false)}>{t('common.cancel')}</Button>
           <Button onClick={handleCreateFolder} variant="contained" disabled={!newFolderName.trim()}>
-            Create
+            {t('common.create')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -730,7 +732,7 @@ const MediaLibraryPage = () => {
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>Edit Tags</DialogTitle>
+        <DialogTitle>{t('media.editTags')}</DialogTitle>
         <DialogContent>
           {editingMediaTags && (
             <Box sx={{ mt: 2 }}>
@@ -747,21 +749,21 @@ const MediaLibraryPage = () => {
                         tag_ids: tags.map(t => t.id),
                       },
                     }).unwrap();
-                    toast.success('Tags updated successfully');
+                    toast.success(t('media.tagsUpdated'));
                     setEditingMediaTags(null);
                   } catch (error) {
-                    toast.error('Failed to update tags');
+                    toast.error(t('media.failedToUpdateTags'));
                     console.error(error);
                   }
                 }}
-                label="Tags"
+                label={t('media.tags') as string}
                 size="medium"
               />
             </Box>
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setEditingMediaTags(null)}>Close</Button>
+          <Button onClick={() => setEditingMediaTags(null)}>{t('common.close')}</Button>
         </DialogActions>
       </Dialog>
 
@@ -773,10 +775,10 @@ const MediaLibraryPage = () => {
         onChange={setFilters}
         onApply={() => {
           // Filters are automatically applied via the filters state
-          toast.success('Filters applied');
+          toast.success(t('media.filtersApplied'));
         }}
         onClear={() => {
-          toast.info('Filters cleared');
+          toast.info(t('media.filtersCleared'));
         }}
       />
 

@@ -35,7 +35,7 @@ import {
 import { useGetPagesQuery, useDeletePageMutation, useDuplicatePageMutation, usePublishPageMutation, useUnpublishPageMutation } from '@/store/api/pagesApi'
 import { useGetSitesQuery } from '@/store/api/sitesApi'
 import toast from 'react-hot-toast'
-import { format } from 'date-fns'
+import { formatDate } from '@/utils/formatDate'
 
 const PagesListPage = () => {
   const navigate = useNavigate()
@@ -218,7 +218,7 @@ const PagesListPage = () => {
                     />
                   </TableCell>
                   <TableCell>
-                    {format(new Date(page.created_at), 'MMM dd, yyyy')}
+                    {formatDate(page.created_at, 'PPP')}
                   </TableCell>
                   <TableCell align="right">
                     <IconButton

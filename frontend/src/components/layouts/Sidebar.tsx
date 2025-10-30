@@ -24,31 +24,33 @@ import {
   VpnKey as IntegrationsIcon,
 } from '@mui/icons-material'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 
 const drawerWidth = 260
 
 interface MenuItem {
-  text: string
+  textKey: string
   icon: React.ReactElement
   path: string
 }
 
 const menuItems: MenuItem[] = [
-  { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
-  { text: 'Sites', icon: <SitesIcon />, path: '/sites' },
-  { text: 'Pages', icon: <PagesIcon />, path: '/pages' },
-  { text: 'Templates', icon: <TemplatesIcon />, path: '/templates' },
-  { text: 'Media', icon: <MediaIcon />, path: '/media' },
-  { text: 'Integrations', icon: <IntegrationsIcon />, path: '/integrations/cloudflare-tokens' },
-  { text: 'Deployments', icon: <DeployIcon />, path: '/deployments' },
-  { text: 'Analytics', icon: <AnalyticsIcon />, path: '/analytics' },
-  { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
-  { text: 'Prompts', icon: <CodeIcon />, path: '/prompts' }
+  { textKey: 'navigation.dashboard', icon: <DashboardIcon />, path: '/dashboard' },
+  { textKey: 'navigation.sites', icon: <SitesIcon />, path: '/sites' },
+  { textKey: 'navigation.pages', icon: <PagesIcon />, path: '/pages' },
+  { textKey: 'navigation.templates', icon: <TemplatesIcon />, path: '/templates' },
+  { textKey: 'navigation.media', icon: <MediaIcon />, path: '/media' },
+  { textKey: 'navigation.integrations', icon: <IntegrationsIcon />, path: '/integrations/cloudflare-tokens' },
+  { textKey: 'navigation.deployments', icon: <DeployIcon />, path: '/deployments' },
+  { textKey: 'navigation.analytics', icon: <AnalyticsIcon />, path: '/analytics' },
+  { textKey: 'navigation.settings', icon: <SettingsIcon />, path: '/settings' },
+  { textKey: 'navigation.prompts', icon: <CodeIcon />, path: '/prompts' }
 ]
 
 const Sidebar = () => {
   const navigate = useNavigate()
   const location = useLocation()
+  const { t } = useTranslation()
 
   return (
     <Drawer
@@ -107,7 +109,7 @@ const Sidebar = () => {
               fontWeight: 500
             }}
           >
-            Management
+            {t('common.panelManagement')}
           </Typography>
         </Box>
       </Toolbar>
@@ -117,7 +119,7 @@ const Sidebar = () => {
           const isSelected = location.pathname === item.path || 
                              (item.path.startsWith('/integrations') && location.pathname.startsWith('/integrations'))
           return (
-            <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
+            <ListItem key={item.textKey} disablePadding sx={{ mb: 0.5 }}>
               <ListItemButton
                 selected={isSelected}
                 onClick={() => navigate(item.path)}
@@ -150,7 +152,7 @@ const Sidebar = () => {
                   {item.icon}
                 </ListItemIcon>
                 <ListItemText 
-                  primary={item.text}
+                  primary={t(item.textKey)}
                   primaryTypographyProps={{
                     fontSize: '0.875rem',
                     fontWeight: isSelected ? 600 : 500,

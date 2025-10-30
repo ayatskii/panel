@@ -24,6 +24,7 @@ import {
   useUpdateTemplateMutation,
 } from '@/store/api/templatesApi'
 import toast from 'react-hot-toast'
+import { useTranslation } from 'react-i18next'
 
 interface TemplateFormData {
   name: string
@@ -78,6 +79,7 @@ const AVAILABLE_BLOCKS_OPTIONS = [
 const TemplateEditorPage = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const templateId = id ? Number(id) : 0
 
   const { data: template, isLoading } = useGetTemplateQuery(templateId)
@@ -262,11 +264,11 @@ const TemplateEditorPage = () => {
   return (
     <Box>
       <Typography variant="h4" sx={{ mb: 3, fontWeight: 'bold' }}>
-        Edit Template
+        {t('templates.editTemplate')}
       </Typography>
 
       <Alert severity="warning" sx={{ mb: 3 }}>
-        <strong>Admin Feature:</strong> Template changes affect all sites using this template.
+        <strong>{t('templates.adminFeature')}:</strong> {t('templates.adminFeatureDescription')}
       </Alert>
 
       <form onSubmit={handleSubmit}>

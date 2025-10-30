@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Box,
   TextField,
@@ -34,6 +35,7 @@ const BasicConfigStep: React.FC<BasicConfigStepProps> = ({
   onChange,
   errors,
 }) => {
+  const { t } = useTranslation()
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null)
 
   const { data: languages, isLoading: languagesLoading } = useGetLanguagesQuery()
@@ -71,22 +73,22 @@ const BasicConfigStep: React.FC<BasicConfigStepProps> = ({
   return (
     <Box>
       <Typography variant="h6" gutterBottom>
-        Basic Configuration
+        {t('common.basicConfiguration')}
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Configure the basic settings for your site including brand name, language, template, and affiliate links.
+        {t('common.basicConfigDescription')}
       </Typography>
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
         {/* Brand Name */}
         <TextField
           fullWidth
-          label="Brand Name"
-          placeholder="Enter your brand name"
+          label={t('common.brandName')}
+          placeholder={t('common.enterBrandName')}
           value={data.brand_name || ''}
           onChange={handleBrandNameChange}
           error={!!errors.brand_name}
-          helperText={errors.brand_name || 'The name of your brand or website'}
+          helperText={errors.brand_name || t('common.brandNameHelper')}
           InputProps={{
             startAdornment: <BusinessIcon sx={{ mr: 1, color: 'text.secondary' }} />,
           }}
@@ -94,17 +96,17 @@ const BasicConfigStep: React.FC<BasicConfigStepProps> = ({
 
         {/* Language Selection */}
         <FormControl fullWidth error={!!errors.language_code}>
-          <InputLabel>Language</InputLabel>
+          <InputLabel>{t('common.language')}</InputLabel>
           <Select
             value={data.language_code || ''}
             onChange={handleLanguageChange}
-            label="Language"
+            label={t('common.language')}
             startAdornment={<LanguageIcon sx={{ mr: 1, color: 'text.secondary' }} />}
           >
             {languagesLoading ? (
               <MenuItem disabled>
                 <CircularProgress size={20} sx={{ mr: 1 }} />
-                Loading languages...
+                {t('common.loadingLanguages')}
               </MenuItem>
             ) : (
               languages?.map((language) => (

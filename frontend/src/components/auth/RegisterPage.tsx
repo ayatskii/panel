@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import {
   Container,
   Paper,
@@ -14,6 +15,7 @@ import toast from 'react-hot-toast'
 
 const RegisterPage = () => {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -33,13 +35,18 @@ const RegisterPage = () => {
     e.preventDefault()
     
     try {
-      await register(formData).unwrap();
-      toast.success('Registration successful!');
+      const response = await register(formData).unwrap();
+      // Store tokens from the response
+      if (response.tokens) {
+        localStorage.setItem('access_token', response.tokens.access);
+        localStorage.setItem('refresh_token', response.tokens.refresh);
+      }
+      toast.success(t('auth.registerSuccess'));
       navigate('/dashboard');
     } catch (err) {
       const apiError = err as { data?: { message?: string } };
       console.error('Registration error:', apiError);
-      toast.error(apiError.data?.message || 'Registration failed');
+      toast.error(apiError.data?.message || t('auth.registerFailed'));
     }
   }
 
@@ -47,14 +54,14 @@ const RegisterPage = () => {
     <Container maxWidth="sm" sx={{ mt: 8 }}>
       <Paper sx={{ p: 4 }}>
         <Typography variant="h4" sx={{ mb: 3, textAlign: 'center' }}>
-          Register
+          {t('auth.register')}
         </Typography>
         
 
         
         <form onSubmit={handleSubmit}>
           <TextField
-            label="Username"
+            label={t('auth.username')}
             name="username"
             fullWidth
             margin="normal"
@@ -65,7 +72,7 @@ const RegisterPage = () => {
           />
           
           <TextField
-            label="Email"
+            label={t('auth.email')}
             name="email"
             type="email"
             fullWidth
@@ -76,7 +83,7 @@ const RegisterPage = () => {
           />
           
           <TextField
-            label="Password"
+            label={t('auth.password')}
             name="password"
             type="password"
             fullWidth
@@ -87,7 +94,7 @@ const RegisterPage = () => {
           />
           
           <TextField
-            label="Confirm Password"
+            label={t('auth.confirmPassword')}
             name="password_confirm"
             type="password"
             fullWidth
@@ -104,13 +111,13 @@ const RegisterPage = () => {
             sx={{ mt: 3 }}
             disabled={isLoading}
           >
-            {isLoading ? <CircularProgress size={24} /> : 'Register'}
+            {isLoading ? <CircularProgress size={24} /> : t('auth.registerButton')}
           </Button>
         </form>
         
         <Box sx={{ mt: 2, textAlign: 'center' }}>
           <Typography variant="body2" color="textSecondary">
-            Already have an account? <Link to="/login">Login</Link>
+            {t('auth.hasAccount')} <Link to="/login">{t('auth.loginHere')}</Link>
           </Typography>
         </Box>
       </Paper>
