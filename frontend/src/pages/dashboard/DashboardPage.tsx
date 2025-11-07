@@ -11,7 +11,22 @@ import {
   ListItemText,
   ListItemIcon,
   Skeleton,
-  Alert
+  Alert,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  IconButton,
+  TextField,
+  InputAdornment,
+  Menu,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Select,
+  Tooltip,
 } from '@mui/material'
 import { 
   Language as SitesIcon,
@@ -23,13 +38,22 @@ import {
   Error as ErrorIcon,
   Schedule as PendingIcon,
   Build as BuildingIcon,
-  CloudUpload
+  CloudUpload,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  ContentCopy as DuplicateIcon,
+  Analytics as AnalyticsIcon2,
+  Search as SearchIcon,
+  MoreVert as MoreVertIcon,
+  FilterList as FilterIcon,
 } from '@mui/icons-material'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useGetSitesQuery, useGetSiteAnalyticsSummaryQuery } from '@/store/api/sitesApi'
+import { useGetSitesQuery, useGetSiteAnalyticsSummaryQuery, useDuplicateSiteMutation } from '@/store/api/sitesApi'
 import { useGetPagesQuery } from '@/store/api/pagesApi'
 import { useGetDeploymentsQuery } from '@/store/api/deploymentsApi'
 import { formatDistanceToNow } from 'date-fns'
+import toast from 'react-hot-toast'
 
 interface StatCardProps {
   title: string
@@ -110,6 +134,17 @@ const DashboardPage = () => {
   const { data: analyticsSummary, isLoading: analyticsLoading } = useGetSiteAnalyticsSummaryQuery({ 
     id: sites[0]?.id || 0 
   }, { skip: !sites.length })
+  
+  const [duplicateSite] = useDuplicateSiteMutation()
+  
+  // Filters and search
+  const [searchQuery, setSearchQuery] = useState('')
+  const [languageFilter, setLanguageFilter] = useState<string>('')
+  const [templateFilter, setTemplateFilter] = useState<number | ''>('')
+  
+  // Menu state
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const [selectedSiteId, setSelectedSiteId] = useState<number | null>(null)
 
   // Calculate stats
   const totalSites = sites.length
@@ -117,10 +152,50 @@ const DashboardPage = () => {
   const totalDeployments = deployments.length
   const totalVisitors = analyticsSummary?.total_visitors || 0
   
+  // Get unique languages and templates for filters
+  const uniqueLanguages = [...new Set(sites.map(s => s.language_code))].sort()
+  const uniqueTemplates = [...new Set(sites.map(s => s.template).filter(Boolean))] as number[]
+  
+  // Filter sites
+  const filteredSites = sites.filter(site => {
+    const matchesSearch = 
+      site.brand_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      site.domain.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesLanguage = !languageFilter || site.language_code === languageFilter
+    const matchesTemplate = !templateFilter || site.template === templateFilter
+    return matchesSearch && matchesLanguage && matchesTemplate
+  })
+  
   // Get recent deployments (last 5)
   const recentDeployments = [...deployments]
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 5)
+  
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, siteId: number) => {
+    setAnchorEl(event.currentTarget)
+    setSelectedSiteId(siteId)
+  }
+
+  const handleMenuClose = () => {
+    setAnchorEl(null)
+    setSelectedSiteId(null)
+  }
+  
+  const handleDuplicate = async (siteId: number) => {
+    handleMenuClose()
+    const site = sites.find(s => s.id === siteId)
+    if (!site) return
+    
+    const newDomain = prompt('Enter new domain for duplicated site:')
+    if (!newDomain) return
+    
+    try {
+      await duplicateSite({ id: siteId, domain: newDomain }).unwrap()
+      toast.success('Site duplicated successfully')
+    } catch {
+      toast.error('Failed to duplicate site')
+    }
+  }
 
   // Get deployment status icon and color
   const getStatusIcon = (status: string) => {
@@ -231,6 +306,215 @@ const DashboardPage = () => {
           loading={analyticsLoading}
         />
       </Box>
+
+      {/* Sites List */}
+      <Paper 
+        sx={{ 
+          p: 3,
+          mb: 3,
+          borderRadius: 3,
+          border: '1px solid rgba(0, 0, 0, 0.06)',
+          background: '#ffffff'
+        }}
+      >
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            Sites ({filteredSites.length})
+          </Typography>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => navigate('/sites/create')}
+          >
+            Create Site
+          </Button>
+        </Box>
+        
+        {/* Filters */}
+        <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
+          <TextField
+            placeholder="Search sites..."
+            size="small"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+            sx={{ flex: 1, minWidth: 200 }}
+          />
+          <FormControl size="small" sx={{ minWidth: 150 }}>
+            <InputLabel>Language</InputLabel>
+            <Select
+              value={languageFilter}
+              label="Language"
+              onChange={(e) => setLanguageFilter(e.target.value)}
+            >
+              <MenuItem value="">All Languages</MenuItem>
+              {uniqueLanguages.map(lang => (
+                <MenuItem key={lang} value={lang}>{lang}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl size="small" sx={{ minWidth: 150 }}>
+            <InputLabel>Template</InputLabel>
+            <Select
+              value={templateFilter}
+              label="Template"
+              onChange={(e) => setTemplateFilter(e.target.value as number | '')}
+            >
+              <MenuItem value="">All Templates</MenuItem>
+              {uniqueTemplates.map(templateId => {
+                const site = sites.find(s => s.template === templateId)
+                return site?.template_name ? (
+                  <MenuItem key={templateId} value={templateId}>{site.template_name}</MenuItem>
+                ) : null
+              })}
+            </Select>
+          </FormControl>
+          {(searchQuery || languageFilter || templateFilter) && (
+            <Button
+              size="small"
+              onClick={() => {
+                setSearchQuery('')
+                setLanguageFilter('')
+                setTemplateFilter('')
+              }}
+            >
+              Clear Filters
+            </Button>
+          )}
+        </Box>
+        
+        {/* Sites Table */}
+        {filteredSites.length === 0 ? (
+          <Alert severity="info">
+            {searchQuery || languageFilter || templateFilter 
+              ? 'No sites match your filters' 
+              : 'No sites yet. Create your first site to get started.'}
+          </Alert>
+        ) : (
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Domain</TableCell>
+                  <TableCell>Brand</TableCell>
+                  <TableCell>Language</TableCell>
+                  <TableCell>Template</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell align="right">Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredSites.map((site) => (
+                  <TableRow key={site.id} hover>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                        {site.domain}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>{site.brand_name}</TableCell>
+                    <TableCell>
+                      <Chip label={site.language_code} size="small" />
+                    </TableCell>
+                    <TableCell>
+                      {site.template_name || (
+                        <Chip label="No template" size="small" color="default" />
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {site.is_deployed ? (
+                        <Chip label="Deployed" size="small" color="success" />
+                      ) : (
+                        <Chip label="Not Deployed" size="small" />
+                      )}
+                    </TableCell>
+                    <TableCell align="right">
+                      <Tooltip title="Edit">
+                        <IconButton
+                          size="small"
+                          onClick={() => navigate(`/sites/${site.id}/edit`)}
+                        >
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Duplicate">
+                        <IconButton
+                          size="small"
+                          onClick={() => handleDuplicate(site.id)}
+                        >
+                          <DuplicateIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Analytics">
+                        <IconButton
+                          size="small"
+                          onClick={() => navigate(`/sites/${site.id}?tab=analytics`)}
+                        >
+                          <AnalyticsIcon2 fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <IconButton
+                        size="small"
+                        onClick={(e) => handleMenuOpen(e, site.id)}
+                      >
+                        <MoreVertIcon fontSize="small" />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </Paper>
+
+      {/* Actions Menu */}
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+      >
+        <MenuItem onClick={() => {
+          if (selectedSiteId) {
+            navigate(`/sites/${selectedSiteId}/edit`)
+            handleMenuClose()
+          }
+        }}>
+          <EditIcon sx={{ mr: 1 }} fontSize="small" />
+          Edit
+        </MenuItem>
+        <MenuItem onClick={() => {
+          if (selectedSiteId) {
+            handleDuplicate(selectedSiteId)
+          }
+        }}>
+          <DuplicateIcon sx={{ mr: 1 }} fontSize="small" />
+          Duplicate
+        </MenuItem>
+        <MenuItem onClick={() => {
+          if (selectedSiteId) {
+            navigate(`/sites/${selectedSiteId}?tab=analytics`)
+            handleMenuClose()
+          }
+        }}>
+          <AnalyticsIcon2 sx={{ mr: 1 }} fontSize="small" />
+          View Analytics
+        </MenuItem>
+        <MenuItem onClick={() => {
+          if (selectedSiteId && window.confirm('Delete this site?')) {
+            // TODO: Implement delete
+            handleMenuClose()
+          }
+        }}>
+          <DeleteIcon sx={{ mr: 1 }} fontSize="small" />
+          Delete
+        </MenuItem>
+      </Menu>
 
       {/* Content Grid - Using CSS Grid */}
       <Box

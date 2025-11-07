@@ -34,10 +34,19 @@ class LanguageViewSet(viewsets.ModelViewSet):
             # Parse languages from text
             languages_data = settings_service.parse_languages_from_text(text_input)
             
+            if not languages_data:
+                return Response(
+                    {'error': 'No valid languages found in text input'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
             # Bulk create languages
             result = settings_service.bulk_update_languages(languages_data)
             
-            return Response(result)
+            if result.get('success'):
+                return Response(result, status=status.HTTP_201_CREATED)
+            else:
+                return Response(result, status=status.HTTP_400_BAD_REQUEST)
             
         except Exception as e:
             return Response(

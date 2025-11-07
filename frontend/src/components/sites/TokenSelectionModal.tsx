@@ -24,8 +24,9 @@ import {
   Cancel as CancelIcon,
   Domain as DomainIcon,
   Cloud as CloudIcon,
+  ContentCopy as CopyIcon,
 } from '@mui/icons-material'
-import { useGetAvailableCloudflareTokensQuery } from '@/store/api/integrationsApi'
+import { useGetAvailableCloudflareTokensQuery, useGetNameserversQuery } from '@/store/api/integrationsApi'
 
 interface TokenSelectionModalProps {
   open: boolean
@@ -44,6 +45,10 @@ const TokenSelectionModal: React.FC<TokenSelectionModalProps> = ({
   const [selectedTokenName, setSelectedTokenName] = useState<string>('')
 
   const { data: tokens, isLoading, error } = useGetAvailableCloudflareTokensQuery()
+  const { data: nameserversData, isLoading: isLoadingNS } = useGetNameserversQuery(
+    { domain: selectedDomain || '', token_id: selectedTokenId || 0 },
+    { skip: !selectedDomain || !selectedTokenId }
+  )
 
   const handleTokenSelect = (tokenId: number, tokenName: string) => {
     setSelectedTokenId(tokenId)
@@ -221,6 +226,28 @@ const TokenSelectionModal: React.FC<TokenSelectionModalProps> = ({
           </TableContainer>
         )}
       </DialogContent>
+
+      {selectedTokenId && selectedDomain && nameserversData?.success && (
+        <DialogContent>
+          <Box sx={{ mt: 2, p: 2, bgcolor: 'info.50', borderRadius: 1 }}>
+            <Typography variant="subtitle2" gutterBottom>
+              Nameservers for {selectedDomain}:
+            </Typography>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+              {nameserversData.nameservers.map((ns, index) => (
+                <Chip
+                  key={index}
+                  label={ns}
+                  size="small"
+                  sx={{ fontFamily: 'monospace' }}
+                  onDelete={() => navigator.clipboard.writeText(ns)}
+                  deleteIcon={<CopyIcon fontSize="small" />}
+                />
+              ))}
+            </Box>
+          </Box>
+        </DialogContent>
+      )}
 
       <DialogActions>
         <Button onClick={handleClose}>Cancel</Button>

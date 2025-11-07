@@ -12,18 +12,59 @@ import {
   Alert,
   Card,
   CardContent,
-  Chip
+  Chip,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
+  Switch,
+  FormControlLabel,
 } from '@mui/material'
 import {
   Person as PersonIcon,
   Security as SecurityIcon,
-  Info as InfoIcon
+  Info as InfoIcon,
+  Language as LanguageIcon,
+  Link as LinkIcon,
+  AutoFixHigh as PromptIcon,
+  Delete as DeleteIcon,
+  Edit as EditIcon,
+  Add as AddIcon,
+  ContentCopy as CopyIcon,
+  ViewCarousel as SwiperIcon,
 } from '@mui/icons-material'
 import { useGetCurrentUserQuery } from '@/store/api/authApi'
 import { useUpdateUserMutation, useChangePasswordMutation } from '@/store/api/usersApi'
+import { 
+  useGetLanguagesQuery,
+  useCreateAffiliateLinkMutation,
+  useUpdateAffiliateLinkMutation,
+  useDeleteAffiliateLinkMutation,
+  useGetAffiliateLinksQuery,
+} from '@/store/api/sitesApi'
+import { 
+  useGetPromptsQuery,
+  useCreatePromptMutation,
+  useUpdatePromptMutation,
+  useDeletePromptMutation,
+} from '@/store/api/aiApi'
+import SwiperPresetManager from '@/components/pages/SwiperPresetManager'
 import toast from 'react-hot-toast'
 import { formatDate } from '@/utils/formatDate'
 import { useTranslation } from 'react-i18next'
+import type { Language, AffiliateLink } from '@/types'
+import type { AIPrompt } from '@/types'
 
 interface TabPanelProps {
   children?: React.ReactNode
@@ -46,6 +87,19 @@ const SettingsPage = () => {
   const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation()
   const [changePassword, { isLoading: isChangingPassword }] = useChangePasswordMutation()
   
+  // Data queries
+  const { data: languages, refetch: refetchLanguages } = useGetLanguagesQuery()
+  const { data: affiliateLinks, refetch: refetchAffiliateLinks } = useGetAffiliateLinksQuery()
+  const { data: prompts, refetch: refetchPrompts } = useGetPromptsQuery({})
+  
+  // Mutations
+  const [createAffiliateLink] = useCreateAffiliateLinkMutation()
+  const [updateAffiliateLink] = useUpdateAffiliateLinkMutation()
+  const [deleteAffiliateLink] = useDeleteAffiliateLinkMutation()
+  const [createPrompt] = useCreatePromptMutation()
+  const [updatePrompt] = useUpdatePromptMutation()
+  const [deletePrompt] = useDeletePromptMutation()
+  
   // Profile form state
   const [profileData, setProfileData] = useState({
     username: '',
@@ -60,6 +114,39 @@ const SettingsPage = () => {
   })
   
   const [passwordError, setPasswordError] = useState('')
+  
+  // Languages management state
+  const [languagesText, setLanguagesText] = useState('')
+  const [isSavingLanguages, setIsSavingLanguages] = useState(false)
+  
+  // Affiliate Links management state
+  const [affiliateLinkDialogOpen, setAffiliateLinkDialogOpen] = useState(false)
+  const [editingAffiliateLink, setEditingAffiliateLink] = useState<AffiliateLink | null>(null)
+  const [affiliateLinkForm, setAffiliateLinkForm] = useState({
+    name: '',
+    url: '',
+    description: '',
+    click_tracking: true,
+  })
+  
+  // Prompts management state
+  const [promptDialogOpen, setPromptDialogOpen] = useState(false)
+  const [editingPrompt, setEditingPrompt] = useState<AIPrompt | null>(null)
+  const [promptForm, setPromptForm] = useState<Partial<AIPrompt>>({
+    name: '',
+    description: '',
+    type: 'text',
+    block_type: '',
+    ai_model: 'gpt-4',
+    temperature: 0.7,
+    max_tokens: 1000,
+    prompt_text: '',
+    system_prompt: '',
+    is_active: true,
+  })
+  
+  // Swiper Presets management state
+  const [swiperPresetManagerOpen, setSwiperPresetManagerOpen] = useState(false)
 
   // Update form when user data loads
   useEffect(() => {
@@ -239,6 +326,26 @@ const SettingsPage = () => {
             icon={<InfoIcon />} 
             iconPosition="start" 
             label={t('settings.tabs.accountInfo')} 
+          />
+          <Tab 
+            icon={<LanguageIcon />} 
+            iconPosition="start" 
+            label="Languages" 
+          />
+          <Tab 
+            icon={<LinkIcon />} 
+            iconPosition="start" 
+            label="Affiliate Links" 
+          />
+          <Tab 
+            icon={<PromptIcon />} 
+            iconPosition="start" 
+            label="Prompts" 
+          />
+          <Tab 
+            icon={<SwiperIcon />} 
+            iconPosition="start" 
+            label="Swiper Presets" 
           />
         </Tabs>
 
@@ -508,7 +615,532 @@ const SettingsPage = () => {
             </Card>
           </Box>
         </TabPanel>
+
+        {/* Languages Tab */}
+        <TabPanel value={activeTab} index={3}>
+          <Box sx={{ px: 3 }}>
+            <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+              Languages Management
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              Add languages in format en-EN, fr-FR (one per line)
+            </Typography>
+            <TextField
+              label="Languages (one per line)"
+              multiline
+              rows={10}
+              fullWidth
+              value={languagesText}
+              onChange={(e) => setLanguagesText(e.target.value)}
+              placeholder="en-EN&#10;fr-FR&#10;de-DE"
+              helperText="Format: language code (e.g., en-EN) - one per line"
+            />
+            <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
+              <Button
+                variant="contained"
+                onClick={async () => {
+                  if (!languagesText.trim()) return
+                  
+                  setIsSavingLanguages(true)
+                  try {
+                    const response = await fetch('/api/languages/bulk_create/', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                      },
+                      body: JSON.stringify({ text: languagesText }),
+                    })
+                    
+                    const result = await response.json()
+                    
+                    if (response.ok && result.success) {
+                      toast.success(`Successfully created ${result.successful} language(s)`)
+                      if (result.errors && result.errors.length > 0) {
+                        toast.error(`Some languages failed: ${result.errors.join(', ')}`)
+                      }
+                      setLanguagesText('')
+                      refetchLanguages()
+                    } else {
+                      toast.error(result.error || 'Failed to save languages')
+                    }
+                  } catch (error) {
+                    toast.error('Failed to save languages')
+                    console.error(error)
+                  } finally {
+                    setIsSavingLanguages(false)
+                  }
+                }}
+                disabled={!languagesText.trim() || isSavingLanguages}
+              >
+                {isSavingLanguages ? <CircularProgress size={24} /> : 'Save Languages'}
+              </Button>
+            </Box>
+            {languages && languages.length > 0 && (
+              <Box sx={{ mt: 4 }}>
+                <Typography variant="subtitle1" sx={{ mb: 2 }}>
+                  Current Languages ({languages.length})
+                </Typography>
+                <TableContainer component={Paper} variant="outlined">
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Code</TableCell>
+                        <TableCell>Name</TableCell>
+                        <TableCell>Status</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {languages.map((lang) => (
+                        <TableRow key={lang.id}>
+                          <TableCell>{lang.code}</TableCell>
+                          <TableCell>{lang.name}</TableCell>
+                          <TableCell>
+                            <Chip
+                              label={lang.is_active ? 'Active' : 'Inactive'}
+                              size="small"
+                              color={lang.is_active ? 'success' : 'default'}
+                            />
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>
+            )}
+          </Box>
+        </TabPanel>
+
+        {/* Affiliate Links Tab */}
+        <TabPanel value={activeTab} index={4}>
+          <Box sx={{ px: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+              <Box>
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  Affiliate Links
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Manage affiliate marketing links for sites
+                </Typography>
+              </Box>
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={() => {
+                  setEditingAffiliateLink(null)
+                  setAffiliateLinkForm({ name: '', url: '', description: '', click_tracking: true })
+                  setAffiliateLinkDialogOpen(true)
+                }}
+              >
+                Add Link
+              </Button>
+            </Box>
+            {affiliateLinks && affiliateLinks.length > 0 ? (
+              <TableContainer component={Paper} variant="outlined">
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Name</TableCell>
+                      <TableCell>URL</TableCell>
+                      <TableCell>Description</TableCell>
+                      <TableCell>Tracking</TableCell>
+                      <TableCell align="right">Actions</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {affiliateLinks.map((link) => (
+                      <TableRow key={link.id}>
+                        <TableCell>{link.name}</TableCell>
+                        <TableCell>
+                          <Typography variant="body2" noWrap sx={{ maxWidth: 300 }}>
+                            {link.url}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>{link.description || '-'}</TableCell>
+                        <TableCell>
+                          <Chip
+                            label={link.click_tracking ? 'Enabled' : 'Disabled'}
+                            size="small"
+                            color={link.click_tracking ? 'success' : 'default'}
+                          />
+                        </TableCell>
+                        <TableCell align="right">
+                          <IconButton
+                            size="small"
+                            onClick={() => {
+                              setEditingAffiliateLink(link)
+                              setAffiliateLinkForm({
+                                name: link.name,
+                                url: link.url,
+                                description: link.description || '',
+                                click_tracking: link.click_tracking,
+                              })
+                              setAffiliateLinkDialogOpen(true)
+                            }}
+                          >
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                          <IconButton
+                            size="small"
+                            onClick={async () => {
+                              if (confirm('Delete this affiliate link?')) {
+                                try {
+                                  await deleteAffiliateLink(link.id).unwrap()
+                                  toast.success('Affiliate link deleted')
+                                  refetchAffiliateLinks()
+                                } catch {
+                                  toast.error('Failed to delete affiliate link')
+                                }
+                              }
+                            }}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            ) : (
+              <Alert severity="info">No affiliate links yet. Click "Add Link" to create one.</Alert>
+            )}
+          </Box>
+        </TabPanel>
+
+        {/* Prompts Tab */}
+        <TabPanel value={activeTab} index={5}>
+          <Box sx={{ px: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+              <Box>
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  AI Prompts
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Manage prompts for text and image generation
+                </Typography>
+              </Box>
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={() => {
+                  setEditingPrompt(null)
+                  setPromptForm({
+                    name: '',
+                    description: '',
+                    type: 'text',
+                    block_type: '',
+                    ai_model: 'gpt-4',
+                    temperature: 0.7,
+                    max_tokens: 1000,
+                    prompt_text: '',
+                    system_prompt: '',
+                    is_active: true,
+                  })
+                  setPromptDialogOpen(true)
+                }}
+              >
+                Add Prompt
+              </Button>
+            </Box>
+            {prompts && prompts.length > 0 ? (
+              <TableContainer component={Paper} variant="outlined">
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Name</TableCell>
+                      <TableCell>Type</TableCell>
+                      <TableCell>Block Type</TableCell>
+                      <TableCell>AI Model</TableCell>
+                      <TableCell>Temperature</TableCell>
+                      <TableCell>Status</TableCell>
+                      <TableCell align="right">Actions</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {prompts.map((prompt) => (
+                      <TableRow key={prompt.id}>
+                        <TableCell>{prompt.name}</TableCell>
+                        <TableCell>
+                          <Chip label={prompt.type} size="small" />
+                        </TableCell>
+                        <TableCell>{prompt.block_type || '-'}</TableCell>
+                        <TableCell>{prompt.ai_model}</TableCell>
+                        <TableCell>{prompt.temperature}</TableCell>
+                        <TableCell>
+                          <Chip
+                            label={prompt.is_active ? 'Active' : 'Inactive'}
+                            size="small"
+                            color={prompt.is_active ? 'success' : 'default'}
+                          />
+                        </TableCell>
+                        <TableCell align="right">
+                          <IconButton
+                            size="small"
+                            onClick={() => {
+                              setEditingPrompt(prompt)
+                              setPromptForm({
+                                name: prompt.name,
+                                description: prompt.description || '',
+                                type: prompt.type,
+                                block_type: prompt.block_type || '',
+                                ai_model: prompt.ai_model,
+                                temperature: prompt.temperature,
+                                max_tokens: prompt.max_tokens,
+                                prompt_text: prompt.prompt_text,
+                                system_prompt: prompt.system_prompt || '',
+                                is_active: prompt.is_active,
+                              })
+                              setPromptDialogOpen(true)
+                            }}
+                          >
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                          <IconButton
+                            size="small"
+                            onClick={async () => {
+                              if (confirm('Delete this prompt?')) {
+                                try {
+                                  await deletePrompt(prompt.id).unwrap()
+                                  toast.success('Prompt deleted')
+                                  refetchPrompts()
+                                } catch {
+                                  toast.error('Failed to delete prompt')
+                                }
+                              }
+                            }}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            ) : (
+              <Alert severity="info">No prompts yet. Click "Add Prompt" to create one.</Alert>
+            )}
+          </Box>
+        </TabPanel>
+
+        {/* Swiper Presets Tab */}
+        <TabPanel value={activeTab} index={6}>
+          <Box sx={{ px: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+              <Box>
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  Swiper Presets
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Manage predefined game carousels for swiper blocks
+                </Typography>
+              </Box>
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={() => setSwiperPresetManagerOpen(true)}
+              >
+                Manage Presets
+              </Button>
+            </Box>
+            <Alert severity="info" sx={{ mb: 3 }}>
+              Click "Manage Presets" to create, edit, and organize swiper presets. 
+              Presets can be selected when creating swiper blocks on pages.
+            </Alert>
+          </Box>
+        </TabPanel>
       </Paper>
+
+      {/* Swiper Preset Manager Dialog */}
+      <SwiperPresetManager
+        open={swiperPresetManagerOpen}
+        onClose={() => setSwiperPresetManagerOpen(false)}
+        mode="manage"
+      />
+
+      {/* Affiliate Link Dialog */}
+      <Dialog open={affiliateLinkDialogOpen} onClose={() => setAffiliateLinkDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>{editingAffiliateLink ? 'Edit Affiliate Link' : 'Add Affiliate Link'}</DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
+            <TextField
+              label="Name"
+              fullWidth
+              value={affiliateLinkForm.name}
+              onChange={(e) => setAffiliateLinkForm({ ...affiliateLinkForm, name: e.target.value })}
+              required
+            />
+            <TextField
+              label="URL"
+              fullWidth
+              value={affiliateLinkForm.url}
+              onChange={(e) => setAffiliateLinkForm({ ...affiliateLinkForm, url: e.target.value })}
+              required
+              placeholder="https://example.com/affiliate"
+            />
+            <TextField
+              label="Description"
+              fullWidth
+              multiline
+              rows={3}
+              value={affiliateLinkForm.description}
+              onChange={(e) => setAffiliateLinkForm({ ...affiliateLinkForm, description: e.target.value })}
+            />
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={affiliateLinkForm.click_tracking}
+                  onChange={(e) => setAffiliateLinkForm({ ...affiliateLinkForm, click_tracking: e.target.checked })}
+                />
+              }
+              label="Enable click tracking"
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setAffiliateLinkDialogOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            onClick={async () => {
+              try {
+                if (editingAffiliateLink) {
+                  await updateAffiliateLink({ id: editingAffiliateLink.id, data: affiliateLinkForm }).unwrap()
+                  toast.success('Affiliate link updated')
+                } else {
+                  await createAffiliateLink(affiliateLinkForm).unwrap()
+                  toast.success('Affiliate link created')
+                }
+                setAffiliateLinkDialogOpen(false)
+                refetchAffiliateLinks()
+              } catch {
+                toast.error(`Failed to ${editingAffiliateLink ? 'update' : 'create'} affiliate link`)
+              }
+            }}
+          >
+            {editingAffiliateLink ? 'Update' : 'Create'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Prompt Dialog */}
+      <Dialog open={promptDialogOpen} onClose={() => setPromptDialogOpen(false)} maxWidth="md" fullWidth>
+        <DialogTitle>{editingPrompt ? 'Edit Prompt' : 'Add Prompt'}</DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
+            <TextField
+              label="Name"
+              fullWidth
+              value={promptForm.name}
+              onChange={(e) => setPromptForm({ ...promptForm, name: e.target.value })}
+              required
+            />
+            <TextField
+              label="Description"
+              fullWidth
+              multiline
+              rows={2}
+              value={promptForm.description}
+              onChange={(e) => setPromptForm({ ...promptForm, description: e.target.value })}
+            />
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+              <FormControl fullWidth>
+                <InputLabel>Type</InputLabel>
+                <Select
+                  value={promptForm.type}
+                  label="Type"
+                  onChange={(e) => setPromptForm({ ...promptForm, type: e.target.value as 'text' | 'image' })}
+                >
+                  <MenuItem value="text">Text Generation</MenuItem>
+                  <MenuItem value="image">Image Generation</MenuItem>
+                </Select>
+              </FormControl>
+              <TextField
+                label="Block Type"
+                fullWidth
+                value={promptForm.block_type}
+                onChange={(e) => setPromptForm({ ...promptForm, block_type: e.target.value })}
+                placeholder="article, title, description, faq, hero"
+              />
+            </Box>
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+              <TextField
+                label="AI Model"
+                fullWidth
+                value={promptForm.ai_model}
+                onChange={(e) => setPromptForm({ ...promptForm, ai_model: e.target.value })}
+                placeholder="gpt-4, gpt-3.5-turbo, claude-3"
+              />
+              <TextField
+                label="Temperature"
+                type="number"
+                inputProps={{ min: 0, max: 1, step: 0.1 }}
+                fullWidth
+                value={promptForm.temperature}
+                onChange={(e) => setPromptForm({ ...promptForm, temperature: parseFloat(e.target.value) })}
+              />
+            </Box>
+            <TextField
+              label="Max Tokens"
+              type="number"
+              fullWidth
+              value={promptForm.max_tokens}
+              onChange={(e) => setPromptForm({ ...promptForm, max_tokens: parseInt(e.target.value) || undefined })}
+            />
+            <TextField
+              label="Prompt Text"
+              fullWidth
+              multiline
+              rows={6}
+              value={promptForm.prompt_text}
+              onChange={(e) => setPromptForm({ ...promptForm, prompt_text: e.target.value })}
+              required
+              placeholder="Use {keywords}, {brand_name}, etc. as placeholders"
+            />
+            <TextField
+              label="System Prompt (optional)"
+              fullWidth
+              multiline
+              rows={3}
+              value={promptForm.system_prompt}
+              onChange={(e) => setPromptForm({ ...promptForm, system_prompt: e.target.value })}
+            />
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={promptForm.is_active}
+                  onChange={(e) => setPromptForm({ ...promptForm, is_active: e.target.checked })}
+                />
+              }
+              label="Active"
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPromptDialogOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            onClick={async () => {
+              try {
+                if (editingPrompt) {
+                  await updatePrompt({ id: editingPrompt.id, data: promptForm }).unwrap()
+                  toast.success('Prompt updated')
+                } else {
+                  await createPrompt(promptForm as AIPrompt).unwrap()
+                  toast.success('Prompt created')
+                }
+                setPromptDialogOpen(false)
+                refetchPrompts()
+              } catch {
+                toast.error(`Failed to ${editingPrompt ? 'update' : 'create'} prompt`)
+              }
+            }}
+          >
+            {editingPrompt ? 'Update' : 'Create'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   )
 }

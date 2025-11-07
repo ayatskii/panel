@@ -130,6 +130,14 @@ class PageBlock(models.Model):
         default=0,
         help_text='Display order (lower numbers appear first)'
     )
+    open_article_tag = models.BooleanField(
+        default=False,
+        help_text='Insert opening <article> tag before this block content'
+    )
+    close_article_tag = models.BooleanField(
+        default=False,
+        help_text='Insert closing </article> tag after this block content'
+    )
     prompt = models.ForeignKey(
         'prompts.Prompt',
         on_delete=models.SET_NULL,

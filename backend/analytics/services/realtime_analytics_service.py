@@ -19,7 +19,6 @@ except ImportError:
 from analytics.models import PageView, Analytics
 from sites.models import Site
 from pages.models import Page
-
 logger = logging.getLogger(__name__)
 
 
@@ -107,7 +106,7 @@ class RealtimeAnalyticsService:
             online_users = PageView.objects.filter(
                 site_id=site_id,
                 timestamp__gte=last_5_minutes
-            ).values('ip_address').distinct().count()
+            ).values('ip_address').distinct().count() # TODO: Ip address not in the page view model implement it
             
             # Get page views in last hour
             hourly_views = PageView.objects.filter(
@@ -129,7 +128,7 @@ class RealtimeAnalyticsService:
                 timestamp__gte=last_hour
             ).exclude(referrer='').values('referrer').annotate(
                 visits=Count('id')
-            ).order_by('-visits')[:5]
+            ).order_by('-visits')[:5] # TODO: Referrer not in the page view model implement it
             
             # Get device breakdown in last hour
             device_breakdown = PageView.objects.filter(
@@ -137,7 +136,7 @@ class RealtimeAnalyticsService:
                 timestamp__gte=last_hour
             ).values('device_type').annotate(
                 count=Count('id')
-            ).order_by('-count')
+            ).order_by('-count') # TODO: Device type not in the page view model implement it
             
             # Get country breakdown in last hour
             country_breakdown = PageView.objects.filter(
@@ -197,10 +196,10 @@ class RealtimeAnalyticsService:
                 site_id=site_id,
                 timestamp__gte=last_5_minutes
             ).values(
-                'ip_address', 'country', 'city', 'device_type', 'browser', 'os'
+                'ip_address', 'country', 'city', 'device_type', 'browser', 'os' #TODO: Ip address, country, city, device type, browser, os not in the page view model implement it
             ).annotate(
                 last_activity=Max('timestamp'),
-                page_count=Count('id')
+                page_count=Count('id') 
             ).order_by('-last_activity')
             
             visitors_data = []

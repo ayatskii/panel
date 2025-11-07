@@ -1,3 +1,4 @@
+import logging
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -7,6 +8,8 @@ from .serializers import ApiTokenSerializer, CloudflareTokenSerializer
 from .services.third_party_integrations_service import ThirdPartyIntegrationsService
 from .services.page_rules_service import page_rules_service
 from users.permissions import IsAdminUser
+
+logger = logging.getLogger(__name__)
 
 
 class ApiTokenViewSet(viewsets.ModelViewSet):
@@ -75,6 +78,54 @@ class CloudflareTokenViewSet(viewsets.ModelViewSet):
             })
         
         return Response(result)
+    
+    @action(detail=False, methods=['get'])
+    def get_nameservers(self, request):
+        """Get nameservers for a domain using a Cloudflare token"""
+        domain = request.query_params.get('domain')
+        token_id = request.query_params.get('token_id')
+        
+        if not domain or not token_id:
+            return Response(
+                {'error': 'domain and token_id parameters are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            token = CloudflareToken.objects.get(id=token_id)
+            from integrations.cloudflare import CloudflareService
+            
+            cf_service = CloudflareService(
+                api_token=token.api_token.token_value,
+                account_id=token.account_id
+            )
+            
+            nameservers = cf_service.get_nameservers(domain)
+            
+            if nameservers:
+                return Response({
+                    'success': True,
+                    'domain': domain,
+                    'nameservers': nameservers
+                })
+            else:
+                return Response({
+                    'success': False,
+                    'error': 'Failed to retrieve nameservers. Domain may not be configured in Cloudflare.',
+                    'nameservers': []
+                })
+                
+        except CloudflareToken.DoesNotExist:
+            return Response(
+                {'error': 'Cloudflare token not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            logger.error(f"Failed to get nameservers: {e}")
+            return Response(
+                {'error': f'Failed to get nameservers: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
     
     @action(detail=False, methods=['get'])
     def page_rules(self, request):

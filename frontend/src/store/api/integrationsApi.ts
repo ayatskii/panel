@@ -148,6 +148,14 @@ export const integrationsApi = apiSlice.injectEndpoints({
         method: 'POST',
       }),
     }),
+
+    // Get nameservers for a domain
+    getNameservers: builder.query<{ success: boolean; domain: string; nameservers: string[]; error?: string }, { domain: string; token_id: number }>({
+      query: ({ domain, token_id }) => ({
+        url: '/integrations/cloudflare-tokens/get_nameservers/',
+        params: { domain, token_id },
+      }),
+    }),
   }),
 })
 
@@ -170,5 +178,6 @@ export const {
   useCreateWwwRedirectMutation,
   useApplyRedirectRulesMutation,
   useGetRuleExpressionsQuery,
+  useGetNameserversQuery,
 } = integrationsApi
 

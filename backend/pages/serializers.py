@@ -22,6 +22,7 @@ class PageBlockSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'page', 'block_type', 'block_type_display',
             'content_data', 'order_index', 'prompt', 'prompt_name',
+            'open_article_tag', 'close_article_tag',
             'is_hero', 'is_article', 'is_cta',
             'created_at', 'updated_at'
         ]

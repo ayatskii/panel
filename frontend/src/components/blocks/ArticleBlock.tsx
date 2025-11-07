@@ -1,4 +1,4 @@
-import { Box, Typography, TextField } from '@mui/material'
+import { Box, Typography, TextField, FormControlLabel, Checkbox } from '@mui/material'
 import RichTextEditor from '@/components/common/RichTextEditor'
 
 export interface ArticleBlockContent {
@@ -11,14 +11,49 @@ interface ArticleBlockProps {
   content: ArticleBlockContent
   isEditing: boolean
   onChange?: (content: ArticleBlockContent) => void
+  openArticleTag?: boolean
+  closeArticleTag?: boolean
+  onOpenArticleTagChange?: (value: boolean) => void
+  onCloseArticleTagChange?: (value: boolean) => void
 }
 
-const ArticleBlock = ({ content, isEditing, onChange }: ArticleBlockProps) => {
+const ArticleBlock = ({ 
+  content, 
+  isEditing, 
+  onChange,
+  openArticleTag = false,
+  closeArticleTag = false,
+  onOpenArticleTagChange,
+  onCloseArticleTagChange
+}: ArticleBlockProps) => {
   if (isEditing) {
     return (
       <Box sx={{ p: 3, border: '2px dashed', borderColor: 'primary.main', borderRadius: 1 }}>
         <Typography variant="h6" sx={{ mb: 2 }}>Article Block Settings</Typography>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Box sx={{ display: 'flex', gap: 2, mb: 1 }}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={openArticleTag}
+                  onChange={(e) => onOpenArticleTagChange?.(e.target.checked)}
+                />
+              }
+              label="Открыть article"
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={closeArticleTag}
+                  onChange={(e) => onCloseArticleTagChange?.(e.target.checked)}
+                />
+              }
+              label="Закрыть article"
+            />
+          </Box>
+          <Typography variant="caption" color="text.secondary" sx={{ mb: 1 }}>
+            Первый чекбокс вставляет открывающий тег &lt;article&gt; перед содержимым, второй - закрывающий тег &lt;/article&gt; после содержимого
+          </Typography>
           <TextField
             label="Title"
             fullWidth
@@ -43,16 +78,9 @@ const ArticleBlock = ({ content, isEditing, onChange }: ArticleBlockProps) => {
   }
 
   // Preview/Display Mode - Using semantic article HTML
-  return (
-    <Box 
-      component="article" 
-      sx={{ 
-        p: 4, 
-        maxWidth: 900,
-        mx: 'auto',
-        textAlign: content.alignment || 'left' 
-      }}
-    >
+  // If article tags are controlled manually, wrap content differently
+  const articleContent = (
+    <>
       {content.title && (
         <Typography 
           variant="h3" 
@@ -121,6 +149,43 @@ const ArticleBlock = ({ content, isEditing, onChange }: ArticleBlockProps) => {
         }}
         dangerouslySetInnerHTML={{ __html: content.text || '<p>Article content goes here</p>' }}
       />
+    </>
+  )
+  
+  // Use article tag only if not manually controlled
+  if (!openArticleTag && !closeArticleTag) {
+    return (
+      <Box 
+        component="article" 
+        sx={{ 
+          p: 4, 
+          maxWidth: 900,
+          mx: 'auto',
+          textAlign: content.alignment || 'left' 
+        }}
+      >
+        {articleContent}
+      </Box>
+    )
+  }
+  
+  // Manual article tag control
+  return (
+    <Box
+      sx={{ 
+        p: 4, 
+        maxWidth: 900,
+        mx: 'auto',
+        textAlign: content.alignment || 'left' 
+      }}
+    >
+      {openArticleTag && (
+        <div dangerouslySetInnerHTML={{ __html: '<article>' }} style={{ display: 'none' }} />
+      )}
+      {articleContent}
+      {closeArticleTag && (
+        <div dangerouslySetInnerHTML={{ __html: '</article>' }} style={{ display: 'none' }} />
+      )}
     </Box>
   )
 }

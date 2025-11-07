@@ -115,8 +115,14 @@ def deploy_site_async(self, deployment_id, user_id=None):
         
         # Generate favicon files if favicon is set
         if site.favicon_media:
-            favicon_files = _generate_favicon_files(site.favicon_media)
-            files.update(favicon_files)
+            favicon_files = _generate_favicon_files(site, site.favicon_media)
+            # Convert binary content to base64 for Cloudflare Pages deployment
+            for file_path, file_content in favicon_files.items():
+                if isinstance(file_content, bytes):
+                    import base64
+                    files[file_path] = base64.b64encode(file_content).decode('utf-8')
+                else:
+                    files[file_path] = file_content
         
         deployment.build_log += f'Generated {len(files)} files\n'
         deployment.save()
@@ -184,25 +190,61 @@ def deploy_site_async(self, deployment_id, user_id=None):
         raise self.retry(exc=e, countdown=60)
 
 
-def _generate_favicon_files(favicon_media):
-    """Generate favicon files in multiple formats"""
-    files = {}
+def _generate_favicon_files(site, favicon_media):
+    """Generate favicon files in multiple formats using favicon generation service"""
+    from media.services.favicon_generation_service import favicon_generation_service
     
-    # For now, we'll create placeholder favicon files
-    # In a real implementation, you'd convert the SVG to different formats
-    favicon_content = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-    <text y="20" font-size="20" fill="black">F</text>
-</svg>"""
+    if not favicon_media:
+        return {}
     
-    files['_assets/favicon.svg'] = favicon_content
-    files['_assets/favicon.ico'] = favicon_content  # Placeholder
-    files['_assets/favicon-16x16.png'] = favicon_content  # Placeholder
-    files['_assets/favicon-32x32.png'] = favicon_content  # Placeholder
-    files['_assets/favicon-48x48.png'] = favicon_content  # Placeholder
-    files['_assets/apple-touch-icon.png'] = favicon_content  # Placeholder
-    files['_assets/safari-pinned-tab.svg'] = favicon_content  # Placeholder
-    
-    return files
+    try:
+        result = favicon_generation_service.generate_favicons(favicon_media, site.domain)
+        
+        if not result.get('success'):
+            logger.warning(f"Failed to generate favicons: {result.get('error')}")
+            return {}
+        
+        files = {}
+        generated = result.get('generated_files', {})
+        
+        # Map generated files to deployment file paths
+        if 'ico' in generated:
+            files['_assets/favicon.ico'] = _read_favicon_file(generated['ico']['path'])
+        
+        if 'png_16' in generated:
+            files['_assets/favicon-16x16.png'] = _read_favicon_file(generated['png_16']['path'])
+        
+        if 'png_32' in generated:
+            files['_assets/favicon-32x32.png'] = _read_favicon_file(generated['png_32']['path'])
+        
+        if 'png_48' in generated:
+            files['_assets/favicon-48x48.png'] = _read_favicon_file(generated['png_48']['path'])
+        
+        if 'svg' in generated:
+            files['_assets/favicon.svg'] = _read_favicon_file(generated['svg']['path'])
+        
+        if 'apple_touch_icon' in generated:
+            files['_assets/apple-touch-icon.png'] = _read_favicon_file(generated['apple_touch_icon']['path'])
+        
+        if 'safari_pinned_tab' in generated:
+            files['_assets/safari-pinned-tab.svg'] = _read_favicon_file(generated['safari_pinned_tab']['path'])
+        
+        return files
+        
+    except Exception as e:
+        logger.error(f"Error generating favicon files: {e}")
+        return {}
+
+
+def _read_favicon_file(file_path):
+    """Read favicon file content from storage"""
+    from django.core.files.storage import default_storage
+    try:
+        with default_storage.open(file_path, 'rb') as f:
+            return f.read()
+    except Exception as e:
+        logger.error(f"Failed to read favicon file {file_path}: {e}")
+        return b''
 
 
 def _apply_page_rules(site, cf_service, deployment):

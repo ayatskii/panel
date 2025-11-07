@@ -105,7 +105,7 @@ class AdvancedAnalyticsService:
             unique_visitors = PageView.objects.filter(
                 site_id=site_id,
                 timestamp__range=[start_date, end_date]
-            ).values('ip_address').distinct().count()
+            ).values('ip_address').distinct().count() # TODO: There no Ip address in the PageView model implement it
             
             # Pages
             total_pages = Page.objects.filter(site_id=site_id).count()
@@ -179,7 +179,7 @@ class AdvancedAnalyticsService:
                 timestamp__range=[start_date, end_date],
                 user_agent__isnull=False
             ).values('user_agent').annotate(
-                visits=Count('id')
+                visits=Count('id')   # TODO: There no User agent in the PageView model implement it
             ).order_by('-visits')[:10]
             
             return {
@@ -337,12 +337,12 @@ class AdvancedAnalyticsService:
             pages = Page.objects.filter(site=site)
             
             # SEO completeness
-            seo_completeness = {
+            seo_completeness = { 
                 'total_pages': pages.count(),
                 'pages_with_title': pages.exclude(title='').count(),
                 'pages_with_meta_description': pages.exclude(meta_description='').count(),
                 'pages_with_h1': pages.exclude(h1_tag='').count(),
-                'pages_with_keywords': pages.exclude(keywords='').count(),
+                'pages_with_keywords': pages.exclude(keywords='').count(), 
                 'published_pages': pages.filter(is_published=True).count()
             }
             
@@ -418,9 +418,7 @@ class AdvancedAnalyticsService:
     def _calculate_content_engagement(self, site_id: int, start_date: datetime, end_date: datetime) -> Dict[str, Any]:
         """Calculate content engagement metrics"""
         try:
-            # This is a simplified engagement calculation
-            # In a real implementation, you'd track actual engagement data
-            
+            # TODO: Check how it must work without simplification
             total_views = PageView.objects.filter(
                 site_id=site_id,
                 timestamp__range=[start_date, end_date]
