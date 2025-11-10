@@ -17,7 +17,7 @@ class Prompt(models.Model):
     )
     ai_model = models.CharField(
         max_length=100,
-        help_text='AI model: gpt-4, gpt-3.5-turbo, claude-3, dall-e-3, etc.'
+        help_text='AI model: gpt-4, gpt-3.5-turbo, claude-3, openai/gpt-4, anthropic/claude-3-sonnet, dall-e-3, etc.'
     )
     temperature = models.DecimalField(
         max_digits=3,

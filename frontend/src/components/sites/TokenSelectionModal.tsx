@@ -27,6 +27,7 @@ import {
   ContentCopy as CopyIcon,
 } from '@mui/icons-material'
 import { useGetAvailableCloudflareTokensQuery, useGetNameserversQuery } from '@/store/api/integrationsApi'
+import toast from 'react-hot-toast'
 
 interface TokenSelectionModalProps {
   open: boolean
@@ -166,37 +167,46 @@ const TokenSelectionModal: React.FC<TokenSelectionModalProps> = ({
                     <TableCell>
                       <Box display="flex" flexDirection="column" gap={0.5}>
                         <Chip
-                          label={`${token.site_count} site${token.site_count !== 1 ? 's' : ''}`}
+                          label={`${token.site_count || 0} site${(token.site_count || 0) !== 1 ? 's' : ''}`}
                           size="small"
-                          color={token.site_count > 0 ? 'primary' : 'default'}
+                          color={(token.site_count || 0) > 0 ? 'primary' : 'default'}
                         />
-                        {token.sites.length > 0 && (
-                          <Box>
-                            {token.sites.slice(0, 3).map((site) => (
-                              <Typography
+                        {token.sites && token.sites.length > 0 && (
+                          <Box sx={{ mt: 0.5 }}>
+                            {token.sites.map((site: any) => (
+                              <Box
                                 key={site.id}
-                                variant="caption"
-                                display="block"
-                                color="text.secondary"
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 0.5,
+                                  py: 0.25,
+                                }}
                               >
-                                <DomainIcon sx={{ fontSize: 12, mr: 0.5 }} />
-                                {site.domain}
+                                <DomainIcon sx={{ fontSize: 12, color: 'text.secondary' }} />
+                                <Typography
+                                  variant="caption"
+                                  color="text.secondary"
+                                  sx={{ flex: 1 }}
+                                >
+                                  {site.domain || site.brand_name}
+                                </Typography>
                                 {site.deployed_at && (
                                   <Chip
                                     label="Deployed"
                                     size="small"
                                     color="success"
-                                    sx={{ ml: 1, height: 16 }}
+                                    sx={{ height: 16, fontSize: '0.65rem' }}
                                   />
                                 )}
-                              </Typography>
+                              </Box>
                             ))}
-                            {token.sites.length > 3 && (
-                              <Typography variant="caption" color="text.secondary">
-                                +{token.sites.length - 3} more...
-                              </Typography>
-                            )}
                           </Box>
+                        )}
+                        {(!token.sites || token.sites.length === 0) && (
+                          <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                            No sites yet
+                          </Typography>
                         )}
                       </Box>
                     </TableCell>
@@ -227,22 +237,65 @@ const TokenSelectionModal: React.FC<TokenSelectionModalProps> = ({
         )}
       </DialogContent>
 
-      {selectedTokenId && selectedDomain && nameserversData?.success && (
+      {selectedTokenId && selectedDomain && nameserversData?.success && nameserversData.nameservers && nameserversData.nameservers.length > 0 && (
         <DialogContent>
-          <Box sx={{ mt: 2, p: 2, bgcolor: 'info.50', borderRadius: 1 }}>
-            <Typography variant="subtitle2" gutterBottom>
-              Nameservers for {selectedDomain}:
+          <Box sx={{ mt: 2, p: 2, bgcolor: 'info.50', borderRadius: 1, border: '1px solid', borderColor: 'info.200' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <Typography variant="subtitle2" fontWeight="bold">
+                Nameservers for {selectedDomain}:
+              </Typography>
+              <Button
+                size="small"
+                startIcon={<CopyIcon />}
+                onClick={() => {
+                  const allNs = nameserversData.nameservers.join('\n')
+                  navigator.clipboard.writeText(allNs)
+                  toast.success('All nameservers copied to clipboard')
+                }}
+              >
+                Copy All
+              </Button>
+            </Box>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+              Update your domain's nameservers to these Cloudflare nameservers:
             </Typography>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
               {nameserversData.nameservers.map((ns, index) => (
-                <Chip
+                <Box
                   key={index}
-                  label={ns}
-                  size="small"
-                  sx={{ fontFamily: 'monospace' }}
-                  onDelete={() => navigator.clipboard.writeText(ns)}
-                  deleteIcon={<CopyIcon fontSize="small" />}
-                />
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    p: 1.5,
+                    bgcolor: 'white',
+                    borderRadius: 1,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                  }}
+                >
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontFamily: 'monospace',
+                      fontWeight: 500,
+                      flex: 1,
+                    }}
+                  >
+                    {ns}
+                  </Typography>
+                  <Button
+                    size="small"
+                    startIcon={<CopyIcon />}
+                    onClick={() => {
+                      navigator.clipboard.writeText(ns)
+                      toast.success(`Copied: ${ns}`)
+                    }}
+                    sx={{ ml: 2 }}
+                  >
+                    Copy
+                  </Button>
+                </Box>
               ))}
             </Box>
           </Box>

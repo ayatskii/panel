@@ -55,6 +55,13 @@ export const deploymentsApi = apiSlice.injectEndpoints({
         'Deployment'
       ],
     }),
+
+    downloadDeploymentZip: builder.query<Blob, number>({
+      query: (id) => ({
+        url: `/deployments/${id}/download_zip/`,
+        responseHandler: (response) => response.blob(),
+      }),
+    }),
   }),
 })
 
@@ -65,4 +72,5 @@ export const {
   useTriggerDeploymentMutation,
   useGetDeploymentLogsQuery,
   useCancelDeploymentMutation,
+  useLazyDownloadDeploymentZipQuery,
 } = deploymentsApi

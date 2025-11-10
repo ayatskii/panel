@@ -11,7 +11,7 @@ from sites.views import SiteViewSet
 from sites.views_settings import SettingsViewSet, LanguageViewSet, AffiliateLinkViewSet
 from templates.views import TemplateViewSet, TemplateFootprintViewSet
 from pages.views import PageViewSet, PageBlockViewSet, SwiperPresetViewSet
-from media.views import MediaViewSet, MediaFolderViewSet
+from media.views import MediaViewSet, MediaFolderViewSet, MediaTagViewSet
 from prompts.views import PromptViewSet
 from integrations.views import ApiTokenViewSet, CloudflareTokenViewSet, ThirdPartyIntegrationsViewSet
 from analytics.views import AnalyticsViewSet, track_view, PageViewViewSet, SiteAnalyticsViewSet
@@ -34,7 +34,7 @@ router.register(r'page-blocks', PageBlockViewSet, basename='pageblock')
 router.register(r'swiper-presets', SwiperPresetViewSet, basename='swiperpreset')
 router.register(r'media', MediaViewSet, basename='media')
 router.register(r'media-folders', MediaFolderViewSet, basename='mediafolder')
-# router.register(r'media-tags', MediaTagViewSet, basename='mediatag')
+router.register(r'media-tags', MediaTagViewSet, basename='mediatag')
 router.register(r'prompts', PromptViewSet, basename='prompt')
 router.register(r'integrations/api-tokens', ApiTokenViewSet, basename='apitoken')
 router.register(r'integrations/cloudflare-tokens', CloudflareTokenViewSet, basename='cloudflaretoken')
@@ -53,11 +53,9 @@ urlpatterns = [
     path('api/auth/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/auth/register/', register, name='register'),
+    path('api/analytics/track/', track_view),
     path('api/', include(router.urls)),
     path('_nested_admin/', include('nested_admin.urls')),
-    path('api/users/me/', current_user, name='current_user'),
-    path('api/analytics/track/', track_view)
-    
 ]   
 
 if settings.DEBUG:

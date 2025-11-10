@@ -1,20 +1,29 @@
-import openai
-from anthropic import Anthropic
 from django.conf import settings
 from typing import Dict, Any, List, Optional
 import json
 import logging
 
+from integrations.ai.providers.factory import ProviderFactory
+from integrations.ai.providers.model_mapper import ModelMapper
+
 logger = logging.getLogger(__name__)
 
 
 class AdvancedAIService:
-    """Advanced AI service for block-specific content generation"""
+    """Advanced AI service for block-specific content generation with provider abstraction"""
     
     def __init__(self):
-        self.openai_api_key = getattr(settings, 'OPENAI_API_KEY', None)
-        self.anthropic_api_key = getattr(settings, 'ANTHROPIC_API_KEY', None)
         self.default_model = getattr(settings, 'DEFAULT_AI_MODEL', 'gpt-3.5-turbo')
+        self._provider = None
+    
+    @property
+    def provider(self):
+        """Lazy-load provider"""
+        if self._provider is None:
+            self._provider = ProviderFactory.create_provider()
+        if self._provider is None:
+            raise ValueError("No AI provider configured. Please set AI_PROVIDER and corresponding API keys.")
+        return self._provider
     
     def generate_block_content(
         self, 
@@ -243,57 +252,39 @@ class AdvancedAIService:
             return {'text': 'AI-generated content'}
     
     def _call_ai_api(self, prompt: str, model: Optional[str] = None, max_tokens: int = 500) -> str:
-        """Call AI API with the given prompt"""
+        """Call AI API with the given prompt using provider abstraction"""
         model = model or self.default_model
         
         try:
-            if 'gpt' in model.lower():
-                return self._generate_with_openai(prompt, max_tokens, model)
-            elif 'claude' in model.lower():
-                return self._generate_with_anthropic(prompt, max_tokens, model)
-            else:
-                return self._generate_with_openai(prompt, max_tokens, 'gpt-3.5-turbo')
+            # Get provider for model
+            provider = ProviderFactory.get_provider_for_model(model) or self.provider
+            
+            if provider is None:
+                raise ValueError("No AI provider available")
+            
+            # Normalize model name
+            normalized_model = ModelMapper.normalize_model_name(model, provider)
+            if not normalized_model:
+                normalized_model = ModelMapper.get_default_model(provider.provider_name)
+            
+            # Prepare messages
+            messages = [
+                {"role": "user", "content": prompt}
+            ]
+            
+            # Generate content
+            result = provider.generate_content(
+                messages=messages,
+                model=normalized_model,
+                max_tokens=max_tokens,
+                temperature=0.7,
+                system_prompt="You are an expert content writer specializing in SEO-optimized web content. Generate engaging, informative content that is optimized for search engines."
+            )
+            
+            return result['content']
         except Exception as e:
             logger.error(f"AI API call failed: {e}")
             raise
-    
-    def _generate_with_openai(self, prompt: str, max_tokens: int, model: str) -> str:
-        """Generate content using OpenAI"""
-        if not self.openai_api_key:
-            raise ValueError("OpenAI API key not configured")
-        
-        client = openai.OpenAI(api_key=self.openai_api_key)
-        
-        response = client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system", "content": "You are an expert content writer specializing in SEO-optimized web content. Generate engaging, informative content that is optimized for search engines."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.7,
-            max_tokens=max_tokens
-        )
-        
-        return response.choices[0].message.content
-    
-    def _generate_with_anthropic(self, prompt: str, max_tokens: int, model: str) -> str:
-        """Generate content using Anthropic Claude"""
-        if not self.anthropic_api_key:
-            raise ValueError("Anthropic API key not configured")
-        
-        client = Anthropic(api_key=self.anthropic_api_key)
-        
-        response = client.messages.create(
-            model=model,
-            max_tokens=max_tokens,
-            temperature=0.7,
-            system="You are an expert content writer specializing in SEO-optimized web content. Generate engaging, informative content that is optimized for search engines.",
-            messages=[
-                {"role": "user", "content": prompt}
-            ]
-        )
-        
-        return response.content[0].text
     
     def _process_prompt_template(self, prompt_template: str, context: Dict[str, Any]) -> str:
         """Process prompt template with context variables"""

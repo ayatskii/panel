@@ -325,13 +325,9 @@ def setup_domain_async(site_id, cloudflare_token_id):
         # Get nameservers
         nameservers = cf_service.get_nameservers(site.domain)
         
-        # Update SSL settings
-        ssl_result = cf_service.update_ssl_settings(site.domain, 'flexible')
-        
         return {
             'success': True,
-            'nameservers': nameservers,
-            'ssl_updated': ssl_result.get('success', False)
+            'nameservers': nameservers
         }
         
     except Exception as e:

@@ -88,7 +88,7 @@ services:
       dockerfile: Dockerfile
     container_name: panel_celery_worker
     restart: unless-stopped
-    command: celery -A panel worker -l info --concurrency=2
+    command: celery -A panel worker -l info --concurrency=2 --uid=celeryuser --gid=celeryuser
     volumes:
       - ./backend:/app
       - media_volume:/app/media
@@ -109,9 +109,12 @@ services:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - CLOUDFLARE_API_KEY=${CLOUDFLARE_API_KEY}
     depends_on:
-      - db
-      - redis
-      - backend
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_started
     networks:
       - app_network
 
@@ -122,7 +125,9 @@ services:
       dockerfile: Dockerfile
     container_name: panel_celery_beat
     restart: unless-stopped
-    command: celery -A panel beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    command: >
+      sh -c "python manage.py migrate &&
+             celery -A panel beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler"
     volumes:
       - ./backend:/app
     environment:
@@ -139,9 +144,12 @@ services:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
     depends_on:
-      - db
-      - redis
-      - backend
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_started
     networks:
       - app_network
 

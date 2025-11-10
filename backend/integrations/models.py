@@ -7,6 +7,7 @@ class ApiToken(models.Model):
         ('chatgpt', 'ChatGPT'),
         ('grok', 'Grok'),
         ('claude', 'Claude'),
+        ('openrouter', 'OpenRouter'),
         ('cloudflare', 'Cloudflare'),
         ('elevenlabs', 'ElevenLabs'),
         ('dalle', 'DALL-E'),

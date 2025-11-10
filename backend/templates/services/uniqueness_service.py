@@ -244,6 +244,34 @@ class TemplateUniquenessService:
             logger.error(f"Failed to create custom class list: {e}")
             return False
     
+    def update_custom_class_list(self, name: str, classes: List[str]) -> bool:
+        """Update an existing custom class list"""
+        try:
+            if name not in self.custom_class_lists:
+                return False  # List doesn't exist
+            
+            self.custom_class_lists[name] = classes
+            # In a real implementation, this would save to database
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to update custom class list: {e}")
+            return False
+    
+    def delete_custom_class_list(self, name: str) -> bool:
+        """Delete a custom class list"""
+        try:
+            if name not in self.custom_class_lists:
+                return False  # List doesn't exist
+            
+            del self.custom_class_lists[name]
+            # In a real implementation, this would save to database
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to delete custom class list: {e}")
+            return False
+    
     def validate_css_classes(self, css_content: str) -> Dict[str, any]:
         """Validate CSS content and return analysis"""
         css_classes = self._extract_css_classes(css_content)

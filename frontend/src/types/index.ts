@@ -124,7 +124,7 @@ export interface AffiliateLink {
   export interface ApiToken {
     id: number
     name: string
-    service: 'chatgpt' | 'grok' | 'claude' | 'cloudflare' | 'elevenlabs' | 'dalle' | 'midjourney'
+    service: 'chatgpt' | 'grok' | 'claude' | 'openrouter' | 'cloudflare' | 'elevenlabs' | 'dalle' | 'midjourney'
     service_display: string
     token_value?: string
     token_masked: string

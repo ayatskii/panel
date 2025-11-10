@@ -117,7 +117,7 @@ const SitesListPage = () => {
 
       <Paper sx={{ p: 2, mb: 3 }}>
         <TextField
-          placeholder={t('common.search') + ' sites...'}
+          placeholder={t('sites.title') + '...'}
           fullWidth
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
@@ -134,14 +134,14 @@ const SitesListPage = () => {
       {filteredSites.length === 0 ? (
         <Paper sx={{ p: 4, textAlign: 'center' }}>
           <Typography color="textSecondary" sx={{ mb: 2 }}>
-            No sites found
+            {t('sites.noSitesFound')}
           </Typography>
           <Button
             variant="contained"
             startIcon={<AddIcon />}
             onClick={() => navigate('/sites/create')}
           >
-            Create Your First Site
+            {t('sites.createFirstSite')}
           </Button>
         </Paper>
       ) : (
@@ -187,13 +187,13 @@ const SitesListPage = () => {
                   {/* Deployment Status */}
                   {site.is_deployed ? (
                     <Chip 
-                      label="Deployed" 
+                      label={t('sites.deployed')} 
                       color="success" 
                       size="small"
                     />
                   ) : (
                     <Chip 
-                      label="Not Deployed" 
+                      label={t('sites.notDeployed')} 
                       color="default" 
                       size="small"
                     />
@@ -203,7 +203,7 @@ const SitesListPage = () => {
                   {site.supports_page_speed && (
                     <Chip 
                       icon={<SpeedIcon />}
-                      label="Fast" 
+                      label={t('sites.fast')} 
                       size="small" 
                       variant="outlined"
                     />
@@ -211,7 +211,7 @@ const SitesListPage = () => {
                   {site.supports_color_customization && (
                     <Chip 
                       icon={<PaletteIcon />}
-                      label="Customizable" 
+                      label={t('sites.customizable')} 
                       size="small" 
                       variant="outlined"
                     />
@@ -270,7 +270,7 @@ const SitesListPage = () => {
           handleMenuClose()
         }}>
           <ViewIcon fontSize="small" sx={{ mr: 1 }} />
-          {t('common.view')} Details
+          {t('common.view')} {t('sites.details')}
         </MenuItem>
         <MenuItem onClick={() => {
           navigate(`/sites/${selectedSiteId}/edit`)

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   Box,
@@ -163,6 +163,54 @@ const MediaLibraryPage = () => {
     },
     maxSize: 50 * 1024 * 1024, // 50MB
   });
+
+  // Clipboard paste handler
+  useEffect(() => {
+    const handlePaste = async (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      // Check if clipboard contains image data
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        
+        // Handle image paste
+        if (item.type.indexOf('image') !== -1) {
+          e.preventDefault();
+          
+          const blob = item.getAsFile();
+          if (!blob) continue;
+
+          // Create a File object from the blob
+          const file = new File([blob], `pasted-image-${Date.now()}.png`, {
+            type: blob.type || 'image/png',
+          });
+
+          // Upload the file
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('name', file.name);
+          if (currentFolder) {
+            formData.append('folder', currentFolder);
+          }
+
+          try {
+            await uploadMedia(formData).unwrap();
+            toast.success(t('media.uploadedSuccessfully', { name: file.name }));
+          } catch {
+            toast.error(t('media.failedToUploadNamed', { name: file.name }));
+          }
+        }
+      }
+    };
+
+    // Add paste event listener to document
+    document.addEventListener('paste', handlePaste);
+
+    return () => {
+      document.removeEventListener('paste', handlePaste);
+    };
+  }, [uploadMedia, currentFolder, t]);
 
   const handleCreateFolder = async () => {
     if (!newFolderName.trim()) return;

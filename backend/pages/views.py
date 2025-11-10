@@ -4,6 +4,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.db.models import Count, Prefetch
 from django.utils import timezone
+from django.http import HttpResponse
+import html2text
 from .models import Page, PageBlock, SwiperPreset
 from .serializers import (
     PageListSerializer,
@@ -359,6 +361,123 @@ class PageViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+    @action(detail=True, methods=['get'])
+    def export(self, request, pk=None):
+        """Export page as HTML or Markdown"""
+        from .services.template_processor import TemplateProcessor
+        
+        page = self.get_object()
+        export_format = request.query_params.get('format', 'html').lower()
+        
+        if export_format not in ['html', 'markdown']:
+            return Response(
+                {'error': 'Invalid format. Use "html" or "markdown"'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            # Generate HTML content
+            processor = TemplateProcessor(page.site, page)
+            html_content = processor.generate_html()
+            
+            if export_format == 'html':
+                # Return HTML directly
+                response = HttpResponse(html_content, content_type='text/html; charset=utf-8')
+                response['Content-Disposition'] = f'attachment; filename="{page.slug}.html"'
+                return response
+            else:
+                # Convert HTML to Markdown
+                h = html2text.HTML2Text()
+                h.ignore_links = False
+                h.ignore_images = False
+                h.body_width = 0  # Don't wrap lines
+                markdown_content = h.handle(html_content)
+                
+                # Add page metadata at the top
+                metadata = f"""---
+title: {page.title or page.slug}
+description: {page.meta_description or ''}
+h1: {page.h1_tag or ''}
+slug: {page.slug}
+created: {page.created_at.isoformat()}
+updated: {page.updated_at.isoformat()}
+---
+
+"""
+                full_markdown = metadata + markdown_content
+                
+                response = HttpResponse(full_markdown, content_type='text/markdown; charset=utf-8')
+                response['Content-Disposition'] = f'attachment; filename="{page.slug}.md"'
+                return response
+                
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to export page: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=False, methods=['post'])
+    def analyze_competitor(self, request):
+        """Analyze a competitor website"""
+        from .services.competitor_analysis_service import CompetitorAnalysisService
+        
+        competitor_url = request.data.get('competitor_url', '').strip()
+        target_keywords = request.data.get('target_keywords', [])
+        analysis_depth = request.data.get('analysis_depth', 'basic')
+        
+        if not competitor_url:
+            return Response(
+                {'error': 'competitor_url is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            competitor_service = CompetitorAnalysisService()
+            
+            result = competitor_service.analyze_competitor(
+                competitor_url=competitor_url,
+                target_keywords=target_keywords,
+                analysis_depth=analysis_depth
+            )
+            
+            return Response(result, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to analyze competitor: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=False, methods=['post'])
+    def compare_competitors(self, request):
+        """Compare multiple competitor websites"""
+        from .services.competitor_analysis_service import CompetitorAnalysisService
+        
+        competitor_urls = request.data.get('competitor_urls', [])
+        target_keywords = request.data.get('target_keywords', [])
+        
+        if not competitor_urls or len(competitor_urls) < 2:
+            return Response(
+                {'error': 'At least 2 competitor URLs are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            competitor_service = CompetitorAnalysisService()
+            
+            result = competitor_service.compare_competitors(
+                competitor_urls=competitor_urls,
+                target_keywords=target_keywords
+            )
+            
+            return Response(result, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to compare competitors: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
 
 class PageBlockViewSet(viewsets.ModelViewSet):
     """
@@ -583,68 +702,6 @@ class PageBlockViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response(
                 {'error': f'Failed to analyze keyword density: {str(e)}'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-    @action(detail=False, methods=['post'])
-    def analyze_competitor(self, request):
-        """Analyze a competitor website"""
-        from .services.competitor_analysis_service import CompetitorAnalysisService
-        
-        competitor_url = request.data.get('competitor_url', '').strip()
-        target_keywords = request.data.get('target_keywords', [])
-        analysis_depth = request.data.get('analysis_depth', 'basic')
-        
-        if not competitor_url:
-            return Response(
-                {'error': 'competitor_url is required'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        try:
-            competitor_service = CompetitorAnalysisService()
-            
-            result = competitor_service.analyze_competitor(
-                competitor_url=competitor_url,
-                target_keywords=target_keywords,
-                analysis_depth=analysis_depth
-            )
-            
-            return Response(result, status=status.HTTP_200_OK)
-            
-        except Exception as e:
-            return Response(
-                {'error': f'Failed to analyze competitor: {str(e)}'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-    @action(detail=False, methods=['post'])
-    def compare_competitors(self, request):
-        """Compare multiple competitor websites"""
-        from .services.competitor_analysis_service import CompetitorAnalysisService
-        
-        competitor_urls = request.data.get('competitor_urls', [])
-        target_keywords = request.data.get('target_keywords', [])
-        
-        if not competitor_urls or len(competitor_urls) < 2:
-            return Response(
-                {'error': 'At least 2 competitor URLs are required'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        try:
-            competitor_service = CompetitorAnalysisService()
-            
-            result = competitor_service.compare_competitors(
-                competitor_urls=competitor_urls,
-                target_keywords=target_keywords
-            )
-            
-            return Response(result, status=status.HTTP_200_OK)
-            
-        except Exception as e:
-            return Response(
-                {'error': f'Failed to compare competitors: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 

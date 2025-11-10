@@ -366,11 +366,10 @@ class CloudflareTokenViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def create_redirect_rule(self, request, pk=None):
-        """Create a redirect page rule for a domain using this token."""
+        """Create a redirect page rule for a domain using this token (301 redirect only)."""
         domain = request.data.get('domain')
         from_pattern = request.data.get('from_pattern')
         to_url = request.data.get('to_url')
-        status_code = request.data.get('status_code', 301)
         
         if not all([domain, from_pattern, to_url]):
             return Response({'error': 'domain, from_pattern, and to_url are required'}, status=400)
@@ -379,7 +378,8 @@ class CloudflareTokenViewSet(viewsets.ModelViewSet):
         from .cloudflare import CloudflareService
         try:
             cf_service = CloudflareService(token.token, token.account_id)
-            result = cf_service.create_redirect_rule(domain, from_pattern, to_url, status_code)
+            # Only 301 redirects are allowed
+            result = cf_service.create_redirect_rule(domain, from_pattern, to_url)
             return Response(result)
         except Exception as e:
             return Response({'error': str(e)}, status=400)
@@ -419,39 +419,6 @@ class CloudflareTokenViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'error': str(e)}, status=400)
     
-    @action(detail=True, methods=['get'])
-    def get_ssl_settings(self, request, pk=None):
-        """Get SSL settings for a domain using this token."""
-        domain = request.query_params.get('domain')
-        if not domain:
-            return Response({'error': 'domain parameter is required'}, status=400)
-        
-        token = self.get_object()
-        from .cloudflare import CloudflareService
-        try:
-            cf_service = CloudflareService(token.token, token.account_id)
-            settings = cf_service.get_ssl_settings(domain)
-            return Response(settings)
-        except Exception as e:
-            return Response({'error': str(e)}, status=400)
-    
-    @action(detail=True, methods=['post'])
-    def update_ssl_settings(self, request, pk=None):
-        """Update SSL settings for a domain using this token."""
-        domain = request.data.get('domain')
-        ssl_mode = request.data.get('ssl_mode', 'flexible')
-        
-        if not domain:
-            return Response({'error': 'domain is required'}, status=400)
-        
-        token = self.get_object()
-        from .cloudflare import CloudflareService
-        try:
-            cf_service = CloudflareService(token.token, token.account_id)
-            result = cf_service.update_ssl_settings(domain, ssl_mode)
-            return Response(result)
-        except Exception as e:
-            return Response({'error': str(e)}, status=400)
 
 
 class ThirdPartyIntegrationsViewSet(viewsets.ViewSet):

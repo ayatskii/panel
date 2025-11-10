@@ -160,6 +160,63 @@ class TemplateViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
+    @action(detail=False, methods=['put'])
+    def update_class_list(self, request):
+        """Update an existing custom class list (admin only)"""
+        name = request.data.get('name')
+        classes = request.data.get('classes', [])
+        
+        if not name or not classes:
+            return Response(
+                {'error': 'name and classes are required'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            success = template_uniqueness_service.update_custom_class_list(name, classes)
+            
+            if success:
+                return Response({'message': 'Class list updated successfully'})
+            else:
+                return Response(
+                    {'error': 'Class list does not exist'}, 
+                    status=status.HTTP_404_NOT_FOUND
+                )
+                
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to update class list: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=False, methods=['delete'])
+    def delete_class_list(self, request):
+        """Delete a custom class list (admin only)"""
+        name = request.query_params.get('name')
+        
+        if not name:
+            return Response(
+                {'error': 'name parameter is required'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            success = template_uniqueness_service.delete_custom_class_list(name)
+            
+            if success:
+                return Response({'message': 'Class list deleted successfully'})
+            else:
+                return Response(
+                    {'error': 'Class list does not exist'}, 
+                    status=status.HTTP_404_NOT_FOUND
+                )
+                
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to delete class list: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
     @action(detail=True, methods=['post'])
     def generate_unique_template(self, request, pk=None):
         """Generate unique CSS classes and styles for a template"""

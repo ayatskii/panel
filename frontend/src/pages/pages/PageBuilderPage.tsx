@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import {
   Box,
   Typography,
@@ -25,7 +26,11 @@ import {
   ArrowDownward as MoveDownIcon,
   Publish as PublishIcon,
   Unpublished as UnpublishedIcon,
+  AutoAwesome as GenerateIcon,
+  Refresh as RegenerateIcon,
 } from '@mui/icons-material'
+import ContentGenerationModal from '@/components/pages/ContentGenerationModal'
+import BlockRegenerationModal from '@/components/pages/BlockRegenerationModal'
 import {
   useGetPageQuery,
   useGetBlocksQuery,
@@ -57,19 +62,20 @@ import type { CTABlockContent } from '@/components/blocks/CTABlock'
 import type { TextImageBlockContent } from '@/components/blocks/TextImageBlock'
 import type { ArticleBlockContent } from '@/components/blocks/ArticleBlock'
 
-const BLOCK_TYPES = [
-  { type: 'hero', label: 'Hero Section', defaultContent: { title: 'Hero Title', subtitle: 'Subtitle' } },
-  { type: 'article', label: 'Article Content', defaultContent: { title: 'Article Title', text: '<p>Write your article content here. Use paragraphs and formatting.</p>' } },
-  { type: 'text', label: 'Text Content', defaultContent: { title: 'Section Title', text: 'Your text here' } },
-  { type: 'image', label: 'Single Image', defaultContent: { image_url: '', alt_text: '' } },
-  { type: 'text_image', label: 'Text + Image', defaultContent: { title: 'Feature Highlight', text: 'Describe your amazing feature here', image_url: '', image_position: 'left' as const, image_size: 'medium' as const } },
-  { type: 'gallery', label: 'Image Gallery', defaultContent: { images: [] } },
-  { type: 'cta', label: 'Call to Action', defaultContent: { title: 'Ready to get started?', description: 'Join thousands of satisfied customers', buttons: [] } },
-  { type: 'faq', label: 'FAQ Section', defaultContent: { title: 'Frequently Asked Questions', items: [] } },
-  { type: 'swiper', label: 'Slider', defaultContent: { slides: [] } },
-]
-
 const PageBuilderPage = () => {
+  const { t } = useTranslation()
+  
+  const BLOCK_TYPES = [
+    { type: 'hero', label: t('pages.blockTypes.heroSection'), defaultContent: { title: 'Hero Title', subtitle: 'Subtitle' } },
+    { type: 'article', label: t('pages.blockTypes.articleContent'), defaultContent: { title: 'Article Title', text: '<p>Write your article content here. Use paragraphs and formatting.</p>' } },
+    { type: 'text', label: t('pages.blockTypes.textContent'), defaultContent: { title: 'Section Title', text: 'Your text here' } },
+    { type: 'image', label: t('pages.blockTypes.singleImage'), defaultContent: { image_url: '', alt_text: '' } },
+    { type: 'text_image', label: t('pages.blockTypes.textImage'), defaultContent: { title: 'Feature Highlight', text: 'Describe your amazing feature here', image_url: '', image_position: 'left' as const, image_size: 'medium' as const } },
+    { type: 'gallery', label: t('pages.blockTypes.imageGallery'), defaultContent: { images: [] } },
+    { type: 'cta', label: t('pages.blockTypes.callToAction'), defaultContent: { title: 'Ready to get started?', description: 'Join thousands of satisfied customers', buttons: [] } },
+    { type: 'faq', label: t('pages.blockTypes.faqSection'), defaultContent: { title: 'Frequently Asked Questions', items: [] } },
+    { type: 'swiper', label: t('pages.blockTypes.slider'), defaultContent: { slides: [] } },
+  ]
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
 
@@ -85,7 +91,9 @@ const PageBuilderPage = () => {
   const [localBlocks, setLocalBlocks] = useState<PageBlock[]>([])
   const [selectedBlockId, setSelectedBlockId] = useState<number | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const [previewMode, setPreviewMode] = useState(false);
+  const [previewMode, setPreviewMode] = useState(false)
+  const [generateModalOpen, setGenerateModalOpen] = useState(false)
+  const [regenerateBlockId, setRegenerateBlockId] = useState<number | null>(null)
 
   useEffect(() => {
     if (blocks) {
@@ -102,10 +110,10 @@ const PageBuilderPage = () => {
         content: defaultContent,
       }).unwrap();
       
-      toast.success('Block added successfully')
+      toast.success(t('pageBuilder.blockAdded'))
       setDrawerOpen(false)
     } catch {
-      toast.error('Failed to add block');
+      toast.error(t('pageBuilder.blockAddFailed'));
     }
   }
 
@@ -115,18 +123,19 @@ const PageBuilderPage = () => {
         id: blockId,
         data: { content }
       }).unwrap()
+      toast.success(t('pageBuilder.blockUpdated'))
     } catch {
-      toast.error('Failed to update block');
+      toast.error(t('pageBuilder.blockUpdateFailed'));
     }
   }
 
   const handleDeleteBlock = async (blockId: number) => {
-    if (window.confirm('Are you sure you want to delete this block?')) {
+    if (window.confirm(t('common.delete') + '?')) {
       try {
         await deleteBlock(blockId).unwrap()
-        toast.success('Block deleted successfully')
+        toast.success(t('pageBuilder.blockDeleted'))
       } catch {
-        toast.error('Failed to delete block');
+        toast.error(t('pageBuilder.blockDeleteFailed'));
       }
     }
   }
@@ -152,9 +161,9 @@ const PageBuilderPage = () => {
       await reorderBlocks(
         newBlocks.map((block, index) => ({ id: block.id, order: index }))
       ).unwrap()
-      toast.success('Blocks reordered')
+      toast.success(t('pageBuilder.blocksReordered'))
     } catch {
-      toast.error('Failed to reorder blocks');
+      toast.error(t('pageBuilder.blockDeleteFailed'));
     }
   }
 
@@ -269,7 +278,7 @@ const PageBuilderPage = () => {
                 {page.title}
               </Typography>
               <Chip 
-                label={page.is_published ? 'Published' : 'Draft'} 
+                label={page.is_published ? t('pageBuilder.published') : t('pageBuilder.draft')} 
                 color={page.is_published ? 'success' : 'default'}
                 size="small"
               />
@@ -288,12 +297,20 @@ const PageBuilderPage = () => {
               Add Block
             </Button>
             <Button
+              variant="contained"
+              color="primary"
+              startIcon={<GenerateIcon />}
+              onClick={() => setGenerateModalOpen(true)}
+            >
+              Generate Content
+            </Button>
+            <Button
               variant="outlined"
               startIcon={<PreviewIcon />}
               onClick={() => setPreviewMode(!previewMode)}
               color={previewMode ? 'primary' : 'inherit'}
             >
-              {previewMode ? 'Edit Mode' : 'Preview'}
+              {previewMode ? t('pageBuilder.editMode') : t('pageBuilder.preview')}
             </Button>
             {page.is_published ? (
               <Button
@@ -393,6 +410,17 @@ const PageBuilderPage = () => {
                     size="small"
                     onClick={(e) => {
                       e.stopPropagation()
+                      setRegenerateBlockId(block.id)
+                    }}
+                    title={t('pageBuilder.regenerateWithAi')}
+                    sx={{ bgcolor: 'background.paper' }}
+                  >
+                    <RegenerateIcon />
+                  </IconButton>
+                  <IconButton
+                    size="small"
+                    onClick={(e) => {
+                      e.stopPropagation()
                       handleDeleteBlock(block.id)
                     }}
                     color="error"
@@ -434,6 +462,38 @@ const PageBuilderPage = () => {
           </List>
         </Box>
       </Drawer>
+
+      {/* Content Generation Modal */}
+      {page && (
+        <ContentGenerationModal
+          open={generateModalOpen}
+          onClose={() => setGenerateModalOpen(false)}
+          pageId={page.id}
+          onContentGenerated={(result) => {
+            toast.success('Content generated successfully')
+            setGenerateModalOpen(false)
+            // Refresh blocks
+            window.location.reload()
+          }}
+        />
+      )}
+
+      {/* Block Regeneration Modal */}
+      {regenerateBlockId && localBlocks.find(b => b.id === regenerateBlockId) && (
+        <BlockRegenerationModal
+          open={!!regenerateBlockId}
+          onClose={() => setRegenerateBlockId(null)}
+          block={localBlocks.find(b => b.id === regenerateBlockId)!}
+          onContentRegenerated={(result) => {
+            if (result.success) {
+              toast.success('Block content regenerated successfully')
+              setRegenerateBlockId(null)
+              // Refresh blocks
+              window.location.reload()
+            }
+          }}
+        />
+      )}
     </Box>
   )
 }

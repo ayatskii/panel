@@ -374,8 +374,8 @@ class CloudflareService:
             logger.error(f"Failed to create page rule: {e}")
             return {'success': False, 'error': str(e)}
     
-    def create_redirect_rule(self, domain: str, from_pattern: str, to_url: str, status_code: int = 301) -> Dict[str, Any]:
-        """Create a redirect page rule"""
+    def create_redirect_rule(self, domain: str, from_pattern: str, to_url: str) -> Dict[str, Any]:
+        """Create a redirect page rule (301 redirect only)"""
         rule_config = {
             'targets': [
                 {
@@ -391,7 +391,7 @@ class CloudflareService:
                     'id': 'forwarding_url',
                     'value': {
                         'url': to_url,
-                        'status_code': status_code
+                        'status_code': 301  # Only 301 redirects are allowed
                     }
                 }
             ],
@@ -491,37 +491,6 @@ class CloudflareService:
             logger.error(f"Failed to delete page rule: {e}")
             return {'success': False, 'error': str(e)}
     
-    # SSL Certificate Management
-    
-    def get_ssl_settings(self, domain: str) -> Dict[str, Any]:
-        """Get SSL settings for a domain"""
-        try:
-            zone_id = self.get_zone_id(domain)
-            if not zone_id:
-                return {'success': False, 'error': 'Domain not found'}
-            
-            endpoint = f"/zones/{zone_id}/settings/ssl"
-            result = self._request('GET', endpoint)
-            return result
-        except Exception as e:
-            logger.error(f"Failed to get SSL settings for {domain}: {e}")
-            return {'success': False, 'error': str(e)}
-    
-    def update_ssl_settings(self, domain: str, ssl_mode: str = 'flexible') -> Dict[str, Any]:
-        """Update SSL settings for a domain"""
-        try:
-            zone_id = self.get_zone_id(domain)
-            if not zone_id:
-                return {'success': False, 'error': 'Domain not found'}
-            
-            endpoint = f"/zones/{zone_id}/settings/ssl"
-            data = {'value': ssl_mode}
-            result = self._request('PATCH', endpoint, data)
-            logger.info(f"Updated SSL settings for {domain} to {ssl_mode}")
-            return result
-        except Exception as e:
-            logger.error(f"Failed to update SSL settings for {domain}: {e}")
-            return {'success': False, 'error': str(e)}
 
 
 # Singleton instance

@@ -27,6 +27,7 @@ import {
   InputLabel,
   Select,
   Tooltip,
+  CircularProgress,
 } from '@mui/material'
 import { 
   Language as SitesIcon,
@@ -49,11 +50,39 @@ import {
 } from '@mui/icons-material'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useGetSitesQuery, useGetSiteAnalyticsSummaryQuery, useDuplicateSiteMutation } from '@/store/api/sitesApi'
 import { useGetPagesQuery } from '@/store/api/pagesApi'
 import { useGetDeploymentsQuery } from '@/store/api/deploymentsApi'
+import { useGetAnalyticsOverviewQuery, useGetTopPagesQuery } from '@/store/api/analyticsApi'
 import { formatDistanceToNow } from 'date-fns'
 import toast from 'react-hot-toast'
+import { Line, Bar, Doughnut } from 'react-chartjs-2'
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  ArcElement,
+  Title,
+  Tooltip as ChartTooltip,
+  Legend,
+} from 'chart.js'
+
+// Register Chart.js components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  ArcElement,
+  Title,
+  ChartTooltip,
+  Legend
+)
 
 interface StatCardProps {
   title: string
@@ -125,6 +154,7 @@ const StatCard = ({ title, value, icon, color, loading }: StatCardProps) => (
 )
 
 const DashboardPage = () => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   
   // Fetch data from API
@@ -134,6 +164,17 @@ const DashboardPage = () => {
   const { data: analyticsSummary, isLoading: analyticsLoading } = useGetSiteAnalyticsSummaryQuery({ 
     id: sites[0]?.id || 0 
   }, { skip: !sites.length })
+  
+  // Analytics data for first site
+  const firstSiteId = sites[0]?.id
+  const { data: analyticsOverview, isLoading: analyticsOverviewLoading } = useGetAnalyticsOverviewQuery(
+    { site_id: firstSiteId || 0, period_days: 30 },
+    { skip: !firstSiteId }
+  )
+  const { data: topPages, isLoading: topPagesLoading } = useGetTopPagesQuery(
+    { site_id: firstSiteId || 0, period_days: 30, limit: 5 },
+    { skip: !firstSiteId }
+  )
   
   const [duplicateSite] = useDuplicateSiteMutation()
   
@@ -186,14 +227,14 @@ const DashboardPage = () => {
     const site = sites.find(s => s.id === siteId)
     if (!site) return
     
-    const newDomain = prompt('Enter new domain for duplicated site:')
+    const newDomain = prompt(t('dashboard.enterNewDomain'))
     if (!newDomain) return
     
     try {
       await duplicateSite({ id: siteId, domain: newDomain }).unwrap()
-      toast.success('Site duplicated successfully')
+      toast.success(t('dashboard.siteDuplicated'))
     } catch {
-      toast.error('Failed to duplicate site')
+      toast.error(t('dashboard.duplicateFailed'))
     }
   }
 
@@ -251,7 +292,7 @@ const DashboardPage = () => {
             mb: 0.5
           }}
         >
-          Dashboard
+          {t('dashboard.title')}
         </Typography>
         <Typography 
           variant="body2" 
@@ -260,7 +301,7 @@ const DashboardPage = () => {
             fontSize: '0.875rem'
           }}
         >
-          Welcome back! Here's what's happening with your sites.
+          {t('dashboard.welcomeBack')}
         </Typography>
       </Box>
 
@@ -278,28 +319,28 @@ const DashboardPage = () => {
         }}
       >
         <StatCard
-          title="Total Sites"
+          title={t('dashboard.totalSites')}
           value={totalSites}
           icon={<SitesIcon sx={{ color: '#fff', fontSize: 32 }} />}
           color="#2196F3"
           loading={sitesLoading}
         />
         <StatCard
-          title="Total Pages"
+          title={t('dashboard.totalPages')}
           value={totalPages}
           icon={<PagesIcon sx={{ color: '#fff', fontSize: 32 }} />}
           color="#4CAF50"
           loading={pagesLoading}
         />
         <StatCard
-          title="Deployments"
+          title={t('dashboard.deployments')}
           value={totalDeployments}
           icon={<DeployIcon sx={{ color: '#fff', fontSize: 32 }} />}
           color="#FF9800"
           loading={deploymentsLoading}
         />
         <StatCard
-          title="Total Visitors"
+          title={t('dashboard.totalVisitors')}
           value={formatNumber(totalVisitors)}
           icon={<AnalyticsIcon sx={{ color: '#fff', fontSize: 32 }} />}
           color="#9C27B0"
@@ -319,21 +360,21 @@ const DashboardPage = () => {
       >
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Typography variant="h6" sx={{ fontWeight: 600 }}>
-            Sites ({filteredSites.length})
+            {t('dashboard.sites')} ({filteredSites.length})
           </Typography>
           <Button
             variant="contained"
             startIcon={<AddIcon />}
             onClick={() => navigate('/sites/create')}
           >
-            Create Site
+            {t('dashboard.createSite')}
           </Button>
         </Box>
         
         {/* Filters */}
         <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
           <TextField
-            placeholder="Search sites..."
+            placeholder={t('dashboard.searchSites')}
             size="small"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -347,26 +388,26 @@ const DashboardPage = () => {
             sx={{ flex: 1, minWidth: 200 }}
           />
           <FormControl size="small" sx={{ minWidth: 150 }}>
-            <InputLabel>Language</InputLabel>
+            <InputLabel>{t('dashboard.language')}</InputLabel>
             <Select
               value={languageFilter}
-              label="Language"
+              label={t('dashboard.language')}
               onChange={(e) => setLanguageFilter(e.target.value)}
             >
-              <MenuItem value="">All Languages</MenuItem>
+              <MenuItem value="">{t('dashboard.allLanguages')}</MenuItem>
               {uniqueLanguages.map(lang => (
                 <MenuItem key={lang} value={lang}>{lang}</MenuItem>
               ))}
             </Select>
           </FormControl>
           <FormControl size="small" sx={{ minWidth: 150 }}>
-            <InputLabel>Template</InputLabel>
+            <InputLabel>{t('dashboard.template')}</InputLabel>
             <Select
               value={templateFilter}
-              label="Template"
+              label={t('dashboard.template')}
               onChange={(e) => setTemplateFilter(e.target.value as number | '')}
             >
-              <MenuItem value="">All Templates</MenuItem>
+              <MenuItem value="">{t('dashboard.allTemplates')}</MenuItem>
               {uniqueTemplates.map(templateId => {
                 const site = sites.find(s => s.template === templateId)
                 return site?.template_name ? (
@@ -393,8 +434,8 @@ const DashboardPage = () => {
         {filteredSites.length === 0 ? (
           <Alert severity="info">
             {searchQuery || languageFilter || templateFilter 
-              ? 'No sites match your filters' 
-              : 'No sites yet. Create your first site to get started.'}
+              ? t('dashboard.noSitesMatch') 
+              : t('dashboard.noSitesYet')}
           </Alert>
         ) : (
           <TableContainer>
@@ -423,18 +464,18 @@ const DashboardPage = () => {
                     </TableCell>
                     <TableCell>
                       {site.template_name || (
-                        <Chip label="No template" size="small" color="default" />
+                        <Chip label={t('dashboard.noTemplate')} size="small" color="default" />
                       )}
                     </TableCell>
                     <TableCell>
                       {site.is_deployed ? (
-                        <Chip label="Deployed" size="small" color="success" />
+                        <Chip label={t('dashboard.deployed')} size="small" color="success" />
                       ) : (
-                        <Chip label="Not Deployed" size="small" />
+                        <Chip label={t('dashboard.notDeployed')} size="small" />
                       )}
                     </TableCell>
                     <TableCell align="right">
-                      <Tooltip title="Edit">
+                      <Tooltip title={t('dashboard.edit')}>
                         <IconButton
                           size="small"
                           onClick={() => navigate(`/sites/${site.id}/edit`)}
@@ -442,7 +483,7 @@ const DashboardPage = () => {
                           <EditIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
-                      <Tooltip title="Duplicate">
+                      <Tooltip title={t('dashboard.duplicate')}>
                         <IconButton
                           size="small"
                           onClick={() => handleDuplicate(site.id)}
@@ -450,7 +491,7 @@ const DashboardPage = () => {
                           <DuplicateIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
-                      <Tooltip title="Analytics">
+                      <Tooltip title={t('dashboard.analytics')}>
                         <IconButton
                           size="small"
                           onClick={() => navigate(`/sites/${site.id}?tab=analytics`)}
@@ -515,6 +556,154 @@ const DashboardPage = () => {
           Delete
         </MenuItem>
       </Menu>
+
+      {/* Analytics Section */}
+      {firstSiteId && (
+        <Paper 
+          sx={{ 
+            p: 4,
+            mb: 3,
+            borderRadius: 3,
+            border: '1px solid rgba(0, 0, 0, 0.06)',
+            background: '#ffffff'
+          }}
+        >
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+            <Typography 
+              variant="h6" 
+              sx={{ 
+                fontWeight: 600,
+                color: '#1a2027'
+              }}
+            >
+              Analytics Overview
+            </Typography>
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => navigate(`/analytics?site=${firstSiteId}`)}
+            >
+              View Full Analytics
+            </Button>
+          </Box>
+
+          {analyticsOverviewLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : analyticsOverview ? (
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: {
+                  xs: '1fr',
+                  md: '2fr 1fr',
+                },
+                gap: 3,
+              }}
+            >
+              {/* Traffic Chart */}
+              <Paper sx={{ p: 3, bgcolor: 'grey.50' }}>
+                <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
+                  Daily Traffic (Last 30 Days)
+                </Typography>
+                {analyticsOverview.traffic_analytics?.daily_traffic && (
+                  <Line
+                    data={{
+                      labels: analyticsOverview.traffic_analytics.daily_traffic.map(d => 
+                        new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                      ),
+                      datasets: [
+                        {
+                          label: t('dashboard.pageViews'),
+                          data: analyticsOverview.traffic_analytics.daily_traffic.map(d => d.views),
+                          borderColor: '#2196F3',
+                          backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                          tension: 0.4,
+                        },
+                        {
+                          label: t('dashboard.uniqueVisitors'),
+                          data: analyticsOverview.traffic_analytics.daily_traffic.map(d => d.unique_visitors),
+                          borderColor: '#4CAF50',
+                          backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                          tension: 0.4,
+                        },
+                      ],
+                    }}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: {
+                          position: 'top' as const,
+                        },
+                      },
+                      scales: {
+                        y: {
+                          beginAtZero: true,
+                        },
+                      },
+                    }}
+                  />
+                )}
+              </Paper>
+
+              {/* Top Pages */}
+              <Paper sx={{ p: 3, bgcolor: 'grey.50' }}>
+                <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
+                  Top Pages
+                </Typography>
+                {topPagesLoading ? (
+                  <CircularProgress size={24} />
+                ) : topPages?.top_pages && topPages.top_pages.length > 0 ? (
+                  <List sx={{ p: 0 }}>
+                    {topPages.top_pages.map((page, index) => (
+                      <ListItem
+                        key={index}
+                        sx={{
+                          border: '1px solid rgba(0, 0, 0, 0.06)',
+                          borderRadius: 1,
+                          mb: 1,
+                          bgcolor: 'white',
+                        }}
+                      >
+                        <ListItemText
+                          primary={
+                            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                              {page.page__title || page.page__slug || t('pageBuilder.untitled')}
+                            </Typography>
+                          }
+                          secondary={
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 0.5 }}>
+                              <Typography variant="caption" color="text.secondary">
+                                /{page.page__slug}
+                              </Typography>
+                              <Chip
+                                label={`${page.views} ${t('dashboard.views')}`}
+                                size="small"
+                                color="primary"
+                                variant="outlined"
+                              />
+                            </Box>
+                          }
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    No page views yet
+                  </Typography>
+                )}
+              </Paper>
+            </Box>
+          ) : (
+            <Alert severity="info">
+              No analytics data available. Analytics will appear after your site receives traffic.
+            </Alert>
+          )}
+        </Paper>
+      )}
 
       {/* Content Grid - Using CSS Grid */}
       <Box
@@ -623,7 +812,7 @@ const DashboardPage = () => {
               color: '#ffffff'
             }}
           >
-            Quick Actions
+            {t('dashboard.quickActions')}
           </Typography>
           
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -643,7 +832,7 @@ const DashboardPage = () => {
                 py: 1.5,
               }}
             >
-              Create New Site
+              {t('dashboard.createNewSite')}
             </Button>
             
             <Button
@@ -662,7 +851,7 @@ const DashboardPage = () => {
                 py: 1.5,
               }}
             >
-              Create New Page
+              {t('dashboard.createNewPage')}
             </Button>
             
             <Button
@@ -681,7 +870,7 @@ const DashboardPage = () => {
                 py: 1.5,
               }}
             >
-              Create Template
+              {t('dashboard.createTemplate')}
             </Button>
             
             <Button
@@ -700,12 +889,12 @@ const DashboardPage = () => {
                 py: 1.5,
               }}
             >
-              Upload Media
+              {t('dashboard.uploadMedia')}
             </Button>
 
             <Box sx={{ mt: 2, p: 2, bgcolor: 'rgba(255, 255, 255, 0.1)', borderRadius: 2 }}>
               <Typography variant="body2" sx={{ mb: 1, opacity: 0.9 }}>
-                Need help getting started?
+                {t('dashboard.needHelp')}
               </Typography>
               <Button
                 size="small"
@@ -718,7 +907,7 @@ const DashboardPage = () => {
                   }
                 }}
               >
-                View Documentation
+                {t('dashboard.viewDocumentation')}
               </Button>
             </Box>
           </Box>

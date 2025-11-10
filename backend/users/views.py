@@ -89,6 +89,12 @@ class UserViewSet(viewsets.ModelViewSet):
             return [IsAuthenticated(), IsOwnerOrAdmin()]
         return [IsAuthenticated()]
     
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    def me(self, request):
+        """Get current authenticated user"""
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)
+    
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsOwnerOrAdmin])
     def change_password(self, request, pk=None):
         """Change user password"""

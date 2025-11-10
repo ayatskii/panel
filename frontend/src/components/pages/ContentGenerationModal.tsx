@@ -34,7 +34,7 @@ import {
   Error as ErrorIcon,
   Refresh as RefreshIcon,
 } from '@mui/icons-material'
-import { useGetPromptsQuery } from '@/store/api/promptsApi'
+import { useGetPromptsQuery } from '@/store/api/aiApi'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 
@@ -93,19 +93,19 @@ const ContentGenerationModal = ({
   }, [initialConfig, open])
 
   const availableBlockTypes = [
-    { id: 'hero', name: 'Hero Banner', description: 'Main banner with title and CTA' },
-    { id: 'article', name: 'Article Content', description: 'Text content and articles' },
-    { id: 'faq', name: 'FAQ Section', description: 'Frequently asked questions' },
-    { id: 'swiper', name: 'Game Carousel', description: 'Interactive game showcase' },
-    { id: 'cta', name: 'Call to Action', description: 'Action-oriented content blocks' },
-    { id: 'image', name: 'Image Block', description: 'Image with alt text' },
+    { id: 'hero', name: t('pages.blockTypes.heroBanner'), description: t('pages.blockTypes.heroBannerDesc') },
+    { id: 'article', name: t('pages.blockTypes.articleContent'), description: t('pages.blockTypes.articleContentDesc') },
+    { id: 'faq', name: t('pages.blockTypes.faqSection'), description: t('pages.blockTypes.faqSectionDesc') },
+    { id: 'swiper', name: t('pages.blockTypes.gameCarousel'), description: t('pages.blockTypes.gameCarouselDesc') },
+    { id: 'cta', name: t('pages.blockTypes.callToAction'), description: t('pages.blockTypes.callToActionDesc') },
+    { id: 'image', name: t('pages.blockTypes.imageBlock'), description: t('pages.blockTypes.imageBlockDesc') },
   ]
 
   const availableModels = [
-    { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo', description: 'Fast and efficient' },
-    { id: 'gpt-4', name: 'GPT-4', description: 'Most advanced model' },
-    { id: 'claude-3-sonnet', name: 'Claude 3 Sonnet', description: 'Balanced performance' },
-    { id: 'claude-3-opus', name: 'Claude 3 Opus', description: 'Highest quality' },
+    { id: 'gpt-3.5-turbo', name: t('pages.aiModels.gpt35Turbo'), description: t('pages.aiModels.gpt35TurboDesc') },
+    { id: 'gpt-4', name: t('pages.aiModels.gpt4'), description: t('pages.aiModels.gpt4Desc') },
+    { id: 'claude-3-sonnet', name: t('pages.aiModels.claude3Sonnet'), description: t('pages.aiModels.claude3SonnetDesc') },
+    { id: 'claude-3-opus', name: t('pages.aiModels.claude3Opus'), description: t('pages.aiModels.claude3OpusDesc') },
   ]
 
   const handleBlockTypeChange = (blockType: string, checked: boolean) => {
@@ -135,7 +135,7 @@ const ContentGenerationModal = ({
     if (generateMeta) {
       workflowSteps.push({
         id: 'meta',
-        name: 'Generate Meta Content',
+        name: t('pages.generateMetaContent'),
         type: 'meta',
         status: 'pending'
       })
@@ -145,7 +145,7 @@ const ContentGenerationModal = ({
       const blockTypeInfo = availableBlockTypes.find(bt => bt.id === blockType)
       workflowSteps.push({
         id: `block_${blockType}`,
-        name: `Generate ${blockTypeInfo?.name || blockType} Content`,
+        name: t('pages.generateBlockContent', { blockType: blockTypeInfo?.name || blockType }),
         type: 'block',
         blockType,
         status: 'pending'
@@ -155,7 +155,7 @@ const ContentGenerationModal = ({
     if (generateImages) {
       workflowSteps.push({
         id: 'images',
-        name: 'Generate Images',
+        name: t('pages.generateImages'),
         type: 'image',
         status: 'pending'
       })

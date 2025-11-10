@@ -109,7 +109,7 @@ class FaviconGenerationService:
         try:
             if media.file_url:
                 # For now, we'll work with the file directly
-                # In production, you might want to download from URL
+                # In production, you might want to download from URL # TODO Implement this 
                 return media.file.path if hasattr(media.file, 'path') else None
             return None
         except Exception as e:

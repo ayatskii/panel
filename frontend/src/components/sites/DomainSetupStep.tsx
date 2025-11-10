@@ -19,6 +19,7 @@ import {
 } from '@mui/icons-material'
 import TokenSelectionModal from './TokenSelectionModal'
 import { useTranslation } from 'react-i18next'
+import toast from 'react-hot-toast'
 import type { SiteFormData } from '@/types'
 
 interface DomainSetupStepProps {
@@ -45,6 +46,7 @@ const DomainSetupStep: React.FC<DomainSetupStepProps> = ({
   const [isValidatingDomain, setIsValidatingDomain] = useState(false)
   const [domainValidationError, setDomainValidationError] = useState<string>('')
   const [copiedRecord, setCopiedRecord] = useState<string | null>(null)
+  const [tokenName, setTokenName] = useState<string>('')
 
   const handleDomainChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const domain = event.target.value
@@ -78,9 +80,9 @@ const DomainSetupStep: React.FC<DomainSetupStepProps> = ({
   }
 
   const handleTokenSelected = (tokenId: number, tokenName: string) => {
+    setTokenName(tokenName)
     onChange({ 
-      cloudflare_token_id: tokenId,
-      cloudflare_token_name: tokenName 
+      cloudflare_token: tokenId
     })
   }
 
@@ -138,64 +140,40 @@ const DomainSetupStep: React.FC<DomainSetupStepProps> = ({
         </Alert>
       )}
 
-      {nsRecords.length > 0 && (
-        <Card sx={{ mb: 3 }}>
+      {data.cloudflare_token && data.domain && (
+        <Card sx={{ mb: 3, bgcolor: 'info.50', border: '1px solid', borderColor: 'info.200' }}>
           <CardContent>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-              <Typography variant="h6">
-                {t('domains.nameserverRecords')}
-              </Typography>
+              <Box>
+                <Typography variant="h6" fontWeight="bold">
+                  {t('domains.nameserverRecords')}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {t('domains.addNsRecordsInstruction')}
+                </Typography>
+              </Box>
               <Button
                 size="small"
-                onClick={copyAllRecords}
-                startIcon={copiedRecord === 'all' ? <CheckIcon /> : <CopyIcon />}
+                variant="outlined"
+                onClick={async () => {
+                  try {
+                    const { useGetNameserversQuery } = await import('@/store/api/integrationsApi')
+                    // This will be handled by the TokenSelectionModal
+                    toast(t('domains.nameserversAfterToken'), { icon: 'ℹ️' })
+                  } catch {
+                    toast.error(t('domains.failedToLoadNameservers'))
+                  }
+                }}
+                startIcon={<CopyIcon />}
               >
-                {copiedRecord === 'all' ? t('common.copied') : t('common.copyAll')}
+                {t('common.loadNameservers')}
               </Button>
             </Box>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              {t('domains.addNsRecordsInstruction')}
-            </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              {nsRecords.map((record, index) => (
-                <Box
-                  key={index}
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                    p: 1,
-                    bgcolor: 'grey.50',
-                    borderRadius: 1,
-                    fontFamily: 'monospace',
-                    fontSize: '0.875rem',
-                  }}
-                >
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="body2" component="span">
-                      {record.name}
-                    </Typography>
-                    <Typography variant="body2" component="span" sx={{ mx: 1 }}>
-                      {record.type}
-                    </Typography>
-                    <Typography variant="body2" component="span" sx={{ mx: 1 }}>
-                      {record.content}
-                    </Typography>
-                    <Typography variant="body2" component="span" color="text.secondary">
-                      TTL: {record.ttl}
-                    </Typography>
-                  </Box>
-                  <Tooltip title={copiedRecord === record.content ? t('common.copied') : t('common.copy')}>
-                    <IconButton
-                      size="small"
-                      onClick={() => handleCopyRecord(record.content)}
-                    >
-                      {copiedRecord === record.content ? <CheckIcon /> : <CopyIcon />}
-                    </IconButton>
-                  </Tooltip>
-                </Box>
-              ))}
-            </Box>
+            <Alert severity="info" sx={{ mb: 2 }}>
+              <Typography variant="body2">
+                Nameservers will be displayed in the token selection modal after you select a Cloudflare token.
+              </Typography>
+            </Alert>
           </CardContent>
         </Card>
       )}
@@ -208,16 +186,16 @@ const DomainSetupStep: React.FC<DomainSetupStepProps> = ({
           {t('domains.cloudflareTokenDescription')}
         </Typography>
 
-        {data.cloudflare_token_id ? (
+        {data.cloudflare_token ? (
           <Card sx={{ p: 2, bgcolor: 'success.50', border: '1px solid', borderColor: 'success.200' }}>
             <Box display="flex" alignItems="center" gap={1}>
               <CloudIcon color="success" />
               <Box>
                 <Typography variant="subtitle1">
-                  {data.cloudflare_token_name}
+                  {tokenName || `Token ${data.cloudflare_token}`}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {t('domains.tokenId')}: {data.cloudflare_token_id}
+                  {t('domains.tokenId')}: {data.cloudflare_token}
                 </Typography>
               </Box>
               <Button

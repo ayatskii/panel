@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import {
   Box,
   Typography,
@@ -42,6 +43,7 @@ import type { CloudflareToken } from '@/types'
 
 const CloudflareTokensPage = () => {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const { data: cloudflareTokens, isLoading } = useGetCloudflareTokensQuery()
   const { data: apiTokens } = useGetApiTokensQuery()
   const [createToken] = useCreateCloudflareTokenMutation()
@@ -92,31 +94,31 @@ const CloudflareTokensPage = () => {
   const handleSubmit = async () => {
     try {
       if (!formData.name || !formData.api_token) {
-        toast.error('Name and API Token are required')
+        toast.error(t('integrations.nameAndApiTokenRequired'))
         return
       }
 
       if (editingToken) {
         await updateToken({ id: editingToken.id, data: formData }).unwrap()
-        toast.success('Cloudflare token updated successfully')
+        toast.success(t('integrations.cloudflareTokenUpdated'))
       } else {
         await createToken(formData).unwrap()
-        toast.success('Cloudflare token created successfully')
+        toast.success(t('integrations.cloudflareTokenCreated'))
       }
       handleCloseDialog()
     } catch (error) {
       const apiError = error as { data?: { message?: string } }
-      toast.error(apiError.data?.message || 'Failed to save Cloudflare token')
+      toast.error(apiError.data?.message || t('integrations.cloudflareTokenSaveFailed'))
     }
   }
 
   const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this Cloudflare token?')) {
+    if (window.confirm(t('integrations.deleteCloudflareTokenConfirm'))) {
       try {
         await deleteToken(id).unwrap()
-        toast.success('Cloudflare token deleted successfully')
+        toast.success(t('integrations.cloudflareTokenDeleted'))
       } catch {
-        toast.error('Failed to delete Cloudflare token')
+        toast.error(t('integrations.cloudflareTokenDeleteFailed'))
       }
     }
   }
@@ -135,7 +137,7 @@ const CloudflareTokensPage = () => {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <CloudIcon sx={{ fontSize: 32, color: 'primary.main' }} />
           <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-            Cloudflare Tokens
+            {t('integrations.cloudflareTokens')}
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', gap: 2 }}>
@@ -143,14 +145,14 @@ const CloudflareTokensPage = () => {
             variant="outlined"
             onClick={() => navigate('/integrations/api-tokens')}
           >
-            Manage API Tokens
+            {t('integrations.manageApiTokens')}
           </Button>
           <Button
             variant="contained"
             startIcon={<AddIcon />}
             onClick={() => handleOpenDialog()}
           >
-            Add Cloudflare Token
+            {t('integrations.addCloudflareToken')}
           </Button>
         </Box>
       </Box>
@@ -158,14 +160,14 @@ const CloudflareTokensPage = () => {
       {cloudflareApiTokens.length === 0 && (
         <Paper sx={{ p: 3, mb: 3, bgcolor: 'warning.light' }}>
           <Typography variant="body1" sx={{ color: 'warning.dark' }}>
-            No active Cloudflare API tokens found. Please create an API token first.
+            {t('integrations.noActiveCloudflareTokens')}
           </Typography>
           <Button
             variant="contained"
             sx={{ mt: 2 }}
             onClick={() => navigate('/integrations/api-tokens')}
           >
-            Go to API Tokens
+            {t('integrations.goToApiTokens')}
           </Button>
         </Paper>
       )}
@@ -173,7 +175,7 @@ const CloudflareTokensPage = () => {
       {cloudflareTokens && cloudflareTokens.length === 0 ? (
         <Paper sx={{ p: 4, textAlign: 'center' }}>
           <Typography color="textSecondary" sx={{ mb: 2 }}>
-            No Cloudflare tokens configured yet
+            {t('integrations.noCloudflareTokensConfigured')}
           </Typography>
           <Button
             variant="contained"
@@ -181,7 +183,7 @@ const CloudflareTokensPage = () => {
             onClick={() => handleOpenDialog()}
             disabled={cloudflareApiTokens.length === 0}
           >
-            Add Your First Cloudflare Token
+            {t('integrations.addFirstCloudflareToken')}
           </Button>
         </Paper>
       ) : (
@@ -189,13 +191,13 @@ const CloudflareTokensPage = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell><strong>Name</strong></TableCell>
-                <TableCell><strong>API Token</strong></TableCell>
-                <TableCell><strong>Account ID</strong></TableCell>
-                <TableCell><strong>Zone ID</strong></TableCell>
-                <TableCell><strong>Project Name</strong></TableCell>
-                <TableCell><strong>Created</strong></TableCell>
-                <TableCell align="right"><strong>Actions</strong></TableCell>
+                <TableCell><strong>{t('settings.name')}</strong></TableCell>
+                <TableCell><strong>{t('settings.apiToken')}</strong></TableCell>
+                <TableCell><strong>{t('integrations.accountId')}</strong></TableCell>
+                <TableCell><strong>{t('integrations.zoneId')}</strong></TableCell>
+                <TableCell><strong>{t('integrations.pagesProjectName')}</strong></TableCell>
+                <TableCell><strong>{t('pages.created')}</strong></TableCell>
+                <TableCell align="right"><strong>{t('settings.actions')}</strong></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -233,28 +235,28 @@ const CloudflareTokensPage = () => {
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
         <DialogTitle>
-          {editingToken ? 'Edit Cloudflare Token' : 'Add Cloudflare Token'}
+          {editingToken ? t('integrations.editCloudflareToken') : t('integrations.addCloudflareToken')}
         </DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt: 2 }}>
             <TextField
-              label="Name"
+              label={t('settings.name')}
               fullWidth
               required
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              helperText="Friendly name for this configuration"
+              helperText={t('integrations.friendlyNameConfig')}
             />
 
             <FormControl fullWidth required>
-              <InputLabel>API Token</InputLabel>
+              <InputLabel>{t('settings.apiToken')}</InputLabel>
               <Select
                 value={formData.api_token}
                 onChange={(e) => setFormData({ ...formData, api_token: e.target.value as number })}
-                label="API Token"
+                label={t('settings.apiToken')}
               >
                 <MenuItem value={0} disabled>
-                  Select an API token
+                  {t('integrations.selectApiToken')}
                 </MenuItem>
                 {cloudflareApiTokens.map((token) => (
                   <MenuItem key={token.id} value={token.id}>
@@ -265,34 +267,34 @@ const CloudflareTokensPage = () => {
             </FormControl>
 
             <TextField
-              label="Account ID"
+              label={t('integrations.accountId')}
               fullWidth
               value={formData.account_id}
               onChange={(e) => setFormData({ ...formData, account_id: e.target.value })}
-              helperText="Your Cloudflare account ID"
+              helperText={t('integrations.accountIdHelper')}
             />
 
             <TextField
-              label="Zone ID"
+              label={t('integrations.zoneId')}
               fullWidth
               value={formData.zone_id}
               onChange={(e) => setFormData({ ...formData, zone_id: e.target.value })}
-              helperText="Cloudflare zone ID for DNS operations"
+              helperText={t('integrations.zoneIdHelper')}
             />
 
             <TextField
-              label="Pages Project Name"
+              label={t('integrations.pagesProjectName')}
               fullWidth
               value={formData.pages_project_name}
               onChange={(e) => setFormData({ ...formData, pages_project_name: e.target.value })}
-              helperText="Default Cloudflare Pages project name"
+              helperText={t('integrations.pagesProjectNameHelper')}
             />
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
+          <Button onClick={handleCloseDialog}>{t('common.cancel')}</Button>
           <Button onClick={handleSubmit} variant="contained">
-            {editingToken ? 'Update' : 'Create'}
+            {editingToken ? t('common.update') : t('common.create')}
           </Button>
         </DialogActions>
       </Dialog>

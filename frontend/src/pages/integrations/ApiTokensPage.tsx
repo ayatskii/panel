@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import {
   Box,
   Typography,
@@ -42,6 +43,7 @@ import type { ApiToken } from '@/types'
 
 const ApiTokensPage = () => {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const { data: apiTokens, isLoading } = useGetApiTokensQuery()
   const [createToken] = useCreateApiTokenMutation()
   const [updateToken] = useUpdateApiTokenMutation()
@@ -85,12 +87,12 @@ const ApiTokensPage = () => {
   const handleSubmit = async () => {
     try {
       if (!formData.name || !formData.service) {
-        toast.error('Name and Service are required')
+        toast.error(t('integrations.nameAndServiceRequired'))
         return
       }
 
       if (!editingToken && !formData.token_value) {
-        toast.error('Token value is required')
+        toast.error(t('integrations.tokenValueRequired'))
         return
       }
 
@@ -107,25 +109,25 @@ const ApiTokensPage = () => {
 
       if (editingToken) {
         await updateToken({ id: editingToken.id, data: dataToSend }).unwrap()
-        toast.success('API token updated successfully')
+        toast.success(t('integrations.apiTokenUpdated'))
       } else {
         await createToken(dataToSend).unwrap()
-        toast.success('API token created successfully')
+        toast.success(t('integrations.apiTokenCreated'))
       }
       handleCloseDialog()
     } catch (error) {
       const apiError = error as { data?: { message?: string } }
-      toast.error(apiError.data?.message || 'Failed to save API token')
+      toast.error(apiError.data?.message || t('integrations.apiTokenSaveFailed'))
     }
   }
 
   const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this API token?')) {
+    if (window.confirm(t('integrations.deleteApiTokenConfirm'))) {
       try {
         await deleteToken(id).unwrap()
-        toast.success('API token deleted successfully')
+        toast.success(t('integrations.apiTokenDeleted'))
       } catch {
-        toast.error('Failed to delete API token')
+        toast.error(t('integrations.apiTokenDeleteFailed'))
       }
     }
   }
@@ -144,7 +146,7 @@ const ApiTokensPage = () => {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <KeyIcon sx={{ fontSize: 32, color: 'primary.main' }} />
           <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-            API Tokens
+            {t('integrations.apiTokens')}
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', gap: 2 }}>
@@ -152,14 +154,14 @@ const ApiTokensPage = () => {
             variant="outlined"
             onClick={() => navigate('/integrations/cloudflare-tokens')}
           >
-            Cloudflare Tokens
+            {t('integrations.cloudflareTokens')}
           </Button>
           <Button
             variant="contained"
             startIcon={<AddIcon />}
             onClick={() => handleOpenDialog()}
           >
-            Add API Token
+            {t('integrations.addApiToken')}
           </Button>
         </Box>
       </Box>
@@ -167,14 +169,14 @@ const ApiTokensPage = () => {
       {apiTokens && apiTokens.length === 0 ? (
         <Paper sx={{ p: 4, textAlign: 'center' }}>
           <Typography color="textSecondary" sx={{ mb: 2 }}>
-            No API tokens configured yet
+            {t('integrations.noApiTokensConfigured')}
           </Typography>
           <Button
             variant="contained"
             startIcon={<AddIcon />}
             onClick={() => handleOpenDialog()}
           >
-            Add Your First API Token
+            {t('integrations.addFirstApiToken')}
           </Button>
         </Paper>
       ) : (
@@ -182,13 +184,13 @@ const ApiTokensPage = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell><strong>Name</strong></TableCell>
-                <TableCell><strong>Service</strong></TableCell>
-                <TableCell><strong>Token</strong></TableCell>
-                <TableCell><strong>Status</strong></TableCell>
-                <TableCell><strong>Usage</strong></TableCell>
-                <TableCell><strong>Last Used</strong></TableCell>
-                <TableCell align="right"><strong>Actions</strong></TableCell>
+                <TableCell><strong>{t('settings.name')}</strong></TableCell>
+                <TableCell><strong>{t('settings.service')}</strong></TableCell>
+                <TableCell><strong>{t('settings.token')}</strong></TableCell>
+                <TableCell><strong>{t('settings.status')}</strong></TableCell>
+                <TableCell><strong>{t('settings.usage')}</strong></TableCell>
+                <TableCell><strong>{t('settings.lastUsed')}</strong></TableCell>
+                <TableCell align="right"><strong>{t('settings.actions')}</strong></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -201,12 +203,12 @@ const ApiTokensPage = () => {
                   </TableCell>
                   <TableCell>
                     <Chip
-                      label={token.is_active ? 'Active' : 'Inactive'}
+                      label={token.is_active ? t('settings.active') : t('settings.inactive')}
                       color={token.is_active ? 'success' : 'default'}
                       size="small"
                     />
                   </TableCell>
-                  <TableCell>{token.usage_count} times</TableCell>
+                  <TableCell>{token.usage_count} {t('integrations.times')}</TableCell>
                   <TableCell>
                     {token.last_used ? formatDate(token.last_used, 'PPP') : t('integrations.never')}
                   </TableCell>
@@ -236,25 +238,25 @@ const ApiTokensPage = () => {
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
         <DialogTitle>
-          {editingToken ? 'Edit API Token' : 'Add API Token'}
+          {editingToken ? t('integrations.editApiToken') : t('integrations.addApiToken')}
         </DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt: 2 }}>
             <TextField
-              label="Name"
+              label={t('settings.name')}
               fullWidth
               required
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              helperText="Friendly name for this token"
+              helperText={t('integrations.friendlyName')}
             />
 
             <FormControl fullWidth required>
-              <InputLabel>Service</InputLabel>
+              <InputLabel>{t('settings.service')}</InputLabel>
               <Select
                 value={formData.service}
                 onChange={(e) => setFormData({ ...formData, service: e.target.value as ApiToken['service'] })}
-                label="Service"
+                label={t('settings.service')}
               >
                 <MenuItem value="cloudflare">Cloudflare</MenuItem>
                 <MenuItem value="chatgpt">ChatGPT</MenuItem>
@@ -267,32 +269,32 @@ const ApiTokensPage = () => {
             </FormControl>
 
             <TextField
-              label="Token Value"
+              label={t('integrations.tokenValue')}
               fullWidth
               required={!editingToken}
               type="password"
               value={formData.token_value}
               onChange={(e) => setFormData({ ...formData, token_value: e.target.value })}
-              helperText={editingToken ? 'Leave empty to keep existing token' : 'Your API token or key'}
+              helperText={editingToken ? t('integrations.tokenValueHelperEdit') : t('integrations.tokenValueHelper')}
             />
 
             <FormControl fullWidth>
-              <InputLabel>Status</InputLabel>
+              <InputLabel>{t('settings.status')}</InputLabel>
               <Select
                 value={formData.is_active ? 'active' : 'inactive'}
                 onChange={(e) => setFormData({ ...formData, is_active: e.target.value === 'active' })}
-                label="Status"
+                label={t('settings.status')}
               >
-                <MenuItem value="active">Active</MenuItem>
-                <MenuItem value="inactive">Inactive</MenuItem>
+                <MenuItem value="active">{t('settings.active')}</MenuItem>
+                <MenuItem value="inactive">{t('settings.inactive')}</MenuItem>
               </Select>
             </FormControl>
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
+          <Button onClick={handleCloseDialog}>{t('common.cancel')}</Button>
           <Button onClick={handleSubmit} variant="contained">
-            {editingToken ? 'Update' : 'Create'}
+            {editingToken ? t('common.update') : t('common.create')}
           </Button>
         </DialogActions>
       </Dialog>

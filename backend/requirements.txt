@@ -80,6 +80,7 @@ psutil==5.9.6
 python-decouple==3.8
 python-dateutil==2.8.2
 python-slugify==8.0.1
+html2text==2020.1.16
 
 # ============================================
 # TESTING (Optional)

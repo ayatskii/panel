@@ -184,6 +184,7 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'UTC'
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
 # Django Celery Beat
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
@@ -191,3 +192,23 @@ CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
 # Store results in Django database
 CELERY_RESULT_BACKEND = 'django-db'
 CELERY_CACHE_BACKEND = 'django-cache'
+
+# AI Provider Configuration
+# Options: 'auto', 'openrouter', 'openai', 'anthropic'
+# 'auto' will prefer OpenRouter if configured, otherwise fallback to OpenAI/Anthropic
+AI_PROVIDER = os.environ.get('AI_PROVIDER', 'auto')
+
+# OpenRouter Configuration
+OPENROUTER_API_KEY = os.environ.get('OPENROUTER_API_KEY', None)
+OPENROUTER_DEFAULT_MODEL = os.environ.get('OPENROUTER_DEFAULT_MODEL', 'openai/gpt-3.5-turbo')
+OPENROUTER_HTTP_REFERER = os.environ.get('OPENROUTER_HTTP_REFERER', None)
+OPENROUTER_APP_NAME = os.environ.get('OPENROUTER_APP_NAME', 'Panel CMS')
+
+# OpenAI Configuration (for direct API access)
+OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', None)
+
+# Anthropic Configuration (for direct API access)
+ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY', None)
+
+# Default AI Model (used when model is not specified)
+DEFAULT_AI_MODEL = os.environ.get('DEFAULT_AI_MODEL', 'gpt-3.5-turbo')

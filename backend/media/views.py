@@ -83,6 +83,127 @@ class MediaViewSet(viewsets.ModelViewSet):
         )
     
     @action(detail=False, methods=['post'])
+    def import_from_url(self, request):
+        """Import media file from URL"""
+        import requests
+        import mimetypes
+        from urllib.parse import urlparse
+        from django.core.files.base import ContentFile
+        
+        url = request.data.get('url', '').strip()
+        folder_id = request.data.get('folder')
+        name = request.data.get('name', '')
+        
+        if not url:
+            return Response(
+                {'error': 'URL is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Validate URL
+        try:
+            parsed_url = urlparse(url)
+            if not parsed_url.scheme or not parsed_url.netloc:
+                return Response(
+                    {'error': 'Invalid URL format'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        except Exception:
+            return Response(
+                {'error': 'Invalid URL format'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Get folder if provided
+        folder = None
+        if folder_id:
+            try:
+                folder = MediaFolder.objects.get(id=folder_id)
+            except MediaFolder.DoesNotExist:
+                return Response(
+                    {'error': 'Folder not found'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+        
+        try:
+            # Download file from URL
+            response = requests.get(url, timeout=30, stream=True)
+            response.raise_for_status()
+            
+            # Get filename from URL or Content-Disposition header
+            filename = name
+            if not filename:
+                content_disposition = response.headers.get('Content-Disposition', '')
+                if 'filename=' in content_disposition:
+                    filename = content_disposition.split('filename=')[1].strip('"\'')
+                else:
+                    filename = urlparse(url).path.split('/')[-1] or 'downloaded_file'
+            
+            # Get mime type
+            mime_type = response.headers.get('Content-Type', '').split(';')[0].strip()
+            if not mime_type or mime_type == 'application/octet-stream':
+                mime_type = mimetypes.guess_type(filename)[0] or 'application/octet-stream'
+            
+            # Read file content
+            file_content = response.content
+            file_size = len(file_content)
+            
+            # Create media instance
+            media = Media(
+                folder=folder,
+                uploaded_by=request.user,
+                filename=filename,
+                original_name=filename,
+                file_size=file_size,
+                mime_type=mime_type,
+            )
+            
+            # Save file
+            media.file.save(filename, ContentFile(file_content), save=False)
+            media.file_path = str(media.file.name)
+            media.save()
+            
+            # Process image if it's an image
+            if mime_type.startswith('image/'):
+                try:
+                    from PIL import Image
+                    img = Image.open(media.file.path)
+                    media.width, media.height = img.size
+                    
+                    # Generate optimized variants for non-SVG images
+                    if should_optimize(mime_type):
+                        with open(media.file.path, 'rb') as f:
+                            variants = generate_image_variants(f, media.original_name)
+                            
+                            if variants:
+                                media.thumbnail = variants.get('thumbnail')
+                                media.medium = variants.get('medium')
+                                media.large = variants.get('large')
+                                media.webp = variants.get('webp')
+                                media.is_optimized = True
+                except Exception as e:
+                    print(f"Error processing image: {e}")
+                    pass
+            
+            media.save(update_fields=['file_path', 'width', 'height', 'thumbnail', 'medium', 'large', 'webp', 'is_optimized'])
+            
+            return Response(
+                MediaSerializer(media, context={'request': request}).data,
+                status=status.HTTP_201_CREATED
+            )
+            
+        except requests.exceptions.RequestException as e:
+            return Response(
+                {'error': f'Failed to download file from URL: {str(e)}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to import file: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=False, methods=['post'])
     def bulk_upload(self, request):
         """Upload multiple files"""
         import mimetypes

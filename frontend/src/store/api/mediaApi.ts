@@ -47,6 +47,15 @@ export const mediaApi = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ['Media'],
     }),
+
+    importFromUrl: builder.mutation<Media, { url: string; folder?: number; name?: string }>({
+      query: (data) => ({
+        url: '/media/import_from_url/',
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['Media'],
+    }),
     
     updateMedia: builder.mutation<Media, { id: number; data: Partial<Media> }>({
       query: ({ id, data }) => ({
@@ -243,6 +252,7 @@ export const {
   useGetMediaItemQuery,
   useUploadMediaMutation,
   useBulkUploadMediaMutation,
+  useImportFromUrlMutation,
   useUpdateMediaMutation,
   useDeleteMediaMutation,
   useBulkDeleteMediaMutation,

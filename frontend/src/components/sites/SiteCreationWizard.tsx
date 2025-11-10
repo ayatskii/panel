@@ -18,6 +18,7 @@ import {
   ArrowBack as ArrowBackIcon,
   ArrowForward as ArrowForwardIcon,
 } from '@mui/icons-material'
+import { useTranslation } from 'react-i18next'
 import DomainSetupStep from './DomainSetupStep'
 import BasicConfigStep from './BasicConfigStep'
 import SEOSettingsStep from './SEOSettingsStep'
@@ -47,6 +48,7 @@ const SiteCreationWizard: React.FC<SiteCreationWizardProps> = ({
   onClose,
   onSiteCreated,
 }) => {
+  const { t } = useTranslation()
   const [activeStep, setActiveStep] = useState(0)
   const [isCreating, setIsCreating] = useState(false)
   const [formData, setFormData] = useState<Partial<SiteFormData>>({})
@@ -57,29 +59,29 @@ const SiteCreationWizard: React.FC<SiteCreationWizardProps> = ({
       id: 'domain',
       label: 'Domain & Token',
       component: DomainSetupStep,
-      validation: (data) => !!(data.domain && data.cloudflare_token_id),
+      validation: (data) => !!(data.domain && data.cloudflare_token),
     },
     {
       id: 'config',
-      label: 'Basic Configuration',
+      label: t('wizard.basicConfiguration'),
       component: BasicConfigStep,
       validation: (data) => !!(data.brand_name && data.language_code && data.template_id),
     },
     {
       id: 'seo',
-      label: 'SEO & Settings',
+      label: t('wizard.seoSettings'),
       component: SEOSettingsStep,
       validation: () => true, // Optional step
     },
     {
       id: 'media',
-      label: 'Media & Assets',
+      label: t('wizard.mediaAssets'),
       component: MediaAssetsStep,
       validation: () => true, // Optional step
     },
     {
       id: 'pages',
-      label: 'Page Structure',
+      label: t('wizard.pageStructure'),
       component: PageStructureStep,
       validation: (data) => !!(data.pages && data.pages.length > 0),
     },
@@ -212,10 +214,10 @@ const SiteCreationWizard: React.FC<SiteCreationWizardProps> = ({
           endIcon={isCreating ? <CircularProgress size={16} /> : <ArrowForwardIcon />}
         >
           {isCreating 
-            ? 'Creating Site...' 
+            ? t('wizard.creatingSite') 
             : isLastStep 
-              ? 'Create Site' 
-              : 'Next'
+              ? t('wizard.createSite') 
+              : t('wizard.next')
           }
         </Button>
       </DialogActions>

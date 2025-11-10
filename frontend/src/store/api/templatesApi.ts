@@ -109,6 +109,37 @@ export const templatesApi = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ['Template'],
     }),
+    
+    // CSS Class Lists Management
+    getClassLists: builder.query<Record<string, string[]>, void>({
+      query: () => '/templates/class_lists/',
+      transformResponse: (response: { class_lists: Record<string, string[]> }) => response.class_lists || {},
+      providesTags: ['ClassList'],
+    }),
+    createClassList: builder.mutation<{ message: string }, { name: string; classes: string[] }>({
+      query: (data) => ({
+        url: '/templates/create_class_list/',
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['ClassList'],
+    }),
+    updateClassList: builder.mutation<{ message: string }, { name: string; classes: string[] }>({
+      query: (data) => ({
+        url: '/templates/update_class_list/',
+        method: 'PUT',
+        body: data,
+      }),
+      invalidatesTags: ['ClassList'],
+    }),
+    deleteClassList: builder.mutation<{ message: string }, string>({
+      query: (name) => ({
+        url: '/templates/delete_class_list/',
+        method: 'DELETE',
+        params: { name },
+      }),
+      invalidatesTags: ['ClassList'],
+    }),
   }),
 })
 
@@ -126,4 +157,8 @@ export const {
   useGetVariablesQuery,
   useGenerateUniqueTemplateMutation,
   useGenerateCssClassListMutation,
+  useGetClassListsQuery,
+  useCreateClassListMutation,
+  useUpdateClassListMutation,
+  useDeleteClassListMutation,
 } = templatesApi
