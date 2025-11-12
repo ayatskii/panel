@@ -309,6 +309,25 @@ class SettingsService:
     
     def parse_languages_from_text(self, text: str) -> List[Dict[str, str]]:
         """Parse languages from text input (one per line)"""
+        # Common language code to name mapping
+        LANGUAGE_NAMES = {
+            'en': 'English',
+            'fr': 'French',
+            'de': 'German',
+            'es': 'Spanish',
+            'it': 'Italian',
+            'pt': 'Portuguese',
+            'ru': 'Russian',
+            'zh': 'Chinese',
+            'ja': 'Japanese',
+            'ko': 'Korean',
+            'ar': 'Arabic',
+            'hi': 'Hindi',
+            'nl': 'Dutch',
+            'pl': 'Polish',
+            'tr': 'Turkish',
+        }
+        
         languages = []
         lines = text.strip().split('\n')
         
@@ -327,8 +346,17 @@ class SettingsService:
                     if len(parts) == 2:
                         languages.append({'name': parts[1].strip(), 'code': parts[0].strip()})
                 else:
-                    # Assume it's just a language code
-                    languages.append({'name': line, 'code': line})
+                    # Assume it's just a language code - generate a readable name
+                    code = line
+                    # If it matches the language code pattern (e.g., en-EN), format it nicely
+                    if self._validate_language_code(code):
+                        # Extract language part and get name from mapping
+                        lang_part = code.split('-')[0].lower()
+                        name = LANGUAGE_NAMES.get(lang_part, f"Language ({lang_part.upper()})")
+                    else:
+                        # Use the code as-is for name if it doesn't match pattern
+                        name = code
+                    languages.append({'name': name, 'code': code})
         
         return languages
 
