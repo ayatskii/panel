@@ -221,7 +221,7 @@ const RealtimeAnalyticsDashboard: React.FC<RealtimeAnalyticsDashboardProps> = ({
 
       {/* Real-time Metrics */}
       <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -238,7 +238,7 @@ const RealtimeAnalyticsDashboard: React.FC<RealtimeAnalyticsDashboardProps> = ({
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -255,7 +255,7 @@ const RealtimeAnalyticsDashboard: React.FC<RealtimeAnalyticsDashboardProps> = ({
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -272,7 +272,7 @@ const RealtimeAnalyticsDashboard: React.FC<RealtimeAnalyticsDashboardProps> = ({
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -292,7 +292,7 @@ const RealtimeAnalyticsDashboard: React.FC<RealtimeAnalyticsDashboardProps> = ({
 
       <Grid container spacing={3}>
         {/* Live Visitors */}
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -350,7 +350,7 @@ const RealtimeAnalyticsDashboard: React.FC<RealtimeAnalyticsDashboardProps> = ({
         </Grid>
 
         {/* Real-time Alerts */}
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -384,7 +384,7 @@ const RealtimeAnalyticsDashboard: React.FC<RealtimeAnalyticsDashboardProps> = ({
         </Grid>
 
         {/* Top Pages (Real-time) */}
-        <Grid item xs={12}>
+        <Grid size={{ xs: 12 }}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>

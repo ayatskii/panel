@@ -46,7 +46,7 @@ const TokenSelectionModal: React.FC<TokenSelectionModalProps> = ({
   const [selectedTokenName, setSelectedTokenName] = useState<string>('')
 
   const { data: tokens, isLoading, error } = useGetAvailableCloudflareTokensQuery()
-  const { data: nameserversData, isLoading: isLoadingNS } = useGetNameserversQuery(
+  const { data: nameserversData } = useGetNameserversQuery(
     { domain: selectedDomain || '', token_id: selectedTokenId || 0 },
     { skip: !selectedDomain || !selectedTokenId }
   )
@@ -173,7 +173,7 @@ const TokenSelectionModal: React.FC<TokenSelectionModalProps> = ({
                         />
                         {token.sites && token.sites.length > 0 && (
                           <Box sx={{ mt: 0.5 }}>
-                            {token.sites.map((site: any) => (
+                            {token.sites.map((site: { id: number; domain?: string; brand_name?: string; deployed_at?: string }) => (
                               <Box
                                 key={site.id}
                                 sx={{

@@ -174,7 +174,7 @@ const LSIKeywordResearch = ({ pageContent = '', onAddKeywords }: LSIKeywordResea
           </Alert>
 
           <Grid container spacing={2} sx={{ mb: 3 }}>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 label="Primary Keyword"
                 value={primaryKeyword}
@@ -184,7 +184,7 @@ const LSIKeywordResearch = ({ pageContent = '', onAddKeywords }: LSIKeywordResea
                 helperText="The main keyword to research LSI variations for"
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 label="Industry/Niche"
                 value={industry}
@@ -194,7 +194,7 @@ const LSIKeywordResearch = ({ pageContent = '', onAddKeywords }: LSIKeywordResea
                 helperText="Help AI understand your industry context"
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 label="Target Audience"
                 value={targetAudience}
@@ -204,7 +204,7 @@ const LSIKeywordResearch = ({ pageContent = '', onAddKeywords }: LSIKeywordResea
                 helperText="Describe your target audience"
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 label="Max Keywords"
                 type="number"
@@ -286,13 +286,13 @@ const LSIKeywordResearch = ({ pageContent = '', onAddKeywords }: LSIKeywordResea
                           primary={
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                               <Typography variant="body1" fontWeight="bold">
-                                {keywordData.keyword}
+                                {String(keywordData.keyword ?? '')}
                               </Typography>
                               <Chip
-                                icon={getKeywordTypeIcon(keywordData.keyword_type)}
-                                label={keywordData.keyword_type.replace('_', ' ')}
+                                icon={getKeywordTypeIcon(String(keywordData.keyword_type ?? ''))}
+                                label={String(keywordData.keyword_type ?? '').replace('_', ' ')}
                                 size="small"
-                                color={getKeywordTypeColor(keywordData.keyword_type)}
+                                color={getKeywordTypeColor(String(keywordData.keyword_type ?? ''))}
                               />
                               {keywordData.recommended && (
                                 <Chip label="Recommended" size="small" color="success" />
@@ -304,32 +304,32 @@ const LSIKeywordResearch = ({ pageContent = '', onAddKeywords }: LSIKeywordResea
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                 <Typography variant="caption">Relevance:</Typography>
                                 <Chip
-                                  label={`${keywordData.relevance_score}%`}
+                                  label={`${String(keywordData.relevance_score ?? 0)}%`}
                                   size="small"
-                                  color={getRelevanceColor(keywordData.relevance_score)}
+                                  color={getRelevanceColor(Number(keywordData.relevance_score) || 0)}
                                 />
                               </Box>
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                 <Typography variant="caption">Difficulty:</Typography>
                                 <Chip
-                                  label={`${keywordData.difficulty_score}%`}
+                                  label={`${String(keywordData.difficulty_score ?? 0)}%`}
                                   size="small"
-                                  color={getDifficultyColor(keywordData.difficulty_score)}
+                                  color={getDifficultyColor(Number(keywordData.difficulty_score) || 0)}
                                 />
                               </Box>
                               <Typography variant="caption">
-                                Volume: {keywordData.search_volume_estimate}
+                                Volume: {String(keywordData.search_volume_estimate ?? 'N/A')}
                               </Typography>
                             </Box>
                           }
                         />
                         <ListItemSecondaryAction>
-                          <Tooltip title={selectedKeywords.includes(keywordData.keyword) ? 'Remove' : 'Select'}>
+                          <Tooltip title={selectedKeywords.includes(String(keywordData.keyword ?? '')) ? 'Remove' : 'Select'}>
                             <IconButton
-                              onClick={() => handleToggleKeyword(keywordData.keyword)}
-                              color={selectedKeywords.includes(keywordData.keyword) ? 'primary' : 'default'}
+                              onClick={() => handleToggleKeyword(String(keywordData.keyword ?? ''))}
+                              color={selectedKeywords.includes(String(keywordData.keyword ?? '')) ? 'primary' : 'default'}
                             >
-                              {selectedKeywords.includes(keywordData.keyword) ? <RemoveIcon /> : <AddIcon />}
+                              {selectedKeywords.includes(String(keywordData.keyword ?? '')) ? <RemoveIcon /> : <AddIcon />}
                             </IconButton>
                           </Tooltip>
                         </ListItemSecondaryAction>
@@ -378,8 +378,8 @@ const LSIKeywordResearch = ({ pageContent = '', onAddKeywords }: LSIKeywordResea
               
               <Alert severity="info" sx={{ mb: 2 }}>
                 <Typography variant="body2">
-                  Total words: {densityAnalysis.total_words} | 
-                  Overall density: {densityAnalysis.overall_density}%
+                  Total words: {String(densityAnalysis.total_words ?? 'N/A')} | 
+                  Overall density: {String(densityAnalysis.overall_density ?? 'N/A')}%
                 </Typography>
               </Alert>
 
@@ -390,12 +390,12 @@ const LSIKeywordResearch = ({ pageContent = '', onAddKeywords }: LSIKeywordResea
                       primary={
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                           <Typography variant="body1" fontWeight="bold">
-                            {analysis.keyword}
+                            {String(analysis.keyword ?? '')}
                           </Typography>
                           <Chip
-                            label={analysis.status}
+                            label={String(analysis.status ?? '')}
                             size="small"
-                            color={analysis.status === 'optimal' ? 'success' : analysis.status === 'low' ? 'warning' : 'error'}
+                            color={String(analysis.status) === 'optimal' ? 'success' : String(analysis.status) === 'low' ? 'warning' : 'error'}
                           />
                         </Box>
                       }
@@ -403,17 +403,17 @@ const LSIKeywordResearch = ({ pageContent = '', onAddKeywords }: LSIKeywordResea
                         <Box>
                           <Box sx={{ display: 'flex', gap: 2, mb: 1 }}>
                             <Typography variant="caption">
-                              Exact matches: {analysis.exact_matches}
+                              Exact matches: {String(analysis.exact_matches ?? 'N/A')}
                             </Typography>
                             <Typography variant="caption">
-                              Word matches: {analysis.word_matches}
+                              Word matches: {String(analysis.word_matches ?? 'N/A')}
                             </Typography>
                             <Typography variant="caption">
-                              Density: {analysis.exact_density}%
+                              Density: {String(analysis.exact_density ?? 'N/A')}%
                             </Typography>
                           </Box>
                           <Typography variant="body2" color="text.secondary">
-                            {analysis.recommendation}
+                            {String(analysis.recommendation ?? '')}
                           </Typography>
                         </Box>
                       }

@@ -252,7 +252,7 @@ const SchemaManager = ({ pageId, siteId }: SchemaManagerProps) => {
               </Typography>
               
               <Grid container spacing={2} sx={{ mb: 2 }}>
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Card>
                     <CardContent>
                       <Typography variant="subtitle2" gutterBottom>
@@ -271,7 +271,7 @@ const SchemaManager = ({ pageId, siteId }: SchemaManagerProps) => {
                     </CardContent>
                   </Card>
                 </Grid>
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Card>
                     <CardContent>
                       <Typography variant="subtitle2" gutterBottom>
@@ -330,7 +330,7 @@ const SchemaManager = ({ pageId, siteId }: SchemaManagerProps) => {
               </Typography>
               
               <Grid container spacing={2} sx={{ mb: 2 }}>
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <FormControl fullWidth>
                     <InputLabel>Schema Type</InputLabel>
                     <Select
@@ -346,7 +346,7 @@ const SchemaManager = ({ pageId, siteId }: SchemaManagerProps) => {
                     </Select>
                   </FormControl>
                 </Grid>
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <FormGroup>
                     <FormControlLabel
                       control={
@@ -504,7 +504,7 @@ const SchemaManager = ({ pageId, siteId }: SchemaManagerProps) => {
                   </Alert>
 
                   <Grid container spacing={2} sx={{ mb: 2 }}>
-                    <Grid item xs={12} md={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                       <Card>
                         <CardContent>
                           <Typography variant="subtitle2" gutterBottom>
@@ -528,7 +528,7 @@ const SchemaManager = ({ pageId, siteId }: SchemaManagerProps) => {
                         </CardContent>
                       </Card>
                     </Grid>
-                    <Grid item xs={12} md={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                       <Card>
                         <CardContent>
                           <Typography variant="subtitle2" gutterBottom>

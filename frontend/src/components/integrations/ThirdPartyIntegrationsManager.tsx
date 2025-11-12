@@ -305,7 +305,7 @@ const ThirdPartyIntegrationsManager = ({ pageId, siteId, siteDomain }: ThirdPart
           {platforms.map((platform) => {
             const status = integrationsStatus.integrations[platform.id]?.status || 'unknown'
             return (
-              <Grid item xs={12} sm={6} md={3} key={platform.id}>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }} key={platform.id}>
                 <Card>
                   <CardContent>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>

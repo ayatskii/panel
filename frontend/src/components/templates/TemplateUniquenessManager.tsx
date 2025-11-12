@@ -132,7 +132,7 @@ const TemplateUniquenessManager: React.FC<TemplateUniquenessManagerProps> = ({
 
           <Grid container spacing={2}>
             {/* Template Uniqueness */}
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Card variant="outlined">
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
@@ -167,7 +167,7 @@ const TemplateUniquenessManager: React.FC<TemplateUniquenessManagerProps> = ({
             </Grid>
 
             {/* CSS Class Lists */}
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Card variant="outlined">
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
@@ -229,7 +229,7 @@ const TemplateUniquenessManager: React.FC<TemplateUniquenessManagerProps> = ({
                   </Box>
 
                   <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6}>
+                    <Grid size={{ xs: 12, sm: 6 }}>
                       <Typography variant="body2" color="text.secondary">
                         Unique Classes Generated
                       </Typography>
@@ -237,7 +237,7 @@ const TemplateUniquenessManager: React.FC<TemplateUniquenessManagerProps> = ({
                         {uniqueResult.total_classes}
                       </Typography>
                     </Grid>
-                    <Grid item xs={12} sm={6}>
+                    <Grid size={{ xs: 12, sm: 6 }}>
                       <Typography variant="body2" color="text.secondary">
                         Unique Styles Generated
                       </Typography>

@@ -4,8 +4,6 @@ import {
   Box,
   Typography,
   Paper,
-  TextField,
-  Button,
   CircularProgress,
   Card,
   CardContent,
@@ -35,12 +33,9 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js'
-import { formatDate } from '@/utils/formatDate'
 import {
-  useGetSiteAnalyticsQuery,
   useGetAnalyticsOverviewQuery,
   useGetTopPagesQuery,
-  useGetTrafficSummaryQuery,
 } from '@/store/api/analyticsApi'
 import { useGetSitesQuery } from '@/store/api/sitesApi'
 import RealtimeAnalyticsDashboard from '@/components/analytics/RealtimeAnalyticsDashboard'
@@ -88,10 +83,6 @@ const AnalyticsDashboardPage = () => {
   )
   const { data: topPages, isLoading: topPagesLoading } = useGetTopPagesQuery(
     { site_id: siteId, period_days: periodDays, limit: 10 },
-    { skip: !siteId }
-  )
-  const { data: trafficSummary, isLoading: trafficLoading } = useGetTrafficSummaryQuery(
-    { site_id: siteId, period_days: periodDays },
     { skip: !siteId }
   )
 
@@ -152,7 +143,7 @@ const AnalyticsDashboardPage = () => {
           ) : analyticsOverview ? (
             <>
               <Grid container spacing={3} sx={{ mb: 3 }}>
-                <Grid item xs={12} sm={6} md={3}>
+                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                   <Card>
                     <CardContent>
                       <Typography color="text.secondary" variant="body2" gutterBottom>
@@ -164,7 +155,7 @@ const AnalyticsDashboardPage = () => {
                     </CardContent>
                   </Card>
                 </Grid>
-                <Grid item xs={12} sm={6} md={3}>
+                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                   <Card>
                     <CardContent>
                       <Typography color="text.secondary" variant="body2" gutterBottom>
@@ -176,7 +167,7 @@ const AnalyticsDashboardPage = () => {
                     </CardContent>
                   </Card>
                 </Grid>
-                <Grid item xs={12} sm={6} md={3}>
+                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                   <Card>
                     <CardContent>
                       <Typography color="text.secondary" variant="body2" gutterBottom>
@@ -188,7 +179,7 @@ const AnalyticsDashboardPage = () => {
                     </CardContent>
                   </Card>
                 </Grid>
-                <Grid item xs={12} sm={6} md={3}>
+                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                   <Card>
                     <CardContent>
                       <Typography color="text.secondary" variant="body2" gutterBottom>

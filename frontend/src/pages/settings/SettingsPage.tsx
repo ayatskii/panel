@@ -41,11 +41,9 @@ import {
   Delete as DeleteIcon,
   Edit as EditIcon,
   Add as AddIcon,
-  ContentCopy as CopyIcon,
   ViewCarousel as SwiperIcon,
   VpnKey as ApiTokenIcon,
   CheckCircle as CheckIcon,
-  Cancel as CancelIcon,
   Style as StyleIcon,
 } from '@mui/icons-material'
 import { useGetCurrentUserQuery } from '@/store/api/authApi'
@@ -80,7 +78,7 @@ import SwiperPresetManager from '@/components/pages/SwiperPresetManager'
 import toast from 'react-hot-toast'
 import { formatDate } from '@/utils/formatDate'
 import { useTranslation } from 'react-i18next'
-import type { Language, AffiliateLink, ApiToken } from '@/types'
+import type { AffiliateLink, ApiToken } from '@/types'
 import type { AIPrompt } from '@/types'
 
 interface TabPanelProps {
@@ -1267,8 +1265,9 @@ const SettingsPage = () => {
                 }
                 setApiTokenDialogOpen(false)
                 refetchApiTokens()
-              } catch (error: any) {
-                toast.error(error?.data?.detail || error?.data?.error || t('settings.tokenSaveFailed'))
+              } catch (error: unknown) {
+                const errorData = error as { data?: { detail?: string; error?: string } }
+                toast.error(errorData?.data?.detail || errorData?.data?.error || t('settings.tokenSaveFailed'))
               }
             }}
             disabled={!apiTokenForm.name || (!apiTokenForm.token_value && !editingApiToken)}
@@ -1561,10 +1560,11 @@ const SettingsPage = () => {
                                     await deleteClassList(name).unwrap()
                                     toast.success(t('settings.classListDeleted'))
                                     refetchClassLists()
-                                  } catch (error: any) {
+                                  } catch (error: unknown) {
+                                    const errorData = error as { data?: { error?: string; detail?: string } }
                                     toast.error(
-                                      error?.data?.error ||
-                                      error?.data?.detail ||
+                                      errorData?.data?.error ||
+                                      errorData?.data?.detail ||
                                       t('settings.classListDeleteFailed')
                                     )
                                   }
@@ -1668,8 +1668,9 @@ const SettingsPage = () => {
                 }
                 setClassListDialogOpen(false)
                 refetchClassLists()
-              } catch (error: any) {
-                toast.error(error?.data?.error || error?.data?.detail || t('settings.classListSaveFailed'))
+              } catch (error: unknown) {
+                const errorData = error as { data?: { error?: string; detail?: string } }
+                toast.error(errorData?.data?.error || errorData?.data?.detail || t('settings.classListSaveFailed'))
               }
             }}
             disabled={

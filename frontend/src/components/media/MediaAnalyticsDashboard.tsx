@@ -73,7 +73,7 @@ const MediaAnalyticsDashboard = () => {
       {/* Summary Cards */}
       <Grid container spacing={3} sx={{ mb: 3 }}>
         {/* Total Files */}
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -88,7 +88,7 @@ const MediaAnalyticsDashboard = () => {
         </Grid>
 
         {/* Total Storage */}
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -107,7 +107,7 @@ const MediaAnalyticsDashboard = () => {
         </Grid>
 
         {/* Average File Size */}
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -124,7 +124,7 @@ const MediaAnalyticsDashboard = () => {
         </Grid>
 
         {/* Optimized Images */}
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -178,7 +178,7 @@ const MediaAnalyticsDashboard = () => {
 
       <Grid container spacing={3}>
         {/* Storage by Folder */}
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Card>
             <CardContent>
               <Typography variant="h6" sx={{ mb: 2 }}>
@@ -216,7 +216,7 @@ const MediaAnalyticsDashboard = () => {
         </Grid>
 
         {/* Largest Files */}
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Card>
             <CardContent>
               <Typography variant="h6" sx={{ mb: 2 }}>

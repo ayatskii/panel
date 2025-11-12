@@ -46,7 +46,6 @@ import {
   Analytics as AnalyticsIcon2,
   Search as SearchIcon,
   MoreVert as MoreVertIcon,
-  FilterList as FilterIcon,
 } from '@mui/icons-material'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -57,7 +56,7 @@ import { useGetDeploymentsQuery } from '@/store/api/deploymentsApi'
 import { useGetAnalyticsOverviewQuery, useGetTopPagesQuery } from '@/store/api/analyticsApi'
 import { formatDistanceToNow } from 'date-fns'
 import toast from 'react-hot-toast'
-import { Line, Bar, Doughnut } from 'react-chartjs-2'
+import { Line } from 'react-chartjs-2'
 import {
   Chart as ChartJS,
   CategoryScale,

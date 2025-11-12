@@ -225,7 +225,7 @@ const AdvancedAnalyticsDashboard = ({ siteId, siteDomain }: AdvancedAnalyticsDas
       {/* Real-time Stats */}
       {realTimeData && (
         <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid item xs={12} md={3}>
+          <Grid size={{ xs: 12, md: 3 }}>
             <Card>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
@@ -241,7 +241,7 @@ const AdvancedAnalyticsDashboard = ({ siteId, siteDomain }: AdvancedAnalyticsDas
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} md={3}>
+          <Grid size={{ xs: 12, md: 3 }}>
             <Card>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
@@ -257,7 +257,7 @@ const AdvancedAnalyticsDashboard = ({ siteId, siteDomain }: AdvancedAnalyticsDas
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} md={3}>
+          <Grid size={{ xs: 12, md: 3 }}>
             <Card>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
@@ -273,7 +273,7 @@ const AdvancedAnalyticsDashboard = ({ siteId, siteDomain }: AdvancedAnalyticsDas
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} md={3}>
+          <Grid size={{ xs: 12, md: 3 }}>
             <Card>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
@@ -295,7 +295,7 @@ const AdvancedAnalyticsDashboard = ({ siteId, siteDomain }: AdvancedAnalyticsDas
       {/* Growth Indicators */}
       {trafficSummary && (
         <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Card>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
@@ -311,7 +311,7 @@ const AdvancedAnalyticsDashboard = ({ siteId, siteDomain }: AdvancedAnalyticsDas
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Card>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
@@ -344,7 +344,7 @@ const AdvancedAnalyticsDashboard = ({ siteId, siteDomain }: AdvancedAnalyticsDas
       <TabPanel value={tabValue} index={0}>
         <Grid container spacing={3}>
           {/* Daily Traffic Chart */}
-          <Grid item xs={12} md={8}>
+          <Grid size={{ xs: 12, md: 8 }}>
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
@@ -366,7 +366,7 @@ const AdvancedAnalyticsDashboard = ({ siteId, siteDomain }: AdvancedAnalyticsDas
           </Grid>
 
           {/* Top Pages */}
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
@@ -390,7 +390,7 @@ const AdvancedAnalyticsDashboard = ({ siteId, siteDomain }: AdvancedAnalyticsDas
           </Grid>
 
           {/* Device Types */}
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
@@ -424,7 +424,7 @@ const AdvancedAnalyticsDashboard = ({ siteId, siteDomain }: AdvancedAnalyticsDas
           </Grid>
 
           {/* Geographic Distribution */}
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
@@ -453,7 +453,7 @@ const AdvancedAnalyticsDashboard = ({ siteId, siteDomain }: AdvancedAnalyticsDas
       <TabPanel value={tabValue} index={1}>
         <Grid container spacing={3}>
           {/* Most Viewed Content */}
-          <Grid item xs={12} md={8}>
+          <Grid size={{ xs: 12, md: 8 }}>
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
@@ -473,7 +473,7 @@ const AdvancedAnalyticsDashboard = ({ siteId, siteDomain }: AdvancedAnalyticsDas
           </Grid>
 
           {/* Content Metrics */}
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
@@ -529,7 +529,7 @@ const AdvancedAnalyticsDashboard = ({ siteId, siteDomain }: AdvancedAnalyticsDas
       <TabPanel value={tabValue} index={2}>
         <Grid container spacing={3}>
           {/* Performance Metrics */}
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
@@ -568,7 +568,7 @@ const AdvancedAnalyticsDashboard = ({ siteId, siteDomain }: AdvancedAnalyticsDas
           </Grid>
 
           {/* SEO Metrics */}
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
@@ -623,14 +623,14 @@ const AdvancedAnalyticsDashboard = ({ siteId, siteDomain }: AdvancedAnalyticsDas
       <TabPanel value={tabValue} index={3}>
         <Grid container spacing={3}>
           {/* SEO Overview */}
-          <Grid item xs={12} md={8}>
+          <Grid size={{ xs: 12, md: 8 }}>
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
                   SEO Overview
                 </Typography>
                 <Grid container spacing={2}>
-                  <Grid item xs={6} md={3}>
+                  <Grid size={{ xs: 6, md: 3 }}>
                     <Box sx={{ textAlign: 'center' }}>
                       <Typography variant="h4" color="primary">
                         {overviewData.seo_metrics.seo_completeness.pages_with_title}
@@ -640,7 +640,7 @@ const AdvancedAnalyticsDashboard = ({ siteId, siteDomain }: AdvancedAnalyticsDas
                       </Typography>
                     </Box>
                   </Grid>
-                  <Grid item xs={6} md={3}>
+                  <Grid size={{ xs: 6, md: 3 }}>
                     <Box sx={{ textAlign: 'center' }}>
                       <Typography variant="h4" color="primary">
                         {overviewData.seo_metrics.seo_completeness.pages_with_meta_description}
@@ -650,7 +650,7 @@ const AdvancedAnalyticsDashboard = ({ siteId, siteDomain }: AdvancedAnalyticsDas
                       </Typography>
                     </Box>
                   </Grid>
-                  <Grid item xs={6} md={3}>
+                  <Grid size={{ xs: 6, md: 3 }}>
                     <Box sx={{ textAlign: 'center' }}>
                       <Typography variant="h4" color="primary">
                         {overviewData.seo_metrics.seo_completeness.pages_with_h1}
@@ -660,7 +660,7 @@ const AdvancedAnalyticsDashboard = ({ siteId, siteDomain }: AdvancedAnalyticsDas
                       </Typography>
                     </Box>
                   </Grid>
-                  <Grid item xs={6} md={3}>
+                  <Grid size={{ xs: 6, md: 3 }}>
                     <Box sx={{ textAlign: 'center' }}>
                       <Typography variant="h4" color="primary">
                         {overviewData.seo_metrics.seo_completeness.pages_with_keywords}
@@ -676,7 +676,7 @@ const AdvancedAnalyticsDashboard = ({ siteId, siteDomain }: AdvancedAnalyticsDas
           </Grid>
 
           {/* Content Analysis */}
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>

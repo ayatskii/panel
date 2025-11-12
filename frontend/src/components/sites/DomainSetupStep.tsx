@@ -7,14 +7,11 @@ import {
   Alert,
   Card,
   CardContent,
-  IconButton,
-  Tooltip,
 } from '@mui/material'
 import {
   Domain as DomainIcon,
   Cloud as CloudIcon,
   ContentCopy as CopyIcon,
-  Check as CheckIcon,
   Refresh as RefreshIcon,
 } from '@mui/icons-material'
 import TokenSelectionModal from './TokenSelectionModal'
@@ -28,13 +25,6 @@ interface DomainSetupStepProps {
   errors: Record<string, string>
 }
 
-interface NSRecord {
-  name: string
-  type: string
-  content: string
-  ttl: number
-}
-
 const DomainSetupStep: React.FC<DomainSetupStepProps> = ({
   data,
   onChange,
@@ -42,10 +32,8 @@ const DomainSetupStep: React.FC<DomainSetupStepProps> = ({
 }) => {
   const { t } = useTranslation()
   const [tokenModalOpen, setTokenModalOpen] = useState(false)
-  const [nsRecords, setNsRecords] = useState<NSRecord[]>([])
   const [isValidatingDomain, setIsValidatingDomain] = useState(false)
   const [domainValidationError, setDomainValidationError] = useState<string>('')
-  const [copiedRecord, setCopiedRecord] = useState<string | null>(null)
   const [tokenName, setTokenName] = useState<string>('')
 
   const handleDomainChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -63,14 +51,10 @@ const DomainSetupStep: React.FC<DomainSetupStepProps> = ({
     try {
       // TODO: Implement domain validation API call
       // This would check if domain is available and get NS records
+      // Nameservers are now displayed in the TokenSelectionModal
       
       // Mock implementation for now
       setTimeout(() => {
-        const mockNsRecords: NSRecord[] = [
-          { name: 'ns1.cloudflare.com', type: 'NS', content: 'ns1.cloudflare.com', ttl: 3600 },
-          { name: 'ns2.cloudflare.com', type: 'NS', content: 'ns2.cloudflare.com', ttl: 3600 },
-        ]
-        setNsRecords(mockNsRecords)
         setIsValidatingDomain(false)
       }, 1500)
     } catch {
@@ -84,21 +68,6 @@ const DomainSetupStep: React.FC<DomainSetupStepProps> = ({
     onChange({ 
       cloudflare_token: tokenId
     })
-  }
-
-  const handleCopyRecord = (record: string) => {
-    navigator.clipboard.writeText(record)
-    setCopiedRecord(record)
-    setTimeout(() => setCopiedRecord(null), 2000)
-  }
-
-  const copyAllRecords = () => {
-    const allRecords = nsRecords.map(record => 
-      `${record.name}\t${record.type}\t${record.content}\t${record.ttl}`
-    ).join('\n')
-    navigator.clipboard.writeText(allRecords)
-    setCopiedRecord('all')
-    setTimeout(() => setCopiedRecord(null), 2000)
   }
 
   return (
@@ -155,14 +124,9 @@ const DomainSetupStep: React.FC<DomainSetupStepProps> = ({
               <Button
                 size="small"
                 variant="outlined"
-                onClick={async () => {
-                  try {
-                    const { useGetNameserversQuery } = await import('@/store/api/integrationsApi')
-                    // This will be handled by the TokenSelectionModal
-                    toast(t('domains.nameserversAfterToken'), { icon: 'ℹ️' })
-                  } catch {
-                    toast.error(t('domains.failedToLoadNameservers'))
-                  }
+                onClick={() => {
+                  // Nameservers will be displayed in the TokenSelectionModal
+                  toast(t('domains.nameserversAfterToken'), { icon: 'ℹ️' })
                 }}
                 startIcon={<CopyIcon />}
               >

@@ -245,7 +245,7 @@ const SitemapManager = ({ siteId, siteDomain }: SitemapManagerProps) => {
           {/* Statistics */}
           {statsData && (
             <Grid container spacing={2} sx={{ mb: 3 }}>
-              <Grid item xs={12} md={3}>
+              <Grid size={{ xs: 12, md: 3 }}>
                 <Card>
                   <CardContent>
                     <Typography variant="subtitle2" gutterBottom>
@@ -260,7 +260,7 @@ const SitemapManager = ({ siteId, siteDomain }: SitemapManagerProps) => {
                   </CardContent>
                 </Card>
               </Grid>
-              <Grid item xs={12} md={3}>
+              <Grid size={{ xs: 12, md: 3 }}>
                 <Card>
                   <CardContent>
                     <Typography variant="subtitle2" gutterBottom>
@@ -275,7 +275,7 @@ const SitemapManager = ({ siteId, siteDomain }: SitemapManagerProps) => {
                   </CardContent>
                 </Card>
               </Grid>
-              <Grid item xs={12} md={3}>
+              <Grid size={{ xs: 12, md: 3 }}>
                 <Card>
                   <CardContent>
                     <Typography variant="subtitle2" gutterBottom>
@@ -290,7 +290,7 @@ const SitemapManager = ({ siteId, siteDomain }: SitemapManagerProps) => {
                   </CardContent>
                 </Card>
               </Grid>
-              <Grid item xs={12} md={3}>
+              <Grid size={{ xs: 12, md: 3 }}>
                 <Card>
                   <CardContent>
                     <Typography variant="subtitle2" gutterBottom>
@@ -534,7 +534,7 @@ const SitemapManager = ({ siteId, siteDomain }: SitemapManagerProps) => {
                   </Alert>
 
                   <Grid container spacing={2} sx={{ mb: 2 }}>
-                    <Grid item xs={12} md={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                       <Card>
                         <CardContent>
                           <Typography variant="subtitle2" gutterBottom>
@@ -558,7 +558,7 @@ const SitemapManager = ({ siteId, siteDomain }: SitemapManagerProps) => {
                         </CardContent>
                       </Card>
                     </Grid>
-                    <Grid item xs={12} md={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                       <Card>
                         <CardContent>
                           <Typography variant="subtitle2" gutterBottom>

@@ -19,7 +19,6 @@ import {
   Tab,
   Chip,
   IconButton,
-  Tooltip,
   Alert,
   Grid,
   Divider,
@@ -249,7 +248,7 @@ const PromptFormPage = () => {
       // Replace variables in prompt text for testing
       let testPromptText = formData.prompt_text || ''
       Object.entries(testVariables).forEach(([key, value]) => {
-        testPromptText = testPromptText.replace(new RegExp(`\\{${key}\\}`, 'g'), value)
+        testPromptText = testPromptText.replace(new RegExp(`\\{${key}\\}`, 'g'), String(value ?? ''))
       })
 
       if (isEdit && id) {
@@ -300,7 +299,7 @@ const PromptFormPage = () => {
   const previewPrompt = () => {
     let preview = formData.prompt_text || ''
     Object.entries(testVariables).forEach(([key, value]) => {
-      preview = preview.replace(new RegExp(`\\{${key}\\}`, 'g'), value)
+      preview = preview.replace(new RegExp(`\\{${key}\\}`, 'g'), String(value ?? ''))
     })
     return preview
   }
@@ -333,7 +332,7 @@ const PromptFormPage = () => {
           </Typography>
 
           <Grid container spacing={3}>
-            <Grid item xs={12} md={8}>
+            <Grid size={{ xs: 12, md: 8 }}>
               <TextField
                 label="Name"
                 name="name"
@@ -345,7 +344,7 @@ const PromptFormPage = () => {
               />
             </Grid>
 
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <FormControl fullWidth required>
                 <InputLabel>Type</InputLabel>
                 <Select
@@ -359,7 +358,7 @@ const PromptFormPage = () => {
               </FormControl>
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <TextField
                 label="Description"
                 name="description"
@@ -372,7 +371,7 @@ const PromptFormPage = () => {
               />
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <FormControl fullWidth>
                 <InputLabel>Block Type</InputLabel>
                 <Select
@@ -391,7 +390,7 @@ const PromptFormPage = () => {
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <FormControlLabel
                 control={
                   <Switch checked={formData.is_active} onChange={handleSwitchChange} />
@@ -449,7 +448,7 @@ const PromptFormPage = () => {
             </Alert>
             <Grid container spacing={2}>
               {VARIABLE_PLACEHOLDERS.map((variable) => (
-                <Grid item xs={12} sm={6} md={4} key={variable.name}>
+                <Grid size={{ xs: 12, sm: 6, md: 4 }} key={variable.name}>
                   <Paper
                     sx={{
                       p: 2,
@@ -490,7 +489,7 @@ const PromptFormPage = () => {
             </Alert>
             <Grid container spacing={2}>
               {PROMPT_TEMPLATES.map((template) => (
-                <Grid item xs={12} md={6} key={template.name}>
+                <Grid size={{ xs: 12, md: 6 }} key={template.name}>
                   <Paper
                     sx={{
                       p: 2,
@@ -539,7 +538,7 @@ const PromptFormPage = () => {
 
               <Grid container spacing={2}>
                 {Object.entries(testVariables).map(([key, value]) => (
-                  <Grid item xs={12} sm={6} md={4} key={key}>
+                  <Grid size={{ xs: 12, sm: 6, md: 4 }} key={key}>
                     <TextField
                       label={`{${key}}`}
                       fullWidth
@@ -576,7 +575,7 @@ const PromptFormPage = () => {
           </Typography>
 
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <FormControl fullWidth required>
                 <InputLabel>AI Model</InputLabel>
                 <Select
@@ -601,7 +600,7 @@ const PromptFormPage = () => {
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                   <Typography>Max Tokens</Typography>
@@ -632,7 +631,7 @@ const PromptFormPage = () => {
               </Box>
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                   <Typography>Temperature: {formData.temperature}</Typography>

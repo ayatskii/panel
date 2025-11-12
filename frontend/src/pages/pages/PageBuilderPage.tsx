@@ -469,7 +469,7 @@ const PageBuilderPage = () => {
           open={generateModalOpen}
           onClose={() => setGenerateModalOpen(false)}
           pageId={page.id}
-          onContentGenerated={(result) => {
+          onContentGenerated={() => {
             toast.success('Content generated successfully')
             setGenerateModalOpen(false)
             // Refresh blocks

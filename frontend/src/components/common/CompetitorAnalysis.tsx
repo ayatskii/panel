@@ -231,7 +231,7 @@ const CompetitorAnalysis = ({ targetKeywords = [], onInsightsGenerated }: Compet
               </Typography>
 
               <Grid container spacing={2} sx={{ mb: 2 }}>
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                   <Card>
                     <CardContent>
                       <Typography variant="subtitle2" gutterBottom>
@@ -261,7 +261,7 @@ const CompetitorAnalysis = ({ targetKeywords = [], onInsightsGenerated }: Compet
                   </Card>
                 </Grid>
 
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                   <Card>
                     <CardContent>
                       <Typography variant="subtitle2" gutterBottom>
@@ -280,7 +280,7 @@ const CompetitorAnalysis = ({ targetKeywords = [], onInsightsGenerated }: Compet
                   </Card>
                 </Grid>
 
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                   <Card>
                     <CardContent>
                       <Typography variant="subtitle2" gutterBottom>
@@ -308,7 +308,7 @@ const CompetitorAnalysis = ({ targetKeywords = [], onInsightsGenerated }: Compet
                 <AccordionDetails>
                   <Grid container spacing={2}>
                     {/* Meta Analysis */}
-                    <Grid item xs={12} md={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                       <Card variant="outlined">
                         <CardContent>
                           <Typography variant="subtitle2" gutterBottom>
@@ -340,7 +340,7 @@ const CompetitorAnalysis = ({ targetKeywords = [], onInsightsGenerated }: Compet
                     </Grid>
 
                     {/* Keyword Analysis */}
-                    <Grid item xs={12} md={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                       <Card variant="outlined">
                         <CardContent>
                           <Typography variant="subtitle2" gutterBottom>

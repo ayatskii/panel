@@ -161,7 +161,7 @@ const EnhancedContentGenerationModal: React.FC<EnhancedContentGenerationModalPro
           </Typography>
           <Grid container spacing={2}>
             {Object.entries(blockTypes).map(([blockType, config]) => (
-              <Grid item xs={12} sm={6} md={4} key={blockType}>
+              <Grid size={{ xs: 12, sm: 6, md: 4 }} key={blockType}>
                 <Card
                   sx={{
                     cursor: 'pointer',

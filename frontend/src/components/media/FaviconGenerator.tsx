@@ -172,7 +172,7 @@ const FaviconGenerator: React.FC<FaviconGeneratorProps> = ({
 
                   <Grid container spacing={2}>
                     {Object.entries(generationResult.generated_files).map(([key, file]) => (
-                      <Grid item xs={12} sm={6} md={4} key={key}>
+                      <Grid size={{ xs: 12, sm: 6, md: 4 }} key={key}>
                         <Card variant="outlined">
                           <CardContent>
                             <Box display="flex" alignItems="center" gap={1} mb={1}>

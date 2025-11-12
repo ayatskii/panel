@@ -82,7 +82,7 @@ const MediaAssetsStep: React.FC<MediaAssetsStepProps> = ({
 
       <Grid container spacing={3}>
         {/* Favicon */}
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Card>
             <CardContent>
               <Box display="flex" alignItems="center" gap={1} mb={2}>
@@ -160,7 +160,7 @@ const MediaAssetsStep: React.FC<MediaAssetsStepProps> = ({
         </Grid>
 
         {/* Logo */}
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Card>
             <CardContent>
               <Box display="flex" alignItems="center" gap={1} mb={2}>
@@ -228,7 +228,7 @@ const MediaAssetsStep: React.FC<MediaAssetsStepProps> = ({
         </Grid>
 
         {/* Footer Image */}
-        <Grid item xs={12}>
+        <Grid size={{ xs: 12 }}>
           <Card>
             <CardContent>
               <Box display="flex" alignItems="center" gap={1} mb={2}>
