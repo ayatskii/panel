@@ -816,24 +816,6 @@ const DashboardPage = () => {
           </Typography>
           
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Button
-              variant="contained"
-              size="large"
-              startIcon={<AddIcon />}
-              onClick={() => navigate('/sites/create')}
-              sx={{
-                bgcolor: 'rgba(255, 255, 255, 0.2)',
-                color: '#ffffff',
-                backdropFilter: 'blur(10px)',
-                '&:hover': {
-                  bgcolor: 'rgba(255, 255, 255, 0.3)',
-                },
-                fontWeight: 600,
-                py: 1.5,
-              }}
-            >
-              {t('dashboard.createNewSite')}
-            </Button>
             
             <Button
               variant="contained"
@@ -892,24 +874,6 @@ const DashboardPage = () => {
               {t('dashboard.uploadMedia')}
             </Button>
 
-            <Box sx={{ mt: 2, p: 2, bgcolor: 'rgba(255, 255, 255, 0.1)', borderRadius: 2 }}>
-              <Typography variant="body2" sx={{ mb: 1, opacity: 0.9 }}>
-                {t('dashboard.needHelp')}
-              </Typography>
-              <Button
-                size="small"
-                variant="text"
-                sx={{ 
-                  color: '#ffffff', 
-                  textDecoration: 'underline',
-                  '&:hover': {
-                    bgcolor: 'rgba(255, 255, 255, 0.1)',
-                  }
-                }}
-              >
-                {t('dashboard.viewDocumentation')}
-              </Button>
-            </Box>
           </Box>
         </Paper>
       </Box>

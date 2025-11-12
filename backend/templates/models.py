@@ -312,3 +312,34 @@ class TemplateAsset(models.Model):
     
     def __str__(self):
         return f"{self.template.name} - {self.name}"
+
+
+class CssClassList(models.Model):
+    """Custom CSS class lists for template uniqueness"""
+    name = models.CharField(
+        max_length=255,
+        unique=True,
+        help_text='Unique name for the class list'
+    )
+    classes = models.JSONField(
+        default=list,
+        help_text='List of CSS class names'
+    )
+    is_system = models.BooleanField(
+        default=False,
+        help_text='System lists cannot be deleted (e.g., default lists)'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'css_class_lists'
+        verbose_name = 'CSS Class List'
+        verbose_name_plural = 'CSS Class Lists'
+        indexes = [
+            models.Index(fields=['name']),
+            models.Index(fields=['is_system']),
+        ]
+    
+    def __str__(self):
+        return f"{self.name} ({len(self.classes)} classes)"

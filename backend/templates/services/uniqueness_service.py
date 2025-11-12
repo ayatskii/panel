@@ -4,6 +4,7 @@ import string
 import re
 from typing import Dict, List, Tuple, Optional
 from django.conf import settings
+from django.db import transaction
 import logging
 
 logger = logging.getLogger(__name__)
@@ -12,50 +13,80 @@ logger = logging.getLogger(__name__)
 class TemplateUniquenessService:
     """Service for generating unique CSS classes and styles for templates"""
     
+    # System default lists that should always exist
+    SYSTEM_LISTS = {
+        'list_1': [
+            'btn-primary', 'btn-secondary', 'btn-success', 'btn-danger',
+            'card-header', 'card-body', 'card-footer', 'card-title',
+            'nav-link', 'nav-item', 'navbar-brand', 'navbar-nav',
+            'form-control', 'form-group', 'form-label', 'form-check',
+            'alert-info', 'alert-warning', 'alert-success', 'alert-danger',
+            'badge-primary', 'badge-secondary', 'badge-success', 'badge-info',
+            'text-center', 'text-left', 'text-right', 'text-justify',
+            'd-flex', 'd-block', 'd-inline', 'd-none',
+            'container', 'row', 'col', 'col-sm', 'col-md', 'col-lg'
+        ],
+        'list_2': [
+            'primary-btn', 'secondary-btn', 'success-btn', 'danger-btn',
+            'header-card', 'body-card', 'footer-card', 'title-card',
+            'link-nav', 'item-nav', 'brand-navbar', 'nav-navbar',
+            'control-form', 'group-form', 'label-form', 'check-form',
+            'info-alert', 'warning-alert', 'success-alert', 'danger-alert',
+            'primary-badge', 'secondary-badge', 'success-badge', 'info-badge',
+            'center-text', 'left-text', 'right-text', 'justify-text',
+            'flex-display', 'block-display', 'inline-display', 'none-display',
+            'main-container', 'content-row', 'column', 'small-col', 'medium-col', 'large-col'
+        ],
+        'list_3': [
+            'btn-main', 'btn-alt', 'btn-ok', 'btn-error',
+            'head-card', 'content-card', 'foot-card', 'name-card',
+            'nav-link-item', 'nav-element', 'brand-element', 'nav-container',
+            'input-field', 'field-group', 'field-label', 'checkbox-field',
+            'info-message', 'warning-message', 'success-message', 'error-message',
+            'main-badge', 'alt-badge', 'ok-badge', 'info-badge',
+            'center-align', 'left-align', 'right-align', 'justify-align',
+            'flex-layout', 'block-layout', 'inline-layout', 'hidden-layout',
+            'page-container', 'grid-row', 'grid-col', 'small-grid', 'medium-grid', 'large-grid'
+        ]
+    }
+    
     def __init__(self):
         self.generated_classes = set()
         self.class_mappings = {}
-        self.custom_class_lists = self._load_custom_class_lists()
+        self._system_lists_ensured = False
+    
+    def _ensure_system_lists(self):
+        """Ensure system lists exist in database (lazy initialization)"""
+        if self._system_lists_ensured:
+            return
+        
+        try:
+            from templates.models import CssClassList
+            for name, classes in self.SYSTEM_LISTS.items():
+                CssClassList.objects.get_or_create(
+                    name=name,
+                    defaults={
+                        'classes': classes,
+                        'is_system': True
+                    }
+                )
+            self._system_lists_ensured = True
+        except Exception as e:
+            # Silently fail during migrations/initialization (database might not be ready)
+            logger.debug(f"Could not ensure system lists (this is normal during migrations): {e}")
     
     def _load_custom_class_lists(self) -> Dict[str, List[str]]:
-        """Load custom class lists from settings or database"""
-        # In a real implementation, this would load from database
-        # For now, return some predefined class lists
-        return {
-            'list_1': [
-                'btn-primary', 'btn-secondary', 'btn-success', 'btn-danger',
-                'card-header', 'card-body', 'card-footer', 'card-title',
-                'nav-link', 'nav-item', 'navbar-brand', 'navbar-nav',
-                'form-control', 'form-group', 'form-label', 'form-check',
-                'alert-info', 'alert-warning', 'alert-success', 'alert-danger',
-                'badge-primary', 'badge-secondary', 'badge-success', 'badge-info',
-                'text-center', 'text-left', 'text-right', 'text-justify',
-                'd-flex', 'd-block', 'd-inline', 'd-none',
-                'container', 'row', 'col', 'col-sm', 'col-md', 'col-lg'
-            ],
-            'list_2': [
-                'primary-btn', 'secondary-btn', 'success-btn', 'danger-btn',
-                'header-card', 'body-card', 'footer-card', 'title-card',
-                'link-nav', 'item-nav', 'brand-navbar', 'nav-navbar',
-                'control-form', 'group-form', 'label-form', 'check-form',
-                'info-alert', 'warning-alert', 'success-alert', 'danger-alert',
-                'primary-badge', 'secondary-badge', 'success-badge', 'info-badge',
-                'center-text', 'left-text', 'right-text', 'justify-text',
-                'flex-display', 'block-display', 'inline-display', 'none-display',
-                'main-container', 'content-row', 'column', 'small-col', 'medium-col', 'large-col'
-            ],
-            'list_3': [
-                'btn-main', 'btn-alt', 'btn-ok', 'btn-error',
-                'head-card', 'content-card', 'foot-card', 'name-card',
-                'nav-link-item', 'nav-element', 'brand-element', 'nav-container',
-                'input-field', 'field-group', 'field-label', 'checkbox-field',
-                'info-message', 'warning-message', 'success-message', 'error-message',
-                'main-badge', 'alt-badge', 'ok-badge', 'info-badge',
-                'center-align', 'left-align', 'right-align', 'justify-align',
-                'flex-layout', 'block-layout', 'inline-layout', 'hidden-layout',
-                'page-container', 'grid-row', 'grid-col', 'small-grid', 'medium-grid', 'large-grid'
-            ]
-        }
+        """Load custom class lists from database"""
+        self._ensure_system_lists()  # Ensure system lists exist before loading
+        try:
+            from templates.models import CssClassList
+            lists = {}
+            for css_list in CssClassList.objects.all():
+                lists[css_list.name] = css_list.classes
+            return lists
+        except Exception as e:
+            logger.error(f"Failed to load class lists from database: {e}")
+            return {}
     
     def generate_unique_css_classes(
         self, 
@@ -79,10 +110,11 @@ class TemplateUniquenessService:
             css_classes = self._extract_css_classes(css_content)
             
             # Generate unique class mappings
-            if class_list_name and class_list_name in self.custom_class_lists:
+            custom_class_lists = self._load_custom_class_lists()
+            if class_list_name and class_list_name in custom_class_lists:
                 class_mappings = self._generate_mappings_from_list(
                     css_classes, 
-                    self.custom_class_lists[class_list_name],
+                    custom_class_lists[class_list_name],
                     site_id
                 )
             else:
@@ -227,17 +259,29 @@ class TemplateUniquenessService:
         return self.class_mappings.get(site_id, {})
     
     def get_available_class_lists(self) -> Dict[str, List[str]]:
-        """Get available custom class lists"""
-        return self.custom_class_lists
+        """Get available custom class lists (excluding system lists from deletion)"""
+        return self._load_custom_class_lists()
     
     def create_custom_class_list(self, name: str, classes: List[str]) -> bool:
         """Create a new custom class list"""
+        self._ensure_system_lists()  # Ensure system lists exist
         try:
-            if name in self.custom_class_lists:
+            from templates.models import CssClassList
+            
+            # Check if list already exists
+            if CssClassList.objects.filter(name=name).exists():
                 return False  # List already exists
             
-            self.custom_class_lists[name] = classes
-            # In a real implementation, this would save to database
+            # Don't allow creating lists with system list names
+            if name in self.SYSTEM_LISTS:
+                return False
+            
+            # Create new list
+            CssClassList.objects.create(
+                name=name,
+                classes=classes,
+                is_system=False
+            )
             return True
             
         except Exception as e:
@@ -246,27 +290,42 @@ class TemplateUniquenessService:
     
     def update_custom_class_list(self, name: str, classes: List[str]) -> bool:
         """Update an existing custom class list"""
+        self._ensure_system_lists()  # Ensure system lists exist
         try:
-            if name not in self.custom_class_lists:
-                return False  # List doesn't exist
+            from templates.models import CssClassList
             
-            self.custom_class_lists[name] = classes
-            # In a real implementation, this would save to database
-            return True
+            try:
+                css_list = CssClassList.objects.get(name=name)
+                # Don't allow updating system lists
+                if css_list.is_system:
+                    return False
+                
+                css_list.classes = classes
+                css_list.save()
+                return True
+            except CssClassList.DoesNotExist:
+                return False  # List doesn't exist
             
         except Exception as e:
             logger.error(f"Failed to update custom class list: {e}")
             return False
     
     def delete_custom_class_list(self, name: str) -> bool:
-        """Delete a custom class list"""
+        """Delete a custom class list (only non-system lists)"""
+        self._ensure_system_lists()  # Ensure system lists exist
         try:
-            if name not in self.custom_class_lists:
-                return False  # List doesn't exist
+            from templates.models import CssClassList
             
-            del self.custom_class_lists[name]
-            # In a real implementation, this would save to database
-            return True
+            try:
+                css_list = CssClassList.objects.get(name=name)
+                # Don't allow deleting system lists
+                if css_list.is_system:
+                    return False
+                
+                css_list.delete()
+                return True
+            except CssClassList.DoesNotExist:
+                return False  # List doesn't exist
             
         except Exception as e:
             logger.error(f"Failed to delete custom class list: {e}")

@@ -1497,7 +1497,7 @@ const SettingsPage = () => {
             </Button>
           </Box>
 
-          {classLists && Object.keys(classLists).length > 0 ? (
+          {classLists && classLists.class_lists && Object.keys(classLists.class_lists).length > 0 ? (
             <TableContainer component={Paper} variant="outlined">
               <Table>
                 <TableHead>
@@ -1509,60 +1509,76 @@ const SettingsPage = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {Object.entries(classLists).map(([name, classes]) => (
-                    <TableRow key={name} hover>
-                      <TableCell>
-                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                          {name}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>{classes.length}</TableCell>
-                      <TableCell>
-                        <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', maxWidth: 400 }}>
-                          {classes.slice(0, 5).map((cls, idx) => (
-                            <Chip key={idx} label={cls} size="small" variant="outlined" />
-                          ))}
-                          {classes.length > 5 && (
-                            <Chip label={t('settings.moreClasses', { count: classes.length - 5 })} size="small" />
-                          )}
-                        </Box>
-                      </TableCell>
-                      <TableCell align="right">
-                        <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
-                          <IconButton
-                            size="small"
-                            onClick={() => {
-                              setEditingClassList({ name, classes })
-                              setClassListForm({
-                                name,
-                                classes: classes.join('\n'),
-                              })
-                              setClassListDialogOpen(true)
-                            }}
-                          >
-                            <EditIcon fontSize="small" />
-                          </IconButton>
-                          <IconButton
-                            size="small"
-                            color="error"
-                            onClick={async () => {
-                              if (window.confirm(`Are you sure you want to delete class list "${name}"?`)) {
-                                try {
-                                  await deleteClassList(name).unwrap()
-                                  toast.success(t('settings.classListDeleted'))
-                                  refetchClassLists()
-                                } catch {
-                                  toast.error(t('settings.classListDeleteFailed'))
+                  {Object.entries(classLists.class_lists).map(([name, classes]) => {
+                    const isSystem = classLists.system_lists?.[name] || false
+                    return (
+                      <TableRow key={name} hover>
+                        <TableCell>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                              {name}
+                            </Typography>
+                            {isSystem && (
+                              <Chip label="System" size="small" color="default" variant="outlined" />
+                            )}
+                          </Box>
+                        </TableCell>
+                        <TableCell>{classes.length}</TableCell>
+                        <TableCell>
+                          <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', maxWidth: 400 }}>
+                            {classes.slice(0, 5).map((cls, idx) => (
+                              <Chip key={idx} label={cls} size="small" variant="outlined" />
+                            ))}
+                            {classes.length > 5 && (
+                              <Chip label={t('settings.moreClasses', { count: classes.length - 5 })} size="small" />
+                            )}
+                          </Box>
+                        </TableCell>
+                        <TableCell align="right">
+                          <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+                            <IconButton
+                              size="small"
+                              disabled={isSystem}
+                              onClick={() => {
+                                setEditingClassList({ name, classes })
+                                setClassListForm({
+                                  name,
+                                  classes: classes.join('\n'),
+                                })
+                                setClassListDialogOpen(true)
+                              }}
+                              title={isSystem ? t('settings.systemListCannotBeEdited') : ''}
+                            >
+                              <EditIcon fontSize="small" />
+                            </IconButton>
+                            <IconButton
+                              size="small"
+                              color="error"
+                              disabled={isSystem}
+                              onClick={async () => {
+                                if (window.confirm(`Are you sure you want to delete class list "${name}"?`)) {
+                                  try {
+                                    await deleteClassList(name).unwrap()
+                                    toast.success(t('settings.classListDeleted'))
+                                    refetchClassLists()
+                                  } catch (error: any) {
+                                    toast.error(
+                                      error?.data?.error ||
+                                      error?.data?.detail ||
+                                      t('settings.classListDeleteFailed')
+                                    )
+                                  }
                                 }
-                              }
-                            }}
-                          >
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </Box>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                              }}
+                              title={isSystem ? t('settings.systemListCannotBeDeleted') : ''}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })}
                 </TableBody>
               </Table>
             </TableContainer>
@@ -1579,6 +1595,11 @@ const SettingsPage = () => {
         <DialogTitle>{editingClassList ? t('settings.editCssClassList') : t('settings.addCssClassList')}</DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
+            {editingClassList && classLists?.system_lists?.[editingClassList.name] && (
+              <Alert severity="warning">
+                {t('settings.systemListCannotBeEdited')}
+              </Alert>
+            )}
             <TextField
               label={t('settings.listName')}
               fullWidth
@@ -1586,7 +1607,7 @@ const SettingsPage = () => {
               onChange={(e) => setClassListForm({ ...classListForm, name: e.target.value })}
               required
               placeholder={t('settings.listNamePlaceholder')}
-              disabled={!!editingClassList}
+              disabled={!!editingClassList || (editingClassList && classLists?.system_lists?.[editingClassList.name])}
               helperText={editingClassList ? t('settings.listNameHelperEdit') : t('settings.listNameHelper')}
             />
             <TextField
@@ -1597,6 +1618,7 @@ const SettingsPage = () => {
               value={classListForm.classes}
               onChange={(e) => setClassListForm({ ...classListForm, classes: e.target.value })}
               required
+              disabled={editingClassList && classLists?.system_lists?.[editingClassList.name]}
               placeholder={t('settings.cssClassesPlaceholder')}
               helperText={t('settings.cssClasses')}
               InputProps={{
@@ -1627,6 +1649,11 @@ const SettingsPage = () => {
                 }
 
                 if (editingClassList) {
+                  // Check if it's a system list
+                  if (classLists?.system_lists?.[editingClassList.name]) {
+                    toast.error(t('settings.systemListCannotBeEdited'))
+                    return
+                  }
                   await updateClassList({
                     name: classListForm.name,
                     classes: classesArray,
@@ -1645,7 +1672,11 @@ const SettingsPage = () => {
                 toast.error(error?.data?.error || error?.data?.detail || t('settings.classListSaveFailed'))
               }
             }}
-            disabled={!classListForm.name || !classListForm.classes.trim()}
+            disabled={
+              !classListForm.name ||
+              !classListForm.classes.trim() ||
+              (editingClassList && classLists?.system_lists?.[editingClassList.name])
+            }
           >
             {editingClassList ? t('common.update') : t('common.create')}
           </Button>

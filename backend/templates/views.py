@@ -122,8 +122,18 @@ class TemplateViewSet(viewsets.ModelViewSet):
     def class_lists(self, request):
         """Get available custom class lists"""
         try:
-            class_lists = template_uniqueness_service.get_available_class_lists()
-            return Response({'class_lists': class_lists})
+            from templates.models import CssClassList
+            class_lists = {}
+            system_lists = {}
+            
+            for css_list in CssClassList.objects.all():
+                class_lists[css_list.name] = css_list.classes
+                system_lists[css_list.name] = css_list.is_system
+            
+            return Response({
+                'class_lists': class_lists,
+                'system_lists': system_lists
+            })
             
         except Exception as e:
             return Response(
@@ -201,13 +211,24 @@ class TemplateViewSet(viewsets.ModelViewSet):
             )
         
         try:
+            from templates.models import CssClassList
+            try:
+                css_list = CssClassList.objects.get(name=name)
+                if css_list.is_system:
+                    return Response(
+                        {'error': 'Cannot delete system class lists'}, 
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+            except CssClassList.DoesNotExist:
+                pass
+            
             success = template_uniqueness_service.delete_custom_class_list(name)
             
             if success:
                 return Response({'message': 'Class list deleted successfully'})
             else:
                 return Response(
-                    {'error': 'Class list does not exist'}, 
+                    {'error': 'Class list does not exist or cannot be deleted'}, 
                     status=status.HTTP_404_NOT_FOUND
                 )
                 

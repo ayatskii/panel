@@ -553,7 +553,9 @@
     "classesCount": "Classes Count",
     "preview": "Preview",
     "managePresets": "Manage Presets",
-    "cssClassesTip": "Tip: Enter one CSS class name per line. These classes will be used for template uniqueness instead of random generation."
+    "cssClassesTip": "Tip: Enter one CSS class name per line. These classes will be used for template uniqueness instead of random generation.",
+    "systemListCannotBeEdited": "System lists cannot be edited.",
+    "systemListCannotBeDeleted": "System lists cannot be deleted."
   },
   "analytics": {
     "title": "Analytics",

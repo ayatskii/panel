@@ -111,9 +111,18 @@ export const templatesApi = apiSlice.injectEndpoints({
     }),
     
     // CSS Class Lists Management
-    getClassLists: builder.query<Record<string, string[]>, void>({
+    getClassLists: builder.query<
+      { class_lists: Record<string, string[]>; system_lists: Record<string, boolean> },
+      void
+    >({
       query: () => '/templates/class_lists/',
-      transformResponse: (response: { class_lists: Record<string, string[]> }) => response.class_lists || {},
+      transformResponse: (response: {
+        class_lists: Record<string, string[]>;
+        system_lists: Record<string, boolean>;
+      }) => ({
+        class_lists: response.class_lists || {},
+        system_lists: response.system_lists || {},
+      }),
       providesTags: ['ClassList'],
     }),
     createClassList: builder.mutation<{ message: string }, { name: string; classes: string[] }>({

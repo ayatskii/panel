@@ -8,7 +8,8 @@ from .models import (
     TemplateFootprint,
     TemplateVariable,
     TemplateSection,
-    TemplateAsset
+    TemplateAsset,
+    CssClassList
 )
 
 
@@ -202,3 +203,33 @@ class TemplateAssetAdmin(admin.ModelAdmin):
     list_filter = ['asset_type', 'auto_generate_formats', 'created_at']
     search_fields = ['name', 'template__name']
     readonly_fields = ['created_at']
+
+
+@admin.register(CssClassList)
+class CssClassListAdmin(admin.ModelAdmin):
+    list_display = ['name', 'is_system', 'classes_count', 'created_at', 'updated_at']
+    list_filter = ['is_system', 'created_at']
+    search_fields = ['name']
+    readonly_fields = ['created_at', 'updated_at']
+    
+    formfield_overrides = {
+        models.JSONField: {'widget': JSONEditorWidget},
+    }
+    
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('name', 'is_system')
+        }),
+        ('CSS Classes', {
+            'fields': ('classes',),
+            'description': 'List of CSS class names (one per array element)'
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def classes_count(self, obj):
+        return len(obj.classes) if obj.classes else 0
+    classes_count.short_description = 'Classes Count'

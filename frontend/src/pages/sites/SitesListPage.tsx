@@ -133,16 +133,9 @@ const SitesListPage = () => {
 
       {filteredSites.length === 0 ? (
         <Paper sx={{ p: 4, textAlign: 'center' }}>
-          <Typography color="textSecondary" sx={{ mb: 2 }}>
+          <Typography color="textSecondary">
             {t('sites.noSitesFound')}
           </Typography>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => navigate('/sites/create')}
-          >
-            {t('sites.createFirstSite')}
-          </Button>
         </Paper>
       ) : (
         <Box
